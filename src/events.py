@@ -47,7 +47,7 @@ def _fill_missing(values: Sequence[float | None], default: float = 0.0) -> list[
     return out
 
 
-def _moving_average(values: Sequence[float], window: int = 7) -> np.ndarray:
+def _moving_average(values: Sequence[float], window: int = 3) -> np.ndarray:
     arr = np.array(values, dtype=float)
     if len(arr) < window or window <= 1:
         return arr
@@ -82,6 +82,25 @@ def _window_stats(series: Sequence[float | None], start: int, end: int) -> tuple
     return mean_val, rom_val
 
 
+def _vel_peaks(
+    vel_seq: Sequence[float | None],
+    fps: float,
+    min_distance: int,
+    min_vel_threshold: float,
+) -> list[int]:
+    """Find peaks in absolute knee velocity — used as supplementary kick candidates."""
+    abs_vel = np.array([abs(float(v)) if v is not None else 0.0 for v in vel_seq])
+    smoothed = _moving_average(abs_vel, window=max(3, int(fps * 0.05)))
+    peaks = _local_maxima(smoothed, threshold=min_vel_threshold)
+    # distance suppression
+    selected: list[int] = []
+    for p in sorted(peaks, key=lambda x: smoothed[x], reverse=True):
+        if any(abs(p - s) < min_distance for s in selected):
+            continue
+        selected.append(p)
+    return sorted(selected)
+
+
 def detect_movement_events(
     right_knee_angles: Sequence[float | None],
     left_knee_angles: Sequence[float | None],
@@ -98,15 +117,19 @@ def detect_movement_events(
     min_knee_rom_deg: float = 20.0,
     min_peak_kick_height_norm: float = -0.3,
     confidence_series: Sequence[float | None] | None = None,
+    vel_assist_threshold: float = 150.0,
 ) -> list[dict[str, float | int | str | None]]:
     """Detect multi-kick/movement events and return per-event metrics.
 
-    Kick validation criteria (applied after initial peak detection):
-    - min_knee_rom_deg: active knee must show at least this much ROM.
-      Filters out weight-shifts and stance changes (typically <5°).
-    - min_peak_kick_height_norm: peak smoothed height must be above this.
-      Filters out events where the foot never actually rises toward hip level.
-      Typical kicking height is >0; set to -0.3 to allow low kicks.
+    Detection uses two complementary signals:
+    1. Normalized foot height peaks (primary) — reliable for high/mid kicks
+    2. Knee angular velocity peaks (supplementary) — catches fast kicks where
+       foot height peak is too brief to survive smoothing
+
+    Kick validation:
+    - min_knee_rom_deg: knee must flex→extend at least this much
+    - min_peak_kick_height_norm: foot must rise to at least this height
+    - vel_assist_threshold: min peak knee velocity (°/s) for velocity-assisted candidates
     """
     n = max(len(right_knee_angles), len(left_knee_angles), len(right_kick_heights), len(left_kick_heights))
     if n == 0:
@@ -117,26 +140,65 @@ def detect_movement_events(
     rh = list(right_kick_heights)
     lh = list(left_kick_heights)
     active_height_raw = [_nmax(rh[i] if i < len(rh) else None, lh[i] if i < len(lh) else None) for i in range(n)]
-    active_height = _fill_missing(active_height_raw, default=0.0)
-    smoothed = _moving_average(active_height, window=7)
+
+    # Gap-fill: when pose is lost for a short burst (spinning, occlusion),
+    # hold the last valid height instead of dropping to 0.
+    # Max gap = 0.4s — longer gaps are real "foot down" moments.
+    max_gap_frames = max(1, int(fps * 0.4))
+    active_height_gapfilled: list[float] = []
+    last_valid: float = 0.0
+    gap_count: int = 0
+    for v in active_height_raw:
+        if v is not None:
+            active_height_gapfilled.append(float(v))
+            last_valid = float(v)
+            gap_count = 0
+        else:
+            gap_count += 1
+            if gap_count <= max_gap_frames:
+                active_height_gapfilled.append(last_valid)
+            else:
+                active_height_gapfilled.append(0.0)
+
+    active_height = active_height_gapfilled
+
+    # FPS-adaptive smoothing: ~2 frames at any FPS — preserves fast-kick peaks
+    smooth_win = max(3, int(fps * 0.07))
+    if smooth_win % 2 == 0:
+        smooth_win += 1
+    smoothed = _moving_average(active_height, window=smooth_win)
 
     baseline = float(np.percentile(smoothed, 40))
     top = float(np.percentile(smoothed, 95))
-    if (top - baseline) < min_peak_prominence_norm:
-        return []
 
     peak_threshold = baseline + min_peak_prominence_norm
-    candidates = _local_maxima(smoothed, threshold=peak_threshold)
-    if not candidates:
-        return []
+    candidates: list[int] = []
+    if (top - baseline) >= min_peak_prominence_norm:
+        candidates = _local_maxima(smoothed, threshold=peak_threshold)
 
     min_distance = max(1, int(min_distance_sec * fps))
     min_frames = max(1, int(min_duration_sec * fps))
     max_frames = max(min_frames, int(max_duration_sec * fps))
 
-    # Keep strongest peaks first with distance suppression.
+    # ── Velocity-assisted supplementary candidates ────────────────────────────
+    # For fast kicks, foot height peak may be missed by smoothing.
+    # High knee velocity is a reliable secondary signal.
+    if velocity_series:
+        for vel_key in ("R_KNEE_vel", "L_KNEE_vel"):
+            vel_seq = velocity_series.get(vel_key, [])
+            if vel_seq:
+                vel_cands = _vel_peaks(vel_seq, fps, min_distance, vel_assist_threshold)
+                for vc in vel_cands:
+                    # Only add if not already near a height candidate
+                    if not any(abs(vc - c) < min_distance for c in candidates):
+                        candidates.append(vc)
+
+    if not candidates:
+        return []
+
+    # Keep strongest height peaks first with distance suppression
     selected: list[int] = []
-    for p in sorted(candidates, key=lambda x: smoothed[x], reverse=True):
+    for p in sorted(candidates, key=lambda x: float(smoothed[x]), reverse=True):
         if any(abs(p - s) < min_distance for s in selected):
             continue
         selected.append(p)
@@ -145,10 +207,10 @@ def detect_movement_events(
     events: list[dict[str, float | int | str | None]] = []
     for kick_id, p in enumerate(selected, start=1):
         amplitude = float(smoothed[p] - baseline)
-        if amplitude < min_peak_prominence_norm:
-            continue
 
-        enter_threshold = baseline + amplitude * 0.25
+        # For velocity-assisted candidates amplitude may be low — use a relaxed threshold
+        enter_threshold = baseline + max(amplitude * 0.25, min_peak_prominence_norm * 0.3)
+
         start = p
         while start > 0 and smoothed[start] >= enter_threshold:
             start -= 1
@@ -161,12 +223,18 @@ def detect_movement_events(
         if smoothed[end] < enter_threshold and end > p:
             end -= 1
 
+        # Expand window slightly for very fast kicks (< min_frames)
         duration = end - start + 1
+        if duration < min_frames:
+            expand = (min_frames - duration) // 2
+            start = max(0, start - expand)
+            end = min(n - 1, end + expand)
+            duration = end - start + 1
+
         if duration < min_frames or duration > max_frames:
             continue
 
-        # ── Quick pre-checks before computing full metrics ────────────────
-        # 1. Peak height: foot must actually rise toward hip level
+        # ── Peak height check ─────────────────────────────────────────────────
         if float(smoothed[p]) < min_peak_kick_height_norm:
             continue
 
@@ -182,12 +250,25 @@ def detect_movement_events(
             active_leg = "L"
             active_knee_series = lk
 
+        # For velocity-assisted candidates: try both legs, pick one with higher ROM
+        if active_leg == "UNK" and velocity_series:
+            r_slice = rk[start : end + 1]
+            l_slice = lk[start : end + 1]
+            r_rom = float(np.max(r_slice) - np.min(r_slice))
+            l_rom = float(np.max(l_slice) - np.min(l_slice))
+            if l_rom > r_rom:
+                active_leg = "L"
+                active_knee_series = lk
+            else:
+                active_leg = "R"
+                active_knee_series = rk
+
         active_slice = active_knee_series[start : end + 1]
         peak_knee = float(np.max(active_slice))
         min_knee = float(np.min(active_slice))
         knee_rom = peak_knee - min_knee
 
-        # 2. Knee ROM: must show real flexion→extension cycle
+        # ── Knee ROM check ────────────────────────────────────────────────────
         if knee_rom < min_knee_rom_deg:
             continue
 
@@ -225,7 +306,6 @@ def detect_movement_events(
                 if abs_vel_window:
                     row["active_peak_knee_vel_deg_s"] = round(max(abs_vel_window), 4)
                     row["active_mean_knee_vel_deg_s"] = round(float(np.mean(abs_vel_window)), 4)
-                    # time-to-peak-velocity: explosiveness indicator
                     peak_offset = int(np.argmax(abs_vel_window))
                     row["time_to_peak_knee_vel_sec"] = round(peak_offset / fps, 4)
                 else:
@@ -256,8 +336,6 @@ def detect_movement_events(
                 row["active_mean_foot_speed_norm"] = None
 
         # --- Kick phase segmentation ---
-        # chamber_frame: max flexion (min knee angle) — end of loading
-        # extension_frame: max extension (max knee angle after chamber) — impact point
         chamber_offset = int(np.argmin(active_slice))
         chamber_frame  = start + chamber_offset
         post_chamber   = active_slice[chamber_offset:]
@@ -268,15 +346,15 @@ def detect_movement_events(
         extension_dur  = (extension_frame - chamber_frame)  / fps
         retraction_dur = (end             - extension_frame) / fps
 
-        row["chamber_frame"]     = int(chamber_frame)
-        row["chamber_time_sec"]  = round(chamber_frame / fps, 4)
-        row["extension_frame"]   = int(extension_frame)
+        row["chamber_frame"]      = int(chamber_frame)
+        row["chamber_time_sec"]   = round(chamber_frame / fps, 4)
+        row["extension_frame"]    = int(extension_frame)
         row["extension_time_sec"] = round(extension_frame / fps, 4)
         row["loading_dur_sec"]    = round(loading_dur, 4)
         row["extension_dur_sec"]  = round(extension_dur, 4)
         row["retraction_dur_sec"] = round(retraction_dur, 4)
 
-        # Phase velocities (peak absolute knee velocity within each phase window)
+        # Phase velocities
         if velocity_series:
             vel_key = "R_KNEE_vel" if active_leg in ("R", "UNK") else "L_KNEE_vel"
             vel_seq = velocity_series.get(vel_key, [])
@@ -293,7 +371,7 @@ def detect_movement_events(
         else:
             row["loading_peak_vel_deg_s"] = row["extension_peak_vel_deg_s"] = row["retraction_peak_vel_deg_s"] = None
 
-        # --- Bilateral Asymmetry Index (ROM-based) ---
+        # --- Bilateral Asymmetry Index ---
         r_knee_rom = row.get("R_KNEE_rom")
         l_knee_rom = row.get("L_KNEE_rom")
         r_hip_rom  = row.get("R_HIP_rom")
@@ -308,7 +386,7 @@ def detect_movement_events(
         row["knee_asi"] = _asi(r_knee_rom, l_knee_rom)
         row["hip_asi"]  = _asi(r_hip_rom,  l_hip_rom)
 
-        # --- Pose confidence for this kick window ---
+        # --- Pose confidence ---
         if confidence_series:
             conf_window = [float(v) for v in confidence_series[start:end + 1] if v is not None]
             if conf_window:
@@ -323,7 +401,7 @@ def detect_movement_events(
 
         events.append(row)
 
-    # Merge overlapping segments by taking higher peak height.
+    # Merge overlapping segments
     if not events:
         return []
     merged: list[dict[str, float | int | str | None]] = []
@@ -338,7 +416,6 @@ def detect_movement_events(
         else:
             merged.append(ev)
 
-    # Re-number kick ids after merge.
     for i, ev in enumerate(merged, start=1):
         ev["kick_id"] = i
     return merged

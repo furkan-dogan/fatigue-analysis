@@ -9,7 +9,7 @@ from typing import Callable
 import cv2
 import numpy as np
 
-from src.draw import draw_joint_angle_panel, draw_pose
+from src.draw import draw_joint_angle_panel, draw_pose, draw_pose_from_keypoints
 from src.events import JOINT_KEYS, detect_movement_events
 from src.exporter import write_event_metrics_csv, write_frame_metrics_csv
 from src.metrics import (
@@ -21,25 +21,7 @@ from src.metrics import (
     compute_torso_length,
     summarize_knee_angles,
 )
-
-# MediaPipe landmark indices for key lower-body joints used in kick analysis
-_KEY_LANDMARK_INDICES = [
-    11, 12,  # shoulders
-    23, 24,  # hips
-    25, 26,  # knees
-    27, 28,  # ankles
-    31, 32,  # foot indices
-]
-
-
-def _frame_confidence(pose_landmarks: object | None) -> float | None:
-    """Mean visibility of key lower-body landmarks for this frame (0–1)."""
-    if pose_landmarks is None:
-        return None
-    lms = pose_landmarks.landmark  # type: ignore[union-attr]
-    vals = [lms[i].visibility for i in _KEY_LANDMARK_INDICES if i < len(lms)]
-    return float(sum(vals) / len(vals)) if vals else None
-from src.pose_runner import MediaPipePoseRunner
+from src.pose_runner import MediaPipePoseRunner, YOLOPoseRunner
 
 
 @dataclass
@@ -71,6 +53,9 @@ def run_analysis(
     event_min_knee_rom_deg: float = 20.0,
     event_min_peak_kick_height_norm: float = -0.3,
     progress_callback: Callable[[int, int], None] | None = None,
+    backend: str = "mediapipe",
+    yolo_model: str = "yolo11n-pose.pt",
+    vel_assist_threshold: float = 150.0,
 ) -> AnalysisResult:
     """Run full pose-analysis pipeline on a single video.
 
@@ -82,6 +67,9 @@ def run_analysis(
         show_joint_labels: Overlay joint label text on video.
         event_*: Kick-event detection parameters.
         progress_callback: Optional callable(current_frame, total_frames) for UI progress bars.
+        backend: Pose backend — "mediapipe" (default) or "yolo".
+        yolo_model: YOLO model filename, e.g. "yolo11n-pose.pt" or "yolov8n-pose.pt".
+                    Downloaded automatically on first use.
 
     Returns:
         AnalysisResult with all computed data.
@@ -115,7 +103,11 @@ def run_analysis(
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
-    runner = MediaPipePoseRunner()
+    if backend == "yolo":
+        runner: MediaPipePoseRunner | YOLOPoseRunner = YOLOPoseRunner(model_name=yolo_model)
+    else:
+        runner = MediaPipePoseRunner()
+    use_yolo = isinstance(runner, YOLOPoseRunner)
     total_frames = 0
 
     # Accumulate time-series for post-loop analytics
@@ -163,7 +155,7 @@ def run_analysis(
                 else:
                     active_height = left_height
 
-            conf = _frame_confidence(pose_landmarks)
+            conf = runner.get_confidence(pose_landmarks)
             for joint_key in JOINT_KEYS:
                 joint_series[joint_key].append(angle_map[joint_key])
             knee_angles_r.append(angle_map["R_KNEE"])
@@ -187,7 +179,10 @@ def run_analysis(
                 }
             )
 
-            draw_pose(frame, pose_landmarks, show_joint_labels=show_joint_labels)
+            if use_yolo:
+                draw_pose_from_keypoints(frame, keypoints, show_joint_labels=show_joint_labels)
+            else:
+                draw_pose(frame, pose_landmarks, show_joint_labels=show_joint_labels)
             draw_joint_angle_panel(frame, angle_map)
             writer.write(frame)
             total_frames += 1
@@ -245,6 +240,7 @@ def run_analysis(
         min_knee_rom_deg=event_min_knee_rom_deg,
         min_peak_kick_height_norm=event_min_peak_kick_height_norm,
         confidence_series=confidence_series,
+        vel_assist_threshold=vel_assist_threshold,
     )
 
     # ── Export ────────────────────────────────────────────────────────────────

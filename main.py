@@ -20,6 +20,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--event-max-duration-sec", type=float, default=6.0)
     parser.add_argument("--event-min-knee-rom-deg", type=float, default=20.0, help="Min knee ROM for a valid kick (deg)")
     parser.add_argument("--event-min-peak-height", type=float, default=-0.3, help="Min normalized kick height at peak")
+    parser.add_argument("--backend", default="mediapipe", choices=["mediapipe", "yolo"], help="Pose backend")
+    parser.add_argument("--yolo-model", default="yolo11n-pose.pt", help="YOLO model filename (e.g. yolo11n-pose.pt)")
     return parser.parse_args()
 
 
@@ -38,6 +40,8 @@ def main() -> None:
         event_max_duration_sec=args.event_max_duration_sec,
         event_min_knee_rom_deg=args.event_min_knee_rom_deg,
         event_min_peak_kick_height_norm=args.event_min_peak_height,
+        backend=args.backend,
+        yolo_model=args.yolo_model,
     )
 
     print(f"Analiz tamam. Toplam frame: {result.total_frames}  FPS: {result.fps:.1f}")

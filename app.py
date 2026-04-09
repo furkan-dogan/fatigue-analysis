@@ -15,6 +15,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+# Check optional deps once at startup
+try:
+    import ultralytics  # noqa: F401
+    _YOLO_AVAILABLE = True
+except ImportError:
+    _YOLO_AVAILABLE = False
+
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Kickboks Yorgunluk Analizi",
@@ -315,6 +322,23 @@ if page == "Tek Video Analizi":
 
     # ── Sidebar params ────────────────────────────────────────────────────────
     st.sidebar.subheader("Parametreler")
+    _backend_opts = ["mediapipe", "yolo"] if _YOLO_AVAILABLE else ["mediapipe"]
+    backend = st.sidebar.selectbox(
+        "Pose backend",
+        _backend_opts,
+        index=0,
+        help="MediaPipe: hızlı, 33 nokta, kurulumu kolay.\n"
+             "YOLO: 17 COCO nokta, hızlı tekmelerde daha kararlı tracking — "
+             "ilk çalıştırmada model (~6 MB) indirilir."
+             + ("" if _YOLO_AVAILABLE else "\n\n⚠️ YOLO için: pip install ultralytics"),
+    )
+    yolo_model = st.sidebar.selectbox(
+        "YOLO model",
+        ["yolo11n-pose.pt", "yolo11s-pose.pt", "yolov8n-pose.pt", "yolov8s-pose.pt"],
+        index=0,
+        help="n=nano (en hızlı), s=small (daha doğru). İlk kullanımda indirilir.",
+        disabled=(backend != "yolo"),
+    )
     show_labels = st.sidebar.checkbox(
         "Eklem etiketleri", value=False,
         help="Annotated videoda her eklemin üstüne kısa isim yazar (R_KNE, L_ANK vb.). "
@@ -326,7 +350,7 @@ if page == "Tek Video Analizi":
              "Düşürürsen küçük hareketler de event olur; artırırsan yalnızca net yüksek tekmeler yakalanır.",
     )
     min_dist = st.sidebar.slider(
-        "Min peak mesafe (sn)", 0.2, 1.5, 0.4, 0.05,
+        "Min peak mesafe (sn)", 0.2, 1.5, 0.3, 0.05,
         help="İki ayrı tekme arasındaki minimum süre. "
              "Hızlı kombinasyon varsa düşür (0.2 sn); tek tekme alıştırması ise yüksek tut.",
     )
@@ -355,6 +379,13 @@ if page == "Tek Video Analizi":
              "−0.3 = kalçanın biraz altı (düşük tekme)\n"
              "−1.0 = neredeyse yerde (filtre kapalı)\n\n"
              "Atılan tekme alçaksa −0.5'e çekin.",
+    )
+    vel_assist = st.sidebar.slider(
+        "Hız yardımı eşiği (°/s)", 50, 500, 100, 25,
+        help="Diz açısal hızı bu değeri geçen anlarda tekme adayı oluşturulur.\n\n"
+             "Hızlı tekmeleri yakalayan ikincil sinyal — ayak yüksekliği sinyali kaçırdığında devreye girer.\n\n"
+             "Düşürürsen çok hassas olur (duruş değişiklikleri de yakalanabilir).\n"
+             "Artırırsan sadece patlayıcı hızlı tekmelerde aktif olur.",
     )
 
     # ── Upload ────────────────────────────────────────────────────────────────
@@ -392,6 +423,9 @@ if page == "Tek Video Analizi":
                     event_min_knee_rom_deg=float(min_knee_rom),
                     event_min_peak_kick_height_norm=float(min_peak_height),
                     progress_callback=_progress,
+                    backend=backend,
+                    yolo_model=yolo_model,
+                    vel_assist_threshold=float(vel_assist),
                 )
                 progress_bar.progress(100, text="Tamamlandı!")
             except Exception as exc:
@@ -595,7 +629,41 @@ if page == "Tek Video Analizi":
                                 font=dict(color="#fafafa"),
                                 legend=dict(orientation="h", y=-0.4, font=dict(size=10)),
                             )
-                            st.plotly_chart(fig_kick, use_container_width=True)
+
+                            vcol, gcol = st.columns([1, 1])
+                            with gcol:
+                                st.plotly_chart(fig_kick, use_container_width=True)
+                            with vcol:
+                                clip_path = tmp / f"clip_{kid}.mp4"
+                                if not clip_path.exists():
+                                    import cv2 as _cv2
+                                    try:
+                                        cap_c = _cv2.VideoCapture(str(output_path))
+                                        fps_c = cap_c.get(_cv2.CAP_PROP_FPS) or 30.0
+                                        w_c = int(cap_c.get(_cv2.CAP_PROP_FRAME_WIDTH))
+                                        h_c = int(cap_c.get(_cv2.CAP_PROP_FRAME_HEIGHT))
+                                        fcc = _cv2.VideoWriter_fourcc(*"avc1")
+                                        wri_c = _cv2.VideoWriter(str(clip_path), fcc, fps_c, (w_c, h_c))
+                                        if not wri_c.isOpened():
+                                            fcc = _cv2.VideoWriter_fourcc(*"mp4v")
+                                            wri_c = _cv2.VideoWriter(str(clip_path), fcc, fps_c, (w_c, h_c))
+                                        pad_c = 0.4
+                                        f0 = max(0, int((t_start - pad_c) * fps_c))
+                                        f1 = int((t_end + pad_c) * fps_c)
+                                        cap_c.set(_cv2.CAP_PROP_POS_FRAMES, f0)
+                                        for _ in range(f1 - f0 + 1):
+                                            ok_c, fr_c = cap_c.read()
+                                            if not ok_c:
+                                                break
+                                            wri_c.write(fr_c)
+                                        cap_c.release()
+                                        wri_c.release()
+                                    except Exception:
+                                        pass
+                                if clip_path.exists() and clip_path.stat().st_size > 1000:
+                                    st.video(str(clip_path))
+                                else:
+                                    st.video(str(output_path), start_time=int(t_start))
                 elif df.empty:
                     st.warning("Önce analiz çalıştırın.")
                 else:
@@ -610,6 +678,24 @@ elif page == "Çift Video Analizi":
 
     # ── Sidebar params ────────────────────────────────────────────────────────
     st.sidebar.subheader("Analiz Parametreleri")
+    dv_backend = st.sidebar.selectbox(
+        "Pose backend",
+        ["mediapipe", "yolo"] if _YOLO_AVAILABLE else ["mediapipe"],
+        index=0,
+        key="dv_backend",
+        help="MediaPipe: hızlı, 33 nokta, kurulumu kolay.\n"
+             "YOLO: 17 COCO nokta, hızlı tekmelerde daha kararlı tracking — "
+             "ilk çalıştırmada model (~6 MB) indirilir."
+             + ("" if _YOLO_AVAILABLE else "\n\n⚠️ YOLO için: pip install ultralytics"),
+    )
+    dv_yolo_model = st.sidebar.selectbox(
+        "YOLO model",
+        ["yolo11n-pose.pt", "yolo11s-pose.pt", "yolov8n-pose.pt", "yolov8s-pose.pt"],
+        index=0,
+        key="dv_yolo_model",
+        help="n=nano (en hızlı), s=small (daha doğru). İlk kullanımda indirilir.",
+        disabled=(dv_backend != "yolo"),
+    )
     dv_show_labels = st.sidebar.checkbox(
         "Eklem etiketleri", value=False, key="dv_labels",
         help="Annotated videoda her eklemin üstüne kısa isim yazar (R_KNE, L_ANK vb.). "
@@ -621,7 +707,7 @@ elif page == "Çift Video Analizi":
              "Düşürürsen küçük hareketler de event olur; artırırsan yalnızca net yüksek tekmeler yakalanır.",
     )
     dv_min_dist = st.sidebar.slider(
-        "Min peak mesafe (sn)", 0.2, 1.5, 0.4, 0.05, key="dv_dist",
+        "Min peak mesafe (sn)", 0.2, 1.5, 0.3, 0.05, key="dv_dist",
         help="İki ayrı tekme arasındaki minimum süre. "
              "Hızlı kombinasyon varsa düşür (0.2 sn); tek tekme alıştırması ise yüksek tut.",
     )
@@ -649,6 +735,11 @@ elif page == "Çift Video Analizi":
              "−0.3 = kalçanın biraz altı (düşük tekme)\n"
              "−1.0 = neredeyse yerde (filtre kapalı)\n\n"
              "Atılan tekme alçaksa −0.5'e çekin.",
+    )
+    dv_vel_assist = st.sidebar.slider(
+        "Hız yardımı eşiği (°/s)", 50, 500, 100, 25, key="dv_vel_assist",
+        help="Diz açısal hızı bu değeri geçen anlarda tekme adayı oluşturulur.\n\n"
+             "Hızlı tekmeleri yakalayan ikincil sinyal — ayak yüksekliği sinyali kaçırdığında devreye girer.",
     )
 
     # ── Upload ────────────────────────────────────────────────────────────────
@@ -706,6 +797,9 @@ elif page == "Çift Video Analizi":
                 event_max_duration_sec=dv_max_dur,
                 event_min_knee_rom_deg=float(dv_min_rom),
                 event_min_peak_kick_height_norm=float(dv_min_height),
+                backend=dv_backend,
+                yolo_model=dv_yolo_model,
+                vel_assist_threshold=float(dv_vel_assist),
             )
             pre_res  = run_analysis(pre_in,  pre_out,  pre_fcsv,  pre_ecsv,  progress_callback=_prog_pre,  **kw)
             post_res = run_analysis(post_in, post_out, post_fcsv, post_ecsv, progress_callback=_prog_post, **kw)
@@ -737,10 +831,10 @@ elif page == "Çift Video Analizi":
     fi = fatigue_data["fatigue_index"]
 
     h1, h2, h3, h4, h5 = st.columns(5)
-    h1.metric("Pre tekme sayısı",  pre_res.total_frames,  delta=None)
-    h1.metric("",                  f"{len(pre_events)} tekme")
-    h2.metric("Post tekme sayısı", post_res.total_frames, delta=None)
-    h2.metric("",                  f"{len(post_events)} tekme")
+    h1.metric("Pre — Tespit Edilen Tekme", len(pre_events))
+    h1.metric("Pre — Toplam Frame", pre_res.total_frames)
+    h2.metric("Post — Tespit Edilen Tekme", len(post_events))
+    h2.metric("Post — Toplam Frame", post_res.total_frames)
 
     pre_mean_vel  = _events_mean(pre_events,  "active_peak_knee_vel_deg_s")
     post_mean_vel = _events_mean(post_events, "active_peak_knee_vel_deg_s")
@@ -840,6 +934,8 @@ elif page == "Çift Video Analizi":
             for key, m in mets.items():
                 if m["pre"] is None or m["post"] is None:
                     continue
+                if m["pct"] is None:
+                    continue
                 trend = "▲" if m["pct"] > 0 else "▼"
                 is_fatigue = (m["direction"] * m["pct"]) > 0
                 rows_ft.append({
@@ -896,21 +992,103 @@ elif page == "Çift Video Analizi":
                 use_container_width=True,
             )
 
-        # Full tables
-        ec1, ec2 = st.columns(2)
+        st.divider()
+
+        # ── Kick detail cards with video jump ────────────────────────────────
         disp_cols = ["kick_id", "active_leg", "duration_sec", "active_knee_rom_deg",
                      "active_peak_knee_vel_deg_s", "time_to_peak_knee_vel_sec",
                      "peak_kick_height_norm", "active_peak_foot_speed_norm"]
-        with ec1:
-            st.markdown("**Pre tekmeleri**")
-            if pre_events:
-                pre_ev_df = pd.DataFrame(pre_events)
-                st.dataframe(pre_ev_df[[c for c in disp_cols if c in pre_ev_df.columns]].set_index("kick_id"), use_container_width=True)
-        with ec2:
-            st.markdown("**Post tekmeleri**")
-            if post_events:
-                post_ev_df = pd.DataFrame(post_events)
-                st.dataframe(post_ev_df[[c for c in disp_cols if c in post_ev_df.columns]].set_index("kick_id"), use_container_width=True)
+
+        def _trim_clip(src: Path, start: float, end: float, out: Path) -> bool:
+            """Cut [start, end] seconds from src using OpenCV. Returns True on success."""
+            try:
+                import cv2 as _cv2
+                cap = _cv2.VideoCapture(str(src))
+                fps_v = cap.get(_cv2.CAP_PROP_FPS) or 30.0
+                w = int(cap.get(_cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(cap.get(_cv2.CAP_PROP_FRAME_HEIGHT))
+                fourcc = _cv2.VideoWriter_fourcc(*"avc1")
+                writer = _cv2.VideoWriter(str(out), fourcc, fps_v, (w, h))
+                if not writer.isOpened():
+                    fourcc = _cv2.VideoWriter_fourcc(*"mp4v")
+                    writer = _cv2.VideoWriter(str(out), fourcc, fps_v, (w, h))
+                pad = 0.4  # seconds before/after kick
+                f_start = max(0, int((start - pad) * fps_v))
+                f_end   = int((end + pad) * fps_v)
+                cap.set(_cv2.CAP_PROP_POS_FRAMES, f_start)
+                for _ in range(f_end - f_start + 1):
+                    ok, frame = cap.read()
+                    if not ok:
+                        break
+                    writer.write(frame)
+                cap.release()
+                writer.release()
+                return out.exists() and out.stat().st_size > 1000
+            except Exception:
+                return False
+
+        def _kick_video_section(events_list: list[dict], video_path: str, label: str, tmp_dir: Path | None) -> None:
+            st.markdown(f"#### {label}")
+            if not events_list:
+                st.info("Tekme tespit edilemedi.")
+                return
+
+            ev_df = pd.DataFrame(events_list)
+            st.dataframe(
+                ev_df[[c for c in disp_cols if c in ev_df.columns]].set_index("kick_id"),
+                use_container_width=True,
+            )
+
+            vid_path = Path(video_path)
+
+            for ev in events_list:
+                kid = int(ev["kick_id"])
+                leg = ev.get("active_leg", "?")
+                t_start = float(ev["start_time_sec"])
+                t_end   = float(ev["end_time_sec"])
+                dur     = float(ev.get("duration_sec", 0))
+                rom     = ev.get("active_knee_rom_deg")
+                vel     = ev.get("active_peak_knee_vel_deg_s")
+                height  = ev.get("peak_kick_height_norm")
+
+                with st.expander(
+                    f"Tekme {kid}  |  {leg} bacak  |  {t_start:.2f}s – {t_end:.2f}s  |  ROM {float(rom):.1f}°" if rom else f"Tekme {kid}  |  {leg} bacak  |  {t_start:.2f}s – {t_end:.2f}s",
+                    expanded=(kid == 1),
+                ):
+                    mc1, mc2, mc3, mc4 = st.columns(4)
+                    mc1.metric("Süre", f"{dur:.2f} sn")
+                    mc2.metric("Diz ROM", f"{float(rom):.1f}°" if rom else "—")
+                    mc3.metric("Peak Hız", f"{float(vel):.0f} °/s" if vel else "—")
+                    mc4.metric("Yükseklik", f"{float(height):.3f}" if height else "—")
+
+                    # Trim clip for this kick
+                    if vid_path.exists() and tmp_dir is not None:
+                        clip_key = f"clip_{label}_{kid}"
+                        clip_path = tmp_dir / f"{clip_key}.mp4"
+                        if not clip_path.exists():
+                            with st.spinner("Video kırpılıyor…"):
+                                _trim_clip(vid_path, t_start, t_end, clip_path)
+                        if clip_path.exists() and clip_path.stat().st_size > 1000:
+                            st.video(str(clip_path))
+                        else:
+                            st.video(str(vid_path), start_time=int(t_start))
+                    elif vid_path.exists():
+                        st.video(str(vid_path), start_time=int(t_start))
+
+        tmp = st.session_state.get("dv_tmp")
+        kc1, kc2 = st.columns(2)
+        with kc1:
+            _kick_video_section(
+                pre_events,
+                str(tmp / "pre_annotated.mp4") if tmp else "",
+                "Pre Tekmeleri", tmp,
+            )
+        with kc2:
+            _kick_video_section(
+                post_events,
+                str(tmp / "post_annotated.mp4") if tmp else "",
+                "Post Tekmeleri", tmp,
+            )
 
     # ── Tab 5: Faz analizi ───────────────────────────────────────────────────
     with tabs[5]:

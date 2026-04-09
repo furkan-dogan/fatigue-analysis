@@ -17,7 +17,6 @@ _COLORS = {
     "right_leg": (0, 200, 255),
     "left_leg": (0, 220, 0),
     "torso": (220, 220, 220),
-    "head": (180, 100, 255),
 }
 
 _SEGMENTS = {
@@ -48,12 +47,6 @@ _SEGMENTS = {
         (_mp_pose.PoseLandmark.LEFT_HIP, _mp_pose.PoseLandmark.RIGHT_HIP),
         (_mp_pose.PoseLandmark.LEFT_SHOULDER, _mp_pose.PoseLandmark.LEFT_HIP),
         (_mp_pose.PoseLandmark.RIGHT_SHOULDER, _mp_pose.PoseLandmark.RIGHT_HIP),
-    ],
-    "head": [
-        (_mp_pose.PoseLandmark.NOSE, _mp_pose.PoseLandmark.LEFT_EYE),
-        (_mp_pose.PoseLandmark.NOSE, _mp_pose.PoseLandmark.RIGHT_EYE),
-        (_mp_pose.PoseLandmark.LEFT_EYE, _mp_pose.PoseLandmark.LEFT_EAR),
-        (_mp_pose.PoseLandmark.RIGHT_EYE, _mp_pose.PoseLandmark.RIGHT_EAR),
     ],
 }
 
@@ -88,7 +81,7 @@ def draw_pose(frame_bgr: Any, pose_landmarks: Any, show_joint_labels: bool = Fal
 
     def to_px(idx: int) -> tuple[int, int] | None:
         lm = lms[idx]
-        if lm.visibility < 0.2:
+        if lm.visibility < 0.1:
             return None
         return int(lm.x * w), int(lm.y * h)
 
@@ -101,11 +94,16 @@ def draw_pose(frame_bgr: Any, pose_landmarks: Any, show_joint_labels: bool = Fal
                 continue
             cv2.line(frame_bgr, p1, p2, color, 3, cv2.LINE_AA)
 
+    # Skip face landmarks (indices 0–10: nose, eyes, ears, mouth)
     for idx, lm in enumerate(lms):
-        if lm.visibility < 0.2:
+        if idx <= 10:
+            continue
+        if lm.visibility < 0.1:
             continue
         center = (int(lm.x * w), int(lm.y * h))
         group_name = _JOINT_GROUP.get(idx, "torso")
+        if group_name not in _COLORS:
+            continue
         cv2.circle(frame_bgr, center, 4, _COLORS[group_name], -1, cv2.LINE_AA)
         if show_joint_labels and idx in _LABEL_JOINTS:
             cv2.putText(
@@ -117,6 +115,75 @@ def draw_pose(frame_bgr: Any, pose_landmarks: Any, show_joint_labels: bool = Fal
                 (255, 255, 255),
                 1,
                 cv2.LINE_AA,
+            )
+
+
+def draw_pose_from_keypoints(
+    frame_bgr: Any,
+    keypoints: Any,
+    show_joint_labels: bool = False,
+) -> None:
+    """Draw skeleton from a Keypoints2D object — works with any backend.
+
+    Used by YOLOv8-pose (and any future backend) that does not produce
+    MediaPipe-format landmarks.
+    """
+    from src.pose_runner import Keypoints2D  # avoid circular at module level
+
+    if keypoints is None:
+        return
+
+    # (point_a, point_b, group_name)
+    connections: list[tuple[Any, Any, str]] = [
+        (keypoints.right_shoulder, keypoints.right_elbow, "right_arm"),
+        (keypoints.right_elbow,    keypoints.right_wrist,  "right_arm"),
+        (keypoints.left_shoulder,  keypoints.left_elbow,   "left_arm"),
+        (keypoints.left_elbow,     keypoints.left_wrist,   "left_arm"),
+        (keypoints.right_hip,      keypoints.right_knee,   "right_leg"),
+        (keypoints.right_knee,     keypoints.right_ankle,  "right_leg"),
+        (keypoints.right_ankle,    keypoints.right_foot_index, "right_leg"),
+        (keypoints.left_hip,       keypoints.left_knee,    "left_leg"),
+        (keypoints.left_knee,      keypoints.left_ankle,   "left_leg"),
+        (keypoints.left_ankle,     keypoints.left_foot_index,  "left_leg"),
+        (keypoints.left_shoulder,  keypoints.right_shoulder, "torso"),
+        (keypoints.left_hip,       keypoints.right_hip,    "torso"),
+        (keypoints.left_shoulder,  keypoints.left_hip,     "torso"),
+        (keypoints.right_shoulder, keypoints.right_hip,    "torso"),
+    ]
+
+    for p1, p2, group in connections:
+        if p1 is None or p2 is None:
+            continue
+        pt1 = (int(p1[0]), int(p1[1]))
+        pt2 = (int(p2[0]), int(p2[1]))
+        cv2.line(frame_bgr, pt1, pt2, _COLORS[group], 3, cv2.LINE_AA)
+
+    # Joint circles
+    all_joints: list[tuple[Any, str, str]] = [
+        (keypoints.left_shoulder,  "left_arm",  "L_SH"),
+        (keypoints.right_shoulder, "right_arm", "R_SH"),
+        (keypoints.left_elbow,     "left_arm",  "L_EL"),
+        (keypoints.right_elbow,    "right_arm", "R_EL"),
+        (keypoints.left_wrist,     "left_arm",  "L_WR"),
+        (keypoints.right_wrist,    "right_arm", "R_WR"),
+        (keypoints.left_hip,       "left_leg",  "L_HIP"),
+        (keypoints.right_hip,      "right_leg", "R_HIP"),
+        (keypoints.left_knee,      "left_leg",  "L_KNE"),
+        (keypoints.right_knee,     "right_leg", "R_KNE"),
+        (keypoints.left_ankle,     "left_leg",  "L_ANK"),
+        (keypoints.right_ankle,    "right_leg", "R_ANK"),
+    ]
+
+    for pt, group, label in all_joints:
+        if pt is None:
+            continue
+        center = (int(pt[0]), int(pt[1]))
+        cv2.circle(frame_bgr, center, 4, _COLORS[group], -1, cv2.LINE_AA)
+        if show_joint_labels:
+            cv2.putText(
+                frame_bgr, label,
+                (center[0] + 6, center[1] - 6),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1, cv2.LINE_AA,
             )
 
 

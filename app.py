@@ -6,6 +6,7 @@ Run:
 
 from __future__ import annotations
 
+import base64
 import csv
 import math
 import tempfile
@@ -14,6 +15,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as _components
 
 # Check optional deps once at startup
 try:
@@ -222,6 +224,104 @@ def _compute_fatigue(pre_events: list[dict], post_events: list[dict]) -> dict:
     # Normalize to 0–100: composite=-100 → no fatigue, composite=+100 → max fatigue
     fatigue_index = max(0.0, min(100.0, (composite + 100.0) / 2.0))
     return {"metrics": results, "fatigue_index": fatigue_index, "composite_raw": composite}
+
+
+import http.server as _http_server
+import socketserver as _socketserver
+import threading as _threading
+
+_video_servers: dict[str, int] = {}  # dir → port
+
+
+def _get_video_server(directory: Path) -> int:
+    """Start a range-capable HTTP server for the given directory (one per dir)."""
+    key = str(directory.resolve())
+    if key in _video_servers:
+        return _video_servers[key]
+
+    class _RangeHandler(_http_server.BaseHTTPRequestHandler):
+        _root = directory.resolve()
+
+        def log_message(self, *_): pass
+
+        def do_GET(self):
+            fname = self.path.lstrip("/").split("?")[0]
+            fpath = self.__class__._root / fname
+            if not fpath.exists() or not fpath.is_file():
+                self.send_error(404); return
+            size = fpath.stat().st_size
+            rng  = self.headers.get("Range", "")
+
+            if rng.startswith("bytes="):
+                parts = rng[6:].split("-")
+                start = int(parts[0]) if parts[0] else 0
+                end   = int(parts[1]) if len(parts) > 1 and parts[1] else size - 1
+                end   = min(end, size - 1)
+                length = end - start + 1
+                self.send_response(206)
+                self.send_header("Content-Type",  "video/mp4")
+                self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+                self.send_header("Content-Length", str(length))
+                self.send_header("Accept-Ranges", "bytes")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(fpath, "rb") as f:
+                    f.seek(start); self.wfile.write(f.read(length))
+            else:
+                self.send_response(200)
+                self.send_header("Content-Type",   "video/mp4")
+                self.send_header("Content-Length", str(size))
+                self.send_header("Accept-Ranges",  "bytes")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(fpath, "rb") as f:
+                    self.wfile.write(f.read())
+
+    server = _socketserver.ThreadingTCPServer(("127.0.0.1", 0), _RangeHandler)
+    server.daemon_threads = True
+    port = server.server_address[1]
+    _threading.Thread(target=server.serve_forever, daemon=True).start()
+    _video_servers[key] = port
+    return port
+
+
+def _video_player(path: Path | str, start_time: float = 0.0, height: int = 480) -> None:
+    """Proper HTML5 video player with range support. Controls show only on hover."""
+    p = Path(path)
+    if not p.exists():
+        st.warning("Video bulunamadı.")
+        return
+    port = _get_video_server(p.parent)
+    url  = f"http://127.0.0.1:{port}/{p.name}"
+    uid  = abs(hash(str(p))) % 999999
+
+    html = f"""
+<style>
+  #w{uid}{{background:#000;line-height:0;position:relative}}
+  #v{uid}{{width:100%;display:block;max-height:{height}px;cursor:pointer}}
+  #v{uid}::-webkit-media-controls{{opacity:0;transition:opacity .2s}}
+  #w{uid}:hover #v{uid}::-webkit-media-controls{{opacity:1}}
+</style>
+<div id="w{uid}">
+  <video id="v{uid}" controls preload="metadata">
+    <source src="{url}" type="video/mp4">
+  </video>
+</div>
+<script>
+(function(){{
+  var v = document.getElementById('v{uid}');
+  var w = document.getElementById('w{uid}');
+  v.currentTime = {start_time};
+  // fallback for non-webkit: toggle controls on hover
+  if(!CSS.supports('-webkit-appearance','none')){{
+    v.removeAttribute('controls');
+    w.addEventListener('mouseenter',()=>v.setAttribute('controls',''));
+    w.addEventListener('mouseleave',()=>v.removeAttribute('controls'));
+  }}
+}})();
+</script>
+"""
+    _components.html(html, height=height + 8)
 
 
 def _gauge(value: float, title: str) -> go.Figure:
@@ -452,7 +552,7 @@ if page == "Tek Video Analizi":
 
             with tab1:
                 if output_path.exists():
-                    st.video(str(output_path))
+                    _video_player(output_path)
                 else:
                     st.warning("Video çıktısı oluşturulamadı.")
 
@@ -661,9 +761,9 @@ if page == "Tek Video Analizi":
                                     except Exception:
                                         pass
                                 if clip_path.exists() and clip_path.stat().st_size > 1000:
-                                    st.video(str(clip_path))
+                                    _video_player(clip_path)
                                 else:
-                                    st.video(str(output_path), start_time=int(t_start))
+                                    _video_player(output_path, start_time=t_start)
                 elif df.empty:
                     st.warning("Önce analiz çalıştırın.")
                 else:
@@ -867,14 +967,14 @@ elif page == "Çift Video Analizi":
             st.markdown("**Pre-antrenman (annotated)**")
             pre_vid = Path(pre_res.output_video_path)
             if pre_vid.exists():
-                st.video(str(pre_vid))
+                _video_player(pre_vid)
             else:
                 st.warning("Pre video çıktısı bulunamadı.")
         with vc2:
             st.markdown("**Post-antrenman (annotated)**")
             post_vid = Path(post_res.output_video_path)
             if post_vid.exists():
-                st.video(str(post_vid))
+                _video_player(post_vid)
             else:
                 st.warning("Post video çıktısı bulunamadı.")
 
@@ -1069,11 +1169,11 @@ elif page == "Çift Video Analizi":
                             with st.spinner("Video kırpılıyor…"):
                                 _trim_clip(vid_path, t_start, t_end, clip_path)
                         if clip_path.exists() and clip_path.stat().st_size > 1000:
-                            st.video(str(clip_path))
+                            _video_player(clip_path)
                         else:
-                            st.video(str(vid_path), start_time=int(t_start))
+                            _video_player(vid_path, start_time=t_start)
                     elif vid_path.exists():
-                        st.video(str(vid_path), start_time=int(t_start))
+                        _video_player(vid_path, start_time=t_start)
 
         tmp = st.session_state.get("dv_tmp")
         kc1, kc2 = st.columns(2)

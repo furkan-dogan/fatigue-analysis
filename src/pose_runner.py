@@ -119,7 +119,14 @@ class YOLOPoseRunner:
 
     Note: COCO 17 has no foot-index keypoint — ankle is used as foot-index
     fallback, which is accurate enough for kick-height and foot-speed metrics.
+
+    Person selection: uses ByteTrack to assign persistent track IDs across
+    frames. After _lock_after frames the track with the highest accumulated
+    lower-body motion is locked in, so a stationary trainer/pad-holder is
+    automatically ignored.
     """
+
+    _LOWER_BODY_IDX = [11, 12, 13, 14, 15, 16]  # hips, knees, ankles
 
     def __init__(
         self,
@@ -127,6 +134,7 @@ class YOLOPoseRunner:
         conf_threshold: float = 0.35,
         keypoint_conf: float = 0.15,
         device: str = "",
+        lock_after_frames: int = 30,
     ) -> None:
         try:
             from ultralytics import YOLO  # type: ignore[import]
@@ -140,19 +148,28 @@ class YOLOPoseRunner:
         self.conf_threshold = conf_threshold
         self.keypoint_conf = keypoint_conf
         self.device = device
+        self._lock_after = lock_after_frames
+
+        # Tracking state (reset per video — runner is created fresh each run_analysis call)
+        self._track_motion: dict[int, float] = {}       # track_id → cumulative lower-body motion
+        self._prev_xy: dict[int, dict[int, tuple[float, float]]] = {}  # track_id → {kp_idx → (x, y)}
+        self._locked_id: int | None = None
+        self._frame_count: int = 0
 
     def close(self) -> None:
         pass  # YOLO models don't need explicit cleanup
 
     def process_frame(self, frame_bgr: Any) -> tuple[Keypoints2D | None, Any | None]:
-        """Run YOLO pose inference and return keypoints + raw result."""
+        """Run YOLO pose inference with ByteTrack and return keypoints + raw result."""
         import numpy as np
 
-        results = self.model(
+        results = self.model.track(
             frame_bgr,
+            persist=True,
             verbose=False,
             conf=self.conf_threshold,
             device=self.device if self.device else None,
+            tracker="bytetrack.yaml",
         )
 
         if not results or results[0].keypoints is None:
@@ -164,12 +181,51 @@ class YOLOPoseRunner:
         if kpts_xy is None or len(kpts_xy) == 0:
             return None, None
 
-        # Pick the detection with highest mean lower-body keypoint confidence
-        if len(kpts_xy) > 1 and kpts_conf is not None:
-            scores = kpts_conf[:, _YOLO_KEY_LANDMARK_INDICES].mean(dim=1)
-            best = int(scores.argmax())
-        else:
-            best = 0
+        # ── Track IDs from ByteTrack ──────────────────────────────────────────
+        boxes = results[0].boxes
+        track_ids: list[int] | None = None
+        if boxes is not None and boxes.id is not None:
+            track_ids = boxes.id.cpu().numpy().astype(int).tolist()
+
+        # ── Accumulate lower-body motion per track ────────────────────────────
+        if track_ids is not None:
+            for i, tid in enumerate(track_ids):
+                if i >= len(kpts_xy):
+                    continue
+                xy_i = kpts_xy[i].cpu().numpy()
+                conf_i = kpts_conf[i].cpu().numpy() if kpts_conf is not None else np.ones(17)
+                motion = 0.0
+                for idx in self._LOWER_BODY_IDX:
+                    if idx < len(xy_i) and conf_i[idx] > self.keypoint_conf:
+                        cur = (float(xy_i[idx, 0]), float(xy_i[idx, 1]))
+                        prev_map = self._prev_xy.get(tid, {})
+                        prev = prev_map.get(idx)
+                        if prev is not None:
+                            motion += ((cur[0] - prev[0]) ** 2 + (cur[1] - prev[1]) ** 2) ** 0.5
+                        if tid not in self._prev_xy:
+                            self._prev_xy[tid] = {}
+                        self._prev_xy[tid][idx] = cur
+                self._track_motion[tid] = self._track_motion.get(tid, 0.0) + motion
+
+        self._frame_count += 1
+
+        # ── Lock onto most-active track after warm-up ─────────────────────────
+        if self._locked_id is None and self._frame_count >= self._lock_after:
+            if self._track_motion:
+                self._locked_id = max(self._track_motion, key=lambda k: self._track_motion[k])
+
+        # ── Select best detection index ───────────────────────────────────────
+        best = 0
+        if track_ids is not None and len(kpts_xy) > 1:
+            if self._locked_id is not None and self._locked_id in track_ids:
+                best = track_ids.index(self._locked_id)
+            elif self._track_motion:
+                # pre-lock or locked person lost: pick most-active visible track
+                scores = [self._track_motion.get(tid, 0.0) for tid in track_ids]
+                best = int(np.argmax(scores))
+            elif kpts_conf is not None:
+                conf_scores = kpts_conf[:, _YOLO_KEY_LANDMARK_INDICES].mean(dim=1)
+                best = int(conf_scores.argmax())
 
         xy = kpts_xy[best].cpu().numpy()     # (17, 2) — pixel coords
         conf = kpts_conf[best].cpu().numpy() if kpts_conf is not None else np.ones(17)

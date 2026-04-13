@@ -55,7 +55,7 @@ def run_analysis(
     progress_callback: Callable[[int, int], None] | None = None,
     backend: str = "mediapipe",
     yolo_model: str = "yolo11n-pose.pt",
-    vel_assist_threshold: float = 150.0,
+    vel_assist_threshold: float = 80.0,
 ) -> AnalysisResult:
     """Run full pose-analysis pipeline on a single video.
 

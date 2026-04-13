@@ -117,7 +117,7 @@ def detect_movement_events(
     min_knee_rom_deg: float = 20.0,
     min_peak_kick_height_norm: float = -0.3,
     confidence_series: Sequence[float | None] | None = None,
-    vel_assist_threshold: float = 150.0,
+    vel_assist_threshold: float = 80.0,
 ) -> list[dict[str, float | int | str | None]]:
     """Detect multi-kick/movement events and return per-event metrics.
 
@@ -143,8 +143,8 @@ def detect_movement_events(
 
     # Gap-fill: when pose is lost for a short burst (spinning, occlusion),
     # hold the last valid height instead of dropping to 0.
-    # Max gap = 0.4s — longer gaps are real "foot down" moments.
-    max_gap_frames = max(1, int(fps * 0.4))
+    # Max gap = 0.6s — longer gaps are real "foot down" moments.
+    max_gap_frames = max(1, int(fps * 0.6))
     active_height_gapfilled: list[float] = []
     last_valid: float = 0.0
     gap_count: int = 0
@@ -176,22 +176,28 @@ def detect_movement_events(
     if (top - baseline) >= min_peak_prominence_norm:
         candidates = _local_maxima(smoothed, threshold=peak_threshold)
 
+    # Dual-peak: also search on lightly-smoothed (win=2) signal.
+    # Fast kicks (4-6 frames) survive minimal smoothing but get flattened
+    # by the adaptive window above — this catches what the above misses.
+    lightly_smoothed = _moving_average(active_height, window=2)
+    fast_candidates = _local_maxima(lightly_smoothed, threshold=peak_threshold * 0.85)
+    for fc in fast_candidates:
+        if not any(abs(fc - c) < 2 for c in candidates):
+            candidates.append(fc)
+
     min_distance = max(1, int(min_distance_sec * fps))
     min_frames = max(1, int(min_duration_sec * fps))
     max_frames = max(min_frames, int(max_duration_sec * fps))
 
-    # ── Velocity-assisted supplementary candidates ────────────────────────────
-    # For fast kicks, foot height peak may be missed by smoothing.
-    # High knee velocity is a reliable secondary signal.
+    # ── Velocity-assisted candidates (co-primary) ────────────────────────────
+    # Knee angular velocity is equally reliable for fast kicks — treat it as
+    # a co-primary signal. Distance suppression below handles deduplication.
     if velocity_series:
         for vel_key in ("R_KNEE_vel", "L_KNEE_vel"):
             vel_seq = velocity_series.get(vel_key, [])
             if vel_seq:
                 vel_cands = _vel_peaks(vel_seq, fps, min_distance, vel_assist_threshold)
-                for vc in vel_cands:
-                    # Only add if not already near a height candidate
-                    if not any(abs(vc - c) < min_distance for c in candidates):
-                        candidates.append(vc)
+                candidates.extend(vel_cands)
 
     if not candidates:
         return []

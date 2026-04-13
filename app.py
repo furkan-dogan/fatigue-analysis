@@ -450,12 +450,12 @@ if page == "Tek Video Analizi":
              "Düşürürsen küçük hareketler de event olur; artırırsan yalnızca net yüksek tekmeler yakalanır.",
     )
     min_dist = st.sidebar.slider(
-        "Min peak mesafe (sn)", 0.2, 1.5, 0.3, 0.05,
+        "Min peak mesafe (sn)", 0.1, 1.5, 0.25, 0.05,
         help="İki ayrı tekme arasındaki minimum süre. "
-             "Hızlı kombinasyon varsa düşür (0.2 sn); tek tekme alıştırması ise yüksek tut.",
+             "Hızlı kombinasyon varsa düşür (0.1 sn); tek tekme alıştırması ise yüksek tut.",
     )
     min_dur = st.sidebar.slider(
-        "Min event süresi (sn)", 0.05, 0.5, 0.15, 0.05,
+        "Min event süresi (sn)", 0.05, 0.5, 0.10, 0.05,
         help="Bu süreden kısa hareketler tekme sayılmaz. "
              "Çok kısa titremeleri veya anlık sarsılmaları eler.",
     )
@@ -467,13 +467,13 @@ if page == "Tek Video Analizi":
 
     st.sidebar.subheader("Kick Doğrulama Filtreleri")
     min_knee_rom = st.sidebar.slider(
-        "Min diz ROM (°)", 0, 60, 20, 5,
+        "Min diz ROM (°)", 0, 60, 12, 5,
         help="Tekme sayılması için dizin en az bu kadar açılıp kapanması gerekir.\n\n"
              "Gerçek tekmelerde ROM genellikle 60–120°, weight-shift'te ise 3–5°.\n\n"
              "20° varsayılanı sahte tespitlerin neredeyse tamamını eler.",
     )
     min_peak_height = st.sidebar.slider(
-        "Min peak yüksekliği (norm)", -1.0, 0.5, -0.3, 0.05,
+        "Min peak yüksekliği (norm)", -1.0, 0.5, -0.5, 0.05,
         help="Tekme anında ayağın ulaşması gereken minimum yükseklik (torso uzunluğuna normalize).\n\n"
              "0.0 = kalça hizası (orta-yüksek tekme)\n"
              "−0.3 = kalçanın biraz altı (düşük tekme)\n"
@@ -807,12 +807,12 @@ elif page == "Çift Video Analizi":
              "Düşürürsen küçük hareketler de event olur; artırırsan yalnızca net yüksek tekmeler yakalanır.",
     )
     dv_min_dist = st.sidebar.slider(
-        "Min peak mesafe (sn)", 0.2, 1.5, 0.3, 0.05, key="dv_dist",
+        "Min peak mesafe (sn)", 0.1, 1.5, 0.25, 0.05, key="dv_dist",
         help="İki ayrı tekme arasındaki minimum süre. "
-             "Hızlı kombinasyon varsa düşür (0.2 sn); tek tekme alıştırması ise yüksek tut.",
+             "Hızlı kombinasyon varsa düşür (0.1 sn); tek tekme alıştırması ise yüksek tut.",
     )
     dv_min_dur = st.sidebar.slider(
-        "Min event süresi (sn)", 0.05, 0.5, 0.15, 0.05, key="dv_dur",
+        "Min event süresi (sn)", 0.05, 0.5, 0.10, 0.05, key="dv_dur",
         help="Bu süreden kısa hareketler tekme sayılmaz. "
              "Çok kısa titremeleri veya anlık sarsılmaları eler.",
     )
@@ -823,13 +823,13 @@ elif page == "Çift Video Analizi":
     )
     st.sidebar.subheader("Kick Doğrulama")
     dv_min_rom = st.sidebar.slider(
-        "Min diz ROM (°)", 0, 60, 20, 5, key="dv_rom",
+        "Min diz ROM (°)", 0, 60, 12, 5, key="dv_rom",
         help="Tekme sayılması için dizin en az bu kadar açılıp kapanması gerekir.\n\n"
              "Gerçek tekmelerde ROM genellikle 60–120°, weight-shift'te ise 3–5°.\n\n"
              "20° varsayılanı sahte tespitlerin neredeyse tamamını eler.",
     )
     dv_min_height = st.sidebar.slider(
-        "Min peak yükseklik", -1.0, 0.5, -0.3, 0.05, key="dv_height",
+        "Min peak yükseklik", -1.0, 0.5, -0.5, 0.05, key="dv_height",
         help="Tekme anında ayağın ulaşması gereken minimum yükseklik (torso uzunluğuna normalize).\n\n"
              "0.0 = kalça hizası (orta-yüksek tekme)\n"
              "−0.3 = kalçanın biraz altı (düşük tekme)\n"

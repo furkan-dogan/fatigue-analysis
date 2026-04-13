@@ -109,13 +109,13 @@ def detect_movement_events(
     joint_series: dict[str, Sequence[float | None]],
     fps: float,
     min_peak_prominence_norm: float = 0.06,
-    min_distance_sec: float = 0.4,
-    min_duration_sec: float = 0.15,
+    min_distance_sec: float = 0.25,
+    min_duration_sec: float = 0.10,
     max_duration_sec: float = 6.0,
     velocity_series: dict[str, Sequence[float | None]] | None = None,
     foot_speed_series: dict[str, Sequence[float | None]] | None = None,
-    min_knee_rom_deg: float = 20.0,
-    min_peak_kick_height_norm: float = -0.3,
+    min_knee_rom_deg: float = 12.0,
+    min_peak_kick_height_norm: float = -0.5,
     confidence_series: Sequence[float | None] | None = None,
     vel_assist_threshold: float = 80.0,
 ) -> list[dict[str, float | int | str | None]]:
@@ -168,7 +168,9 @@ def detect_movement_events(
         smooth_win += 1
     smoothed = _moving_average(active_height, window=smooth_win)
 
-    baseline = float(np.percentile(smoothed, 40))
+    # 15th percentile is a more robust floor for kick-heavy videos
+    # (40th was too high when most frames are active kicks).
+    baseline = float(np.percentile(smoothed, 15))
     top = float(np.percentile(smoothed, 95))
 
     peak_threshold = baseline + min_peak_prominence_norm
@@ -214,8 +216,10 @@ def detect_movement_events(
     for kick_id, p in enumerate(selected, start=1):
         amplitude = float(smoothed[p] - baseline)
 
-        # For velocity-assisted candidates amplitude may be low — use a relaxed threshold
-        enter_threshold = baseline + max(amplitude * 0.25, min_peak_prominence_norm * 0.3)
+        # Low enter_threshold so back-to-back kicks don't bleed into each other.
+        # 0.10 × amplitude means an event ends when the signal is still 10% above
+        # baseline — leaving a clear gap between consecutive rapid kicks.
+        enter_threshold = baseline + max(amplitude * 0.10, min_peak_prominence_norm * 0.2)
 
         start = p
         while start > 0 and smoothed[start] >= enter_threshold:

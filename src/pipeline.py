@@ -22,6 +22,11 @@ from src.metrics import (
     summarize_knee_angles,
 )
 from src.pose_runner import MediaPipePoseRunner, YOLOPoseRunner
+from src.synthetic_sensors import (
+    generate_interpretation,
+    generate_synthetic_emg,
+    generate_synthetic_nirs,
+)
 
 
 @dataclass
@@ -34,6 +39,9 @@ class AnalysisResult:
     frame_csv_path: str
     events_csv_path: str
     output_video_path: str
+    synthetic_emg_rows: list[dict] | None = None
+    synthetic_nirs_rows: list[dict] | None = None
+    interpretation: list[str] | None = None
 
 
 def _empty_angle_map() -> dict[str, float | None]:
@@ -247,6 +255,11 @@ def run_analysis(
     write_frame_metrics_csv(frame_csv_path, frame_rows)
     write_event_metrics_csv(events_csv_path, events)
 
+    # ── Sentetik sensör verisi ────────────────────────────────────────────────
+    emg_rows  = generate_synthetic_emg(frame_rows, events, fps)
+    nirs_rows = generate_synthetic_nirs(frame_rows, events, fps)
+    interp    = generate_interpretation(events, emg_rows, nirs_rows, fps)
+
     return AnalysisResult(
         fps=fps,
         total_frames=total_frames,
@@ -256,4 +269,7 @@ def run_analysis(
         frame_csv_path=str(frame_csv_path),
         events_csv_path=str(events_csv_path),
         output_video_path=str(output_path),
+        synthetic_emg_rows=emg_rows,
+        synthetic_nirs_rows=nirs_rows,
+        interpretation=interp,
     )

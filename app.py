@@ -548,7 +548,7 @@ if page == "Tek Video Analizi":
                 c5.metric("Ort. Peak Diz Hızı", f"{sum(peak_vels)/len(peak_vels):.0f} °/s" if peak_vels else "N/A")
 
             # ── Tabs ──────────────────────────────────────────────────────────
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(["📹 Annotated Video", "📈 Açı Grafikleri", "⚡ Hız Grafikleri", "📋 Tekme Eventleri", "🔍 Kick İnceleme"])
+            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📹 Annotated Video", "📈 Açı Grafikleri", "⚡ Hız Grafikleri", "📋 Tekme Eventleri", "🔍 Kick İnceleme", "🔬 Sensör Analizi"])
 
             with tab1:
                 if output_path.exists():
@@ -768,6 +768,164 @@ if page == "Tek Video Analizi":
                     st.warning("Önce analiz çalıştırın.")
                 else:
                     st.info("Tekme eventi tespit edilemedi.")
+
+            with tab6:
+                st.subheader("Sentetik Sensör Analizi — EMG + NIRS")
+                st.caption("Video analizinden fizyolojik model ile üretilen simüle EMG ve NIRS verileri. (Model tabanlı simülasyon — gerçek cihaz verisi değil)")
+
+                emg_rows  = result.synthetic_emg_rows  or []
+                nirs_rows = result.synthetic_nirs_rows or []
+                interp    = result.interpretation      or []
+
+                if not emg_rows or not nirs_rows:
+                    st.warning("Sensör verisi üretilemedi. Önce analizi çalıştırın.")
+                else:
+                    # ── Özet kartlar ─────────────────────────────────────────
+                    import numpy as _np
+                    _win  = max(1, int(result.fps * 5))
+                    _freq = [r["EMG_median_freq_Hz"] for r in emg_rows]
+                    _smo2 = [r["SmO2"]               for r in nirs_rows]
+                    _rms  = [r["EMG_RMS_mV"]         for r in emg_rows]
+                    freq_start = float(_np.mean(_freq[:_win]))
+                    freq_end   = float(_np.mean(_freq[-_win:]))
+                    smo2_start = float(_np.mean(_smo2[:_win]))
+                    smo2_end   = float(_np.mean(_smo2[-_win:]))
+
+                    sc1, sc2, sc3, sc4 = st.columns(4)
+                    sc1.metric("Toplam Tekme", len(events))
+                    sc2.metric(
+                        "EMG Frekans (başlangıç→son)",
+                        f"{freq_end:.0f} Hz",
+                        delta=f"{freq_end - freq_start:.0f} Hz",
+                        delta_color="inverse",
+                    )
+                    sc3.metric(
+                        "SmO2 (başlangıç→son)",
+                        f"%{smo2_end:.0f}",
+                        delta=f"{smo2_end - smo2_start:.0f}%",
+                        delta_color="inverse",
+                    )
+                    sc4.metric("Min SmO2", f"%{min(_smo2):.0f}")
+
+                    st.markdown("---")
+
+                    # ── NIRS grafiği ─────────────────────────────────────────
+                    _t_nirs = [r["time_sec"] for r in nirs_rows]
+                    _thb    = [r["THb"]      for r in nirs_rows]
+
+                    fig_nirs = go.Figure()
+                    fig_nirs.add_trace(go.Scatter(
+                        x=_t_nirs, y=_smo2,
+                        name="SmO2 (%)", line=dict(color="#22c55e", width=2),
+                    ))
+                    fig_nirs.add_trace(go.Scatter(
+                        x=_t_nirs, y=_thb,
+                        name="THb (g/dL)", line=dict(color="#a78bfa", width=1.5, dash="dot"),
+                        yaxis="y2",
+                    ))
+                    for ev in events:
+                        fig_nirs.add_vline(
+                            x=float(ev["peak_time_sec"]),
+                            line_dash="dot", line_color="rgba(251,191,36,0.5)", line_width=1,
+                        )
+                    fig_nirs.update_layout(
+                        title="NIRS — Kas Oksijen Satürasyonu (SmO2) ve Toplam Hemoglobin (THb)",
+                        height=280,
+                        xaxis_title="Zaman (sn)",
+                        yaxis=dict(title="SmO2 (%)", gridcolor="#333", range=[0, 100]),
+                        yaxis2=dict(title="THb (g/dL)", overlaying="y", side="right", showgrid=False),
+                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                        font=dict(color="#fafafa"),
+                        margin=dict(l=50, r=70, t=40, b=40),
+                        legend=dict(orientation="h", y=-0.35),
+                    )
+                    st.plotly_chart(fig_nirs, use_container_width=True)
+
+                    # ── EMG RMS grafiği ───────────────────────────────────────
+                    _t_emg  = [r["time_sec"]       for r in emg_rows]
+                    _rms2   = [r["EMG_CH2_RMS_mV"] for r in emg_rows]
+
+                    fig_rms = go.Figure()
+                    fig_rms.add_trace(go.Scatter(
+                        x=_t_emg, y=_rms,
+                        name="CH1 RMS — Aktif bacak (mV)", line=dict(color="#ef4444", width=2),
+                    ))
+                    fig_rms.add_trace(go.Scatter(
+                        x=_t_emg, y=_rms2,
+                        name="CH2 RMS — Stance bacak (mV)", line=dict(color="#3b82f6", width=1.5, dash="dot"),
+                    ))
+                    for ev in events:
+                        fig_rms.add_vline(
+                            x=float(ev["peak_time_sec"]),
+                            line_dash="dot", line_color="rgba(251,191,36,0.5)", line_width=1,
+                        )
+                    fig_rms.update_layout(
+                        title="EMG — Kas Aktivasyon Büyüklüğü (RMS)",
+                        height=250,
+                        xaxis_title="Zaman (sn)",
+                        yaxis=dict(title="RMS (mV)", gridcolor="#333"),
+                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                        font=dict(color="#fafafa"),
+                        margin=dict(l=50, r=20, t=40, b=40),
+                        legend=dict(orientation="h", y=-0.35),
+                    )
+                    st.plotly_chart(fig_rms, use_container_width=True)
+
+                    # ── EMG median frekans (yorgunluk trendi) ─────────────────
+                    fig_freq = go.Figure()
+                    fig_freq.add_trace(go.Scatter(
+                        x=_t_emg, y=_freq,
+                        name="Median Frekans (Hz)", line=dict(color="#fbbf24", width=2),
+                        fill="tozeroy", fillcolor="rgba(251,191,36,0.08)",
+                    ))
+                    for ev in events:
+                        fig_freq.add_vline(
+                            x=float(ev["peak_time_sec"]),
+                            line_dash="dot", line_color="rgba(167,139,250,0.5)", line_width=1,
+                        )
+                    fig_freq.update_layout(
+                        title="EMG Median Frekans — Nöromüsküler Yorgunluk Göstergesi",
+                        height=230,
+                        xaxis_title="Zaman (sn)",
+                        yaxis=dict(title="Frekans (Hz)", gridcolor="#333"),
+                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                        font=dict(color="#fafafa"),
+                        margin=dict(l=50, r=20, t=40, b=40),
+                    )
+                    st.plotly_chart(fig_freq, use_container_width=True)
+
+                    # ── Tekme bazlı tablo ─────────────────────────────────────
+                    if events:
+                        st.markdown("#### Tekme Bazlı Sensör Özeti")
+                        kick_sensor_rows = []
+                        for ev in events:
+                            pf = int(ev.get("peak_frame", 0))
+                            pf = min(pf, len(emg_rows) - 1)
+                            kick_sensor_rows.append({
+                                "Tekme": int(ev["kick_id"]),
+                                "Bacak": ev.get("active_leg", "?"),
+                                "Peak Zaman (sn)": round(float(ev["peak_time_sec"]), 2),
+                                "EMG CH1 RMS (mV)": round(emg_rows[pf]["EMG_RMS_mV"], 3),
+                                "EMG Median Freq (Hz)": round(emg_rows[pf]["EMG_median_freq_Hz"], 1),
+                                "SmO2 (%)": round(nirs_rows[pf]["SmO2"], 1),
+                                "THb (g/dL)": round(nirs_rows[pf]["THb"], 2),
+                            })
+                        st.dataframe(
+                            pd.DataFrame(kick_sensor_rows).set_index("Tekme"),
+                            use_container_width=True,
+                        )
+
+                    # ── Otomatik yorum ────────────────────────────────────────
+                    st.markdown("---")
+                    st.markdown("#### Otomatik Yorumlama")
+                    for line in interp:
+                        st.markdown(f"- {line}")
+
+                    st.caption(
+                        "⚠️ Bu veriler gerçek EMG/NIRS ölçümü değildir. "
+                        "Fizyolojik parametreler ve tekme eventlerine dayalı model tabanlı simülasyondur. "
+                        "K-Myo + Moxy ile gerçek ölçüm yapılarak doğrulanmalıdır."
+                    )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 2 — Çift Video Analizi

@@ -6,6 +6,8 @@ import socketserver as _socketserver
 import threading as _threading
 from pathlib import Path
 
+import urllib.parse as _urllib_parse
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -27,7 +29,7 @@ def get_video_server(directory: Path) -> int:
         def log_message(self, *_): pass
 
         def do_GET(self):
-            fname = self.path.lstrip("/").split("?")[0]
+            fname = _urllib_parse.unquote(self.path.lstrip("/").split("?")[0])
             fpath = self.__class__._root / fname
             if not fpath.exists() or not fpath.is_file():
                 self.send_error(404); return
@@ -74,7 +76,7 @@ def video_player(path: Path | str, start_time: float = 0.0, height: int = 480) -
         return
     port = get_video_server(p.parent)
     t_frag = f"#t={start_time:.3f}" if start_time > 0 else ""
-    url = f"http://127.0.0.1:{port}/{p.name}{t_frag}"
+    url = f"http://127.0.0.1:{port}/{_urllib_parse.quote(p.name)}{t_frag}"
     uid = abs(hash(str(p) + str(start_time))) % 999999
 
     html = f"""
@@ -185,7 +187,7 @@ def kick_video_section(
             mc4.metric("Yükseklik",  f"{float(height):.3f}"  if height else "—")
 
             if vid_path.exists() and tmp_dir is not None:
-                clip_key  = f"clip_{label}_{kid}"
+                clip_key  = f"clip_{label.replace(' ', '_')}_{kid}"
                 clip_path = tmp_dir / f"{clip_key}.mp4"
                 if not clip_path.exists():
                     with st.spinner("Video kırpılıyor…"):

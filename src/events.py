@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Sequence
 
 import numpy as np
-from src.utils import fill_missing as _fill_missing, moving_average as _moving_average_list
+from src.utils import fill_missing as _fill_missing, moving_average as _moving_average_util
 
 
 JOINT_KEYS = [
@@ -23,7 +23,7 @@ JOINT_KEYS = [
 
 
 def _moving_average(values: Sequence[float], window: int = 3) -> np.ndarray:
-    return np.array(_moving_average_list(values, window), dtype=float)
+    return np.array(_moving_average_util(values, window), dtype=float)
 
 
 def _local_maxima(values: np.ndarray, threshold: float) -> list[int]:

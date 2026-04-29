@@ -9,6 +9,44 @@ import streamlit as st
 from src.utils import events_mean, pct_change, change_status
 
 
+def _header_card(title: str, subtitle: str) -> None:
+    st.markdown(
+        f'<div style="border:1px solid #334155;border-radius:8px;padding:16px 20px;'
+        f'margin-bottom:16px;background:#0f172a">'
+        f'<h3 style="margin:0 0 4px 0;color:#f1f5f9">{title}</h3>'
+        f'<p style="margin:0;color:#94a3b8;font-size:13px">{subtitle}</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _score_bar(score: float, color: str, label: str) -> None:
+    st.markdown(
+        f'<div style="border-left:4px solid {color};padding:10px 16px;'
+        f'border-radius:4px;background:#1e293b;margin:8px 0">'
+        f'<span style="font-size:22px;font-weight:700;color:{color}">{score:.1f} / 100</span>'
+        f'<span style="color:#94a3b8;margin-left:12px">{label}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _suggestion_card(priority: str, title: str, detail: str, source: str, color: str) -> None:
+    st.markdown(
+        f'<div style="border:1px solid #334155;border-radius:6px;padding:12px 16px;'
+        f'margin:6px 0;background:#0f172a">'
+        f'<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+        f'  <span style="background:{color};color:#fff;font-size:10px;font-weight:700;'
+        f'padding:2px 8px;border-radius:3px">{priority}</span>'
+        f'  <span style="color:#f1f5f9;font-weight:600;font-size:15px">{title}</span>'
+        f'  <span style="color:#64748b;font-size:11px;margin-left:auto">📊 {source}</span>'
+        f'</div>'
+        f'<p style="margin:0;color:#cbd5e1;font-size:13px;line-height:1.6">{detail}</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
 def render_athlete_report(
     pre_events: list[dict],
     post_events: list[dict],
@@ -59,16 +97,12 @@ def render_athlete_report(
         else "Düşük — İyi toparlanma. Yük artışı uygun."
     )
 
-    st.markdown(f"""
-<div style="border:1px solid #334155;border-radius:8px;padding:16px 20px;margin-bottom:16px;background:#0f172a">
-<h3 style="margin:0 0 4px 0;color:#f1f5f9">Taekwondo Yorgunluk Analiz Raporu</h3>
-<p style="margin:0;color:#94a3b8;font-size:13px">
-Tarih: {today} &nbsp;|&nbsp; Pre: {len(pre_events)} tekme, {pre_dur} sn &nbsp;|&nbsp;
-Post: {len(post_events)} tekme, {post_dur} sn &nbsp;|&nbsp;
-Yorgunluk İndeksi: <b style="color:{fi_color}">{fi:.1f}/100</b>
-</p>
-</div>
-""", unsafe_allow_html=True)
+    _header_card(
+        "Taekwondo Yorgunluk Analiz Raporu",
+        f"Tarih: {today} &nbsp;|&nbsp; Pre: {len(pre_events)} tekme, {pre_dur} sn &nbsp;|&nbsp; "
+        f"Post: {len(post_events)} tekme, {post_dur} sn &nbsp;|&nbsp; "
+        f'Yorgunluk İndeksi: <b style="color:{fi_color}">{fi:.1f}/100</b>',
+    )
 
     # ── 1. Biyomekanik ────────────────────────────────────────────────────────
     st.markdown("### 1. Biyomekanik Bulgular")
@@ -264,12 +298,7 @@ Yorgunluk İndeksi: <b style="color:{fi_color}">{fi:.1f}/100</b>
         "Diz ROM ×0.25 | Peak hız ×0.25 | Peak hıza süre ×0.15 | "
         "Tekme yüksekliği ×0.15 | Ayak hızı ×0.10 | Tekme süresi ×0.05 | Ort. hız ×0.05"
     )
-    st.markdown(f"""
-<div style="border-left:4px solid {fi_color};padding:10px 16px;border-radius:4px;background:#1e293b;margin:8px 0">
-<span style="font-size:22px;font-weight:700;color:{fi_color}">{fi:.1f} / 100</span>
-<span style="color:#94a3b8;margin-left:12px">{fi_label}</span>
-</div>
-""", unsafe_allow_html=True)
+    _score_bar(fi, fi_color, fi_label)
 
     fi_detail = []
     if vel_pct is not None:
@@ -355,16 +384,7 @@ Yorgunluk İndeksi: <b style="color:{fi_color}">{fi:.1f}/100</b>
 
     for pri, title, detail, src in suggs:
         pc = "#ef4444" if "1" in pri else ("#f59e0b" if "2" in pri else "#3b82f6")
-        st.markdown(f"""
-<div style="border:1px solid #334155;border-radius:6px;padding:12px 16px;margin:6px 0;background:#0f172a">
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-  <span style="background:{pc};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px">{pri}</span>
-  <span style="color:#f1f5f9;font-weight:600;font-size:15px">{title}</span>
-  <span style="color:#64748b;font-size:11px;margin-left:auto">📊 {src}</span>
-</div>
-<p style="margin:0;color:#cbd5e1;font-size:13px;line-height:1.6">{detail}</p>
-</div>
-""", unsafe_allow_html=True)
+        _suggestion_card(pri, title, detail, src, pc)
 
     # ── Dışa Aktar ────────────────────────────────────────────────────────────
     st.markdown("---")

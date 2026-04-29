@@ -10,7 +10,7 @@ import streamlit as st
 
 from src.fatigue import FATIGUE_METRICS, compute_fatigue
 from src.utils import events_mean
-from ui.charts import gauge, kick_event_shapes, overlay_chart, per_kick_trend
+from ui.charts import gauge, overlay_chart, per_kick_trend
 from ui.components import kick_video_section, phase_bars, sensor_stats, video_player
 from ui.report import render_athlete_report
 

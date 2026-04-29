@@ -22,11 +22,7 @@ from src.metrics import (
     summarize_knee_angles,
 )
 from src.pose_runner import MediaPipePoseRunner
-from src.sensors import (
-    generate_interpretation,
-    generate_synthetic_emg,
-    generate_synthetic_nirs,
-)
+from src.sensors import generate_emg, generate_interpretation, generate_nirs
 
 
 @dataclass
@@ -244,8 +240,8 @@ def run_analysis(
     write_event_metrics_csv(events_csv_path, events)
 
     # ── Sentetik sensör verisi ────────────────────────────────────────────────
-    emg_rows  = generate_synthetic_emg(frame_rows, events, fps)
-    nirs_rows = generate_synthetic_nirs(frame_rows, events, fps)
+    emg_rows  = generate_emg(frame_rows, events, fps)
+    nirs_rows = generate_nirs(frame_rows, events, fps)
     interp    = generate_interpretation(events, emg_rows, nirs_rows, fps)
 
     return AnalysisResult(

@@ -6,7 +6,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 from src.pose_runner import Keypoints2D
-from src.utils import fill_none_forward, moving_average  # noqa: F401 (re-exported)
+from src.utils import fill_none_forward, moving_average
 
 # Joints for which velocity/acceleration are computed
 VELOCITY_JOINT_KEYS = ["R_KNEE", "L_KNEE", "R_HIP", "L_HIP", "R_ANKLE", "L_ANKLE"]
@@ -63,46 +63,6 @@ def calculate_joint_angles(keypoints: Keypoints2D) -> dict[str, float | None]:
         "L_ANKLE": safe_angle(keypoints.left_knee, keypoints.left_ankle, keypoints.left_foot_index),
     }
 
-
-
-def detect_peak_frames_from_angles(
-    frame_angles: Sequence[float | None],
-    fps: float,
-    smooth_window: int = 5,
-    min_distance_sec: float = 0.45,
-    min_prominence_deg: float = 6.0,
-) -> list[int]:
-    """Detect local maxima on right-knee angle curve and return original frame ids."""
-    valid_pairs = [(idx, angle) for idx, angle in enumerate(frame_angles) if angle is not None]
-    if len(valid_pairs) < 3:
-        return []
-
-    valid_frames = [p[0] for p in valid_pairs]
-    valid_angles = [float(p[1]) for p in valid_pairs]
-    smoothed = moving_average(valid_angles, window_size=smooth_window)
-    min_distance = max(1, int(min_distance_sec * fps))
-
-    candidates: list[tuple[int, float]] = []
-    for i in range(1, len(smoothed) - 1):
-        prev_v = smoothed[i - 1]
-        cur_v = smoothed[i]
-        next_v = smoothed[i + 1]
-        prominence = cur_v - max(prev_v, next_v)
-        if cur_v > prev_v and cur_v >= next_v and prominence >= min_prominence_deg:
-            candidates.append((valid_frames[i], cur_v))
-
-    if not candidates:
-        best_frame = valid_frames[int(np.argmax(smoothed))]
-        return [best_frame]
-
-    selected: list[tuple[int, float]] = []
-    for frame_idx, value in sorted(candidates, key=lambda x: x[1], reverse=True):
-        if any(abs(frame_idx - sf) < min_distance for sf, _ in selected):
-            continue
-        selected.append((frame_idx, value))
-
-    selected = sorted(selected, key=lambda x: x[0])
-    return [frame_idx for frame_idx, _ in selected]
 
 
 def compute_normalized_kick_heights(keypoints: Keypoints2D) -> dict[str, float | None]:
@@ -196,13 +156,13 @@ def compute_angular_velocity(
                                     deriv=2, delta=dt)
         else:
             # Series too short — degrade to 5-frame MA + finite difference
-            smoothed = moving_average(filled, window_size=min(5, n))
+            smoothed = moving_average(filled, window=min(5, n))
             vel_arr = np.gradient(smoothed, dt)
             acc_arr = np.gradient(vel_arr, dt)
 
     except ImportError:
         # scipy unavailable — central difference on moving average
-        smoothed = moving_average(filled, window_size=smooth_window)
+        smoothed = moving_average(filled, window=smooth_window)
         vel_arr = np.gradient(smoothed, dt)
         acc_arr = np.gradient(vel_arr, dt)
 

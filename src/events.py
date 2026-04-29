@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Sequence
 
 import numpy as np
+from src.utils import fill_missing as _fill_missing, moving_average as _moving_average_list
 
 
 JOINT_KEYS = [
@@ -21,38 +22,8 @@ JOINT_KEYS = [
 ]
 
 
-def _fill_missing(values: Sequence[float | None], default: float = 0.0) -> list[float]:
-    if not values:
-        return []
-
-    out: list[float] = [default] * len(values)
-    valid = [float(v) for v in values if v is not None]
-    if not valid:
-        return out
-
-    first = valid[0]
-    last = first
-    for i, v in enumerate(values):
-        if v is None:
-            out[i] = last
-        else:
-            last = float(v)
-            out[i] = last
-
-    for i, v in enumerate(values):
-        if v is None:
-            out[i] = first
-        else:
-            break
-    return out
-
-
 def _moving_average(values: Sequence[float], window: int = 3) -> np.ndarray:
-    arr = np.array(values, dtype=float)
-    if len(arr) < window or window <= 1:
-        return arr
-    kernel = np.ones(window, dtype=float) / window
-    return np.convolve(arr, kernel, mode="same")
+    return np.array(_moving_average_list(values, window), dtype=float)
 
 
 def _local_maxima(values: np.ndarray, threshold: float) -> list[int]:

@@ -9,7 +9,7 @@ from typing import Callable
 import cv2
 import numpy as np
 
-from src.draw import draw_joint_angle_panel, draw_pose, draw_pose_from_keypoints
+from src.draw import draw_joint_angle_panel, draw_pose
 from src.events import JOINT_KEYS, detect_movement_events
 from src.exporter import write_event_metrics_csv, write_frame_metrics_csv
 from src.metrics import (
@@ -21,8 +21,8 @@ from src.metrics import (
     compute_torso_length,
     summarize_knee_angles,
 )
-from src.pose_runner import MediaPipePoseRunner, YOLOPoseRunner
-from src.synthetic_sensors import (
+from src.pose_runner import MediaPipePoseRunner
+from src.sensors import (
     generate_interpretation,
     generate_synthetic_emg,
     generate_synthetic_nirs,
@@ -61,8 +61,6 @@ def run_analysis(
     event_min_knee_rom_deg: float = 12.0,
     event_min_peak_kick_height_norm: float = -0.5,
     progress_callback: Callable[[int, int], None] | None = None,
-    backend: str = "mediapipe",
-    yolo_model: str = "yolo11n-pose.pt",
     vel_assist_threshold: float = 80.0,
 ) -> AnalysisResult:
     """Run full pose-analysis pipeline on a single video.
@@ -75,9 +73,6 @@ def run_analysis(
         show_joint_labels: Overlay joint label text on video.
         event_*: Kick-event detection parameters.
         progress_callback: Optional callable(current_frame, total_frames) for UI progress bars.
-        backend: Pose backend — "mediapipe" (default) or "yolo".
-        yolo_model: YOLO model filename, e.g. "yolo11n-pose.pt" or "yolov8n-pose.pt".
-                    Downloaded automatically on first use.
 
     Returns:
         AnalysisResult with all computed data.
@@ -111,11 +106,7 @@ def run_analysis(
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
-    if backend == "yolo":
-        runner: MediaPipePoseRunner | YOLOPoseRunner = YOLOPoseRunner(model_name=yolo_model)
-    else:
-        runner = MediaPipePoseRunner()
-    use_yolo = isinstance(runner, YOLOPoseRunner)
+    runner = MediaPipePoseRunner()
     total_frames = 0
 
     # Accumulate time-series for post-loop analytics
@@ -187,10 +178,7 @@ def run_analysis(
                 }
             )
 
-            if use_yolo:
-                draw_pose_from_keypoints(frame, keypoints, show_joint_labels=show_joint_labels)
-            else:
-                draw_pose(frame, pose_landmarks, show_joint_labels=show_joint_labels)
+            draw_pose(frame, pose_landmarks, show_joint_labels=show_joint_labels)
             draw_joint_angle_panel(frame, angle_map)
             writer.write(frame)
             total_frames += 1

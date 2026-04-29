@@ -6,6 +6,7 @@ from typing import Iterable, Sequence
 
 import numpy as np
 from src.pose_runner import Keypoints2D
+from src.utils import fill_none_forward, moving_average  # noqa: F401 (re-exported)
 
 # Joints for which velocity/acceleration are computed
 VELOCITY_JOINT_KEYS = ["R_KNEE", "L_KNEE", "R_HIP", "L_HIP", "R_ANKLE", "L_ANKLE"]
@@ -62,24 +63,6 @@ def calculate_joint_angles(keypoints: Keypoints2D) -> dict[str, float | None]:
         "L_ANKLE": safe_angle(keypoints.left_knee, keypoints.left_ankle, keypoints.left_foot_index),
     }
 
-
-def _fill_none_forward(values: Sequence[float | None], default: float = 0.0) -> list[float]:
-    """Forward-fill None values in a series."""
-    out: list[float] = []
-    last = default
-    for v in values:
-        if v is not None:
-            last = float(v)
-        out.append(last)
-    return out
-
-
-def moving_average(values: Sequence[float], window_size: int = 5) -> list[float]:
-    if window_size <= 1 or len(values) < window_size:
-        return list(values)
-    kernel = np.ones(window_size, dtype=float) / window_size
-    smoothed = np.convolve(np.array(values, dtype=float), kernel, mode="same")
-    return smoothed.tolist()
 
 
 def detect_peak_frames_from_angles(
@@ -196,7 +179,7 @@ def compute_angular_velocity(
     if n < 3:
         return [None] * n, [None] * n
 
-    filled = _fill_none_forward(angle_series)
+    filled = fill_none_forward(angle_series)
     dt = 1.0 / fps
 
     try:

@@ -17,13 +17,6 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as _components
 
-# Check optional deps once at startup
-try:
-    import ultralytics  # noqa: F401
-    _YOLO_AVAILABLE = True
-except ImportError:
-    _YOLO_AVAILABLE = False
-
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Kickboks Yorgunluk Analizi",
@@ -36,7 +29,7 @@ st.set_page_config(
 st.sidebar.title("🥊 Kickboks Analizi")
 page = st.sidebar.radio(
     "Sayfa",
-    ["Tek Video Analizi", "Çift Video Analizi", "EMG Sync"],
+    ["Video Analizi", "EMG Sync"],
     label_visibility="collapsed",
 )
 
@@ -292,8 +285,9 @@ def _video_player(path: Path | str, start_time: float = 0.0, height: int = 480) 
         st.warning("Video bulunamadı.")
         return
     port = _get_video_server(p.parent)
-    url  = f"http://127.0.0.1:{port}/{p.name}"
-    uid  = abs(hash(str(p))) % 999999
+    t_frag = f"#t={start_time:.3f}" if start_time > 0 else ""
+    url  = f"http://127.0.0.1:{port}/{p.name}{t_frag}"
+    uid  = abs(hash(str(p) + str(start_time))) % 999999
 
     html = f"""
 <style>
@@ -303,7 +297,7 @@ def _video_player(path: Path | str, start_time: float = 0.0, height: int = 480) 
   #w{uid}:hover #v{uid}::-webkit-media-controls{{opacity:1}}
 </style>
 <div id="w{uid}">
-  <video id="v{uid}" controls preload="metadata">
+  <video id="v{uid}" controls preload="auto">
     <source src="{url}" type="video/mp4">
   </video>
 </div>
@@ -311,8 +305,10 @@ def _video_player(path: Path | str, start_time: float = 0.0, height: int = 480) 
 (function(){{
   var v = document.getElementById('v{uid}');
   var w = document.getElementById('w{uid}');
-  v.currentTime = {start_time};
-  // fallback for non-webkit: toggle controls on hover
+  var t = {start_time};
+  if(t > 0){{
+    v.addEventListener('loadedmetadata', function(){{ v.currentTime = t; }}, {{once:true}});
+  }}
   if(!CSS.supports('-webkit-appearance','none')){{
     v.removeAttribute('controls');
     w.addEventListener('mouseenter',()=>v.setAttribute('controls',''));
@@ -413,547 +409,14 @@ def _per_kick_trend(pre_events: list[dict], post_events: list[dict], col: str, l
     return fig
 
 
+# PAGE 1 — Video Analizi
 # ═══════════════════════════════════════════════════════════════════════════════
-# PAGE 1 — Tek Video Analizi
-# ═══════════════════════════════════════════════════════════════════════════════
-if page == "Tek Video Analizi":
-    st.title("Tek Video Analizi")
-    st.caption("Video yükle → analiz çalıştır → eklem açıları, hız ve tekme eventlerini incele.")
-
-    # ── Sidebar params ────────────────────────────────────────────────────────
-    st.sidebar.subheader("Parametreler")
-    _backend_opts = ["mediapipe", "yolo"] if _YOLO_AVAILABLE else ["mediapipe"]
-    backend = st.sidebar.selectbox(
-        "Pose backend",
-        _backend_opts,
-        index=0,
-        help="MediaPipe: hızlı, 33 nokta, kurulumu kolay.\n"
-             "YOLO: 17 COCO nokta, hızlı tekmelerde daha kararlı tracking — "
-             "ilk çalıştırmada model (~6 MB) indirilir."
-             + ("" if _YOLO_AVAILABLE else "\n\n⚠️ YOLO için: pip install ultralytics"),
-    )
-    yolo_model = st.sidebar.selectbox(
-        "YOLO model",
-        ["yolo11n-pose.pt", "yolo11s-pose.pt", "yolov8n-pose.pt", "yolov8s-pose.pt"],
-        index=0,
-        help="n=nano (en hızlı), s=small (daha doğru). İlk kullanımda indirilir.",
-        disabled=(backend != "yolo"),
-    )
-    show_labels = st.sidebar.checkbox(
-        "Eklem etiketleri", value=False,
-        help="Annotated videoda her eklemin üstüne kısa isim yazar (R_KNE, L_ANK vb.). "
-             "Pose'un doğru takip edilip edilmediğini görsel olarak kontrol etmek için açın.",
-    )
-    prominence = st.sidebar.slider(
-        "Event prominence (norm)", 0.02, 0.20, 0.06, 0.01,
-        help="Ayağın baseline'ın ne kadar üstüne çıkınca 'tekme başladı' sayılsın (normalize torso birimi). "
-             "Düşürürsen küçük hareketler de event olur; artırırsan yalnızca net yüksek tekmeler yakalanır.",
-    )
-    min_dist = st.sidebar.slider(
-        "Min peak mesafe (sn)", 0.1, 1.5, 0.25, 0.05,
-        help="İki ayrı tekme arasındaki minimum süre. "
-             "Hızlı kombinasyon varsa düşür (0.1 sn); tek tekme alıştırması ise yüksek tut.",
-    )
-    min_dur = st.sidebar.slider(
-        "Min event süresi (sn)", 0.05, 0.5, 0.10, 0.05,
-        help="Bu süreden kısa hareketler tekme sayılmaz. "
-             "Çok kısa titremeleri veya anlık sarsılmaları eler.",
-    )
-    max_dur = st.sidebar.slider(
-        "Max event süresi (sn)", 1.0, 10.0, 6.0, 0.5,
-        help="Bu süreden uzun hareketler tekme sayılmaz. "
-             "Uzun duruş değişikliklerini veya bozuk pose tespitlerini dışarıda bırakır.",
-    )
-
-    st.sidebar.subheader("Kick Doğrulama Filtreleri")
-    min_knee_rom = st.sidebar.slider(
-        "Min diz ROM (°)", 0, 60, 12, 5,
-        help="Tekme sayılması için dizin en az bu kadar açılıp kapanması gerekir.\n\n"
-             "Gerçek tekmelerde ROM genellikle 60–120°, weight-shift'te ise 3–5°.\n\n"
-             "20° varsayılanı sahte tespitlerin neredeyse tamamını eler.",
-    )
-    min_peak_height = st.sidebar.slider(
-        "Min peak yüksekliği (norm)", -1.0, 0.5, -0.5, 0.05,
-        help="Tekme anında ayağın ulaşması gereken minimum yükseklik (torso uzunluğuna normalize).\n\n"
-             "0.0 = kalça hizası (orta-yüksek tekme)\n"
-             "−0.3 = kalçanın biraz altı (düşük tekme)\n"
-             "−1.0 = neredeyse yerde (filtre kapalı)\n\n"
-             "Atılan tekme alçaksa −0.5'e çekin.",
-    )
-    vel_assist = st.sidebar.slider(
-        "Hız yardımı eşiği (°/s)", 50, 500, 100, 25,
-        help="Diz açısal hızı bu değeri geçen anlarda tekme adayı oluşturulur.\n\n"
-             "Hızlı tekmeleri yakalayan ikincil sinyal — ayak yüksekliği sinyali kaçırdığında devreye girer.\n\n"
-             "Düşürürsen çok hassas olur (duruş değişiklikleri de yakalanabilir).\n"
-             "Artırırsan sadece patlayıcı hızlı tekmelerde aktif olur.",
-    )
-
-    # ── Upload ────────────────────────────────────────────────────────────────
-    uploaded = st.file_uploader("Video seç (MP4/AVI)", type=["mp4", "avi", "mov"])
-    run_btn = st.button("▶ Analizi Çalıştır", disabled=uploaded is None, type="primary")
-
-    if run_btn and uploaded is not None:
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            input_path = tmp / "input.mp4"
-            output_path = tmp / "annotated.mp4"
-            frame_csv = tmp / "frame_metrics.csv"
-            events_csv = tmp / "kick_events.csv"
-
-            input_path.write_bytes(uploaded.read())
-
-            progress_bar = st.progress(0, text="Pose analizi yapılıyor…")
-
-            def _progress(cur: int, total: int) -> None:
-                pct = int(min(cur / max(total, 1), 1.0) * 100)
-                progress_bar.progress(pct, text=f"Frame {cur}/{total} işleniyor…")
-
-            try:
-                from src.pipeline import run_analysis
-                result = run_analysis(
-                    input_path=input_path,
-                    output_path=output_path,
-                    frame_csv_path=frame_csv,
-                    events_csv_path=events_csv,
-                    show_joint_labels=show_labels,
-                    event_peak_prominence_norm=prominence,
-                    event_min_distance_sec=min_dist,
-                    event_min_duration_sec=min_dur,
-                    event_max_duration_sec=max_dur,
-                    event_min_knee_rom_deg=float(min_knee_rom),
-                    event_min_peak_kick_height_norm=float(min_peak_height),
-                    progress_callback=_progress,
-                    backend=backend,
-                    yolo_model=yolo_model,
-                    vel_assist_threshold=float(vel_assist),
-                )
-                progress_bar.progress(100, text="Tamamlandı!")
-            except Exception as exc:
-                st.error(f"Hata: {exc}")
-                st.stop()
-
-            df = _read_csv(str(frame_csv))
-            events = result.events
-
-            # ── Summary metrics ───────────────────────────────────────────────
-            st.subheader("Özet")
-            c1, c2, c3, c4, c5 = st.columns(5)
-            c1.metric("Toplam Frame", result.total_frames)
-            c2.metric("FPS", f"{result.fps:.1f}")
-            c3.metric("Tespit Edilen Tekme", len(events))
-            if events:
-                mean_dur = sum(float(e["duration_sec"]) for e in events) / len(events)
-                c4.metric("Ort. Tekme Süresi", f"{mean_dur:.2f} sn")
-                peak_vels = [float(e["active_peak_knee_vel_deg_s"]) for e in events if e.get("active_peak_knee_vel_deg_s") is not None]
-                c5.metric("Ort. Peak Diz Hızı", f"{sum(peak_vels)/len(peak_vels):.0f} °/s" if peak_vels else "N/A")
-
-            # ── Tabs ──────────────────────────────────────────────────────────
-            tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📹 Annotated Video", "📈 Açı Grafikleri", "⚡ Hız Grafikleri", "📋 Tekme Eventleri", "🔍 Kick İnceleme", "🔬 Sensör Analizi"])
-
-            with tab1:
-                if output_path.exists():
-                    _video_player(output_path)
-                else:
-                    st.warning("Video çıktısı oluşturulamadı.")
-
-            with tab2:
-                if not df.empty:
-                    fig_angles = _plot_time_series(
-                        df,
-                        ["R_KNEE", "L_KNEE", "R_HIP", "L_HIP", "R_ANKLE", "L_ANKLE"],
-                        JOINT_COLOR,
-                        events,
-                        "Eklem Açıları",
-                        "Açı (°)",
-                    )
-                    st.plotly_chart(fig_angles, use_container_width=True)
-
-                    fig_height = _plot_time_series(
-                        df,
-                        ["R_KICK_HEIGHT", "L_KICK_HEIGHT", "KICK_HEIGHT_ACTIVE"],
-                        {"R_KICK_HEIGHT": "#ef4444", "L_KICK_HEIGHT": "#3b82f6", "KICK_HEIGHT_ACTIVE": "#fbbf24"},
-                        events,
-                        "Normalize Tekme Yüksekliği",
-                        "Yükseklik (torso uzunluğu)",
-                    )
-                    st.plotly_chart(fig_height, use_container_width=True)
-                else:
-                    st.warning("Frame verisi bulunamadı.")
-
-            with tab3:
-                if not df.empty:
-                    fig_vel = _plot_time_series(
-                        df,
-                        ["R_KNEE_vel_deg_s", "L_KNEE_vel_deg_s", "R_HIP_vel_deg_s", "L_HIP_vel_deg_s"],
-                        VEL_COLOR,
-                        events,
-                        "Açısal Hız",
-                        "Hız (°/sn)",
-                    )
-                    st.plotly_chart(fig_vel, use_container_width=True)
-
-                    fig_foot = _plot_time_series(
-                        df,
-                        ["R_FOOT_speed_norm", "L_FOOT_speed_norm"],
-                        FOOT_COLOR,
-                        events,
-                        "Ayak Hızı (normalize)",
-                        "Hız (torso/sn)",
-                    )
-                    st.plotly_chart(fig_foot, use_container_width=True)
-                else:
-                    st.warning("Hız verisi bulunamadı.")
-
-            with tab4:
-                if events:
-                    display_cols = [
-                        "kick_id", "active_leg", "start_time_sec", "peak_time_sec", "end_time_sec",
-                        "duration_sec", "peak_kick_height_norm",
-                        "active_peak_knee_angle_deg", "active_knee_rom_deg",
-                        "active_peak_knee_vel_deg_s", "active_mean_knee_vel_deg_s",
-                        "time_to_peak_knee_vel_sec",
-                        "active_peak_foot_speed_norm",
-                    ]
-                    ev_df = pd.DataFrame(events)
-                    show_cols = [c for c in display_cols if c in ev_df.columns]
-                    st.dataframe(ev_df[show_cols].set_index("kick_id"), use_container_width=True)
-
-                    # Per-kick velocity bar chart
-                    if "active_peak_knee_vel_deg_s" in ev_df.columns:
-                        fig_k = go.Figure()
-                        fig_k.add_trace(go.Bar(
-                            x=[f"Tekme {int(e['kick_id'])}" for e in events],
-                            y=[float(e.get("active_peak_knee_vel_deg_s") or 0) for e in events],
-                            marker_color="#ef4444",
-                            name="Peak Diz Hızı (°/s)",
-                        ))
-                        fig_k.add_trace(go.Bar(
-                            x=[f"Tekme {int(e['kick_id'])}" for e in events],
-                            y=[float(e.get("active_knee_rom_deg") or 0) for e in events],
-                            marker_color="#3b82f6",
-                            name="Diz ROM (°)",
-                        ))
-                        fig_k.update_layout(
-                            barmode="group", height=300,
-                            title="Tekme Bazlı: Peak Hız vs ROM",
-                            plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-                            font=dict(color="#fafafa"),
-                            xaxis=dict(gridcolor="#333"), yaxis=dict(gridcolor="#333"),
-                            margin=dict(l=40, r=20, t=40, b=40),
-                            legend=dict(orientation="h", y=-0.3),
-                        )
-                        st.plotly_chart(fig_k, use_container_width=True)
-
-                    # CSV indirme
-                    ev_csv_bytes = ev_df.to_csv(index=False).encode("utf-8")
-                    st.download_button("📥 Events CSV indir", ev_csv_bytes, "kick_events.csv", "text/csv")
-                else:
-                    st.info("Tekme eventi tespit edilemedi. Parametreleri ayarlayın.")
-
-            with tab5:
-                st.subheader("Kick İnceleme — her tekme ayrı ayrı")
-                if not df.empty and events:
-                    for ev in events:
-                        kid = int(ev["kick_id"])
-                        t_start = float(ev["start_time_sec"])
-                        t_end = float(ev["end_time_sec"])
-                        t_peak = float(ev["peak_time_sec"])
-                        dur = float(ev["duration_sec"])
-                        leg = ev.get("active_leg", "?")
-                        rom = ev.get("active_knee_rom_deg")
-                        height = ev.get("peak_kick_height_norm")
-                        peak_vel = ev.get("active_peak_knee_vel_deg_s")
-                        ttp = ev.get("time_to_peak_knee_vel_sec")
-
-                        with st.expander(
-                            f"Tekme {kid}  |  {leg} bacak  |  {t_start:.2f}–{t_end:.2f}s  |  ROM {float(rom):.1f}°  |  Height {float(height):.3f}" if rom and height else f"Tekme {kid}",
-                            expanded=(kid == 1),
-                        ):
-                            # Mini stats
-                            mc1, mc2, mc3, mc4 = st.columns(4)
-                            mc1.metric("Aktif Bacak", leg)
-                            mc2.metric("Süre", f"{dur:.3f} sn")
-                            mc3.metric("Diz ROM", f"{float(rom):.1f}°" if rom is not None else "—")
-                            mc4.metric("Peak Yükseklik", f"{float(height):.3f}" if height is not None else "—")
-                            mc1b, mc2b, mc3b, mc4b = st.columns(4)
-                            mc1b.metric("Peak Diz Hızı", f"{float(peak_vel):.0f} °/s" if peak_vel is not None else "—")
-                            mc2b.metric("Peak Hıza Süre", f"{float(ttp):.3f} sn" if ttp is not None else "—")
-                            mc3b.metric("R_HIP ROM", f"{float(ev['R_HIP_rom']):.1f}°" if ev.get('R_HIP_rom') is not None else "—")
-                            mc4b.metric("L_HIP ROM", f"{float(ev['L_HIP_rom']):.1f}°" if ev.get('L_HIP_rom') is not None else "—")
-
-                            # Zoom in on kick window with padding
-                            pad = 0.5
-                            mask = (df["time_sec"] >= max(0, t_start - pad)) & (df["time_sec"] <= t_end + pad)
-                            df_zoom = df[mask].copy()
-
-                            knee_col = "R_KNEE" if leg == "R" else "L_KNEE"
-                            hip_col = "R_HIP" if leg == "R" else "L_HIP"
-                            height_col = "R_KICK_HEIGHT" if leg == "R" else "L_KICK_HEIGHT"
-                            vel_col = f"{knee_col}_vel_deg_s"
-
-                            fig_kick = go.Figure()
-                            for col, color, name in [
-                                (knee_col, "#ef4444", f"{knee_col} açısı (°)"),
-                                (hip_col, "#f97316", f"{hip_col} açısı (°)"),
-                            ]:
-                                if col in df_zoom.columns:
-                                    fig_kick.add_trace(go.Scatter(
-                                        x=df_zoom["time_sec"], y=df_zoom[col],
-                                        name=name, line=dict(color=color, width=2), mode="lines",
-                                    ))
-                            if height_col in df_zoom.columns:
-                                fig_kick.add_trace(go.Scatter(
-                                    x=df_zoom["time_sec"], y=df_zoom[height_col],
-                                    name=f"Ayak yüksekliği ({leg})", line=dict(color="#fbbf24", width=1.5, dash="dot"),
-                                    yaxis="y2", mode="lines",
-                                ))
-                            if vel_col in df_zoom.columns:
-                                fig_kick.add_trace(go.Scatter(
-                                    x=df_zoom["time_sec"], y=df_zoom[vel_col],
-                                    name="Açısal hız (°/s)", line=dict(color="#a78bfa", width=1.5),
-                                    yaxis="y3", mode="lines",
-                                ))
-                            # Event window band
-                            fig_kick.add_vrect(x0=t_start, x1=t_end, fillcolor="rgba(255,220,0,0.15)", line_width=0)
-                            # Peak marker
-                            fig_kick.add_vline(x=t_peak, line_dash="dash", line_color="#fbbf24", line_width=1.5)
-
-                            fig_kick.update_layout(
-                                height=280,
-                                margin=dict(l=50, r=80, t=15, b=30),
-                                xaxis_title="Zaman (sn)",
-                                yaxis=dict(title="Açı (°)", gridcolor="#333"),
-                                yaxis2=dict(title="Yükseklik", overlaying="y", side="right", gridcolor="#333", showgrid=False),
-                                yaxis3=dict(title="Hız (°/s)", overlaying="y", side="right", anchor="free", position=1.0, showgrid=False),
-                                plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-                                font=dict(color="#fafafa"),
-                                legend=dict(orientation="h", y=-0.4, font=dict(size=10)),
-                            )
-
-                            vcol, gcol = st.columns([1, 1])
-                            with gcol:
-                                st.plotly_chart(fig_kick, use_container_width=True)
-                            with vcol:
-                                clip_path = tmp / f"clip_{kid}.mp4"
-                                if not clip_path.exists():
-                                    import cv2 as _cv2
-                                    try:
-                                        cap_c = _cv2.VideoCapture(str(output_path))
-                                        fps_c = cap_c.get(_cv2.CAP_PROP_FPS) or 30.0
-                                        w_c = int(cap_c.get(_cv2.CAP_PROP_FRAME_WIDTH))
-                                        h_c = int(cap_c.get(_cv2.CAP_PROP_FRAME_HEIGHT))
-                                        fcc = _cv2.VideoWriter_fourcc(*"avc1")
-                                        wri_c = _cv2.VideoWriter(str(clip_path), fcc, fps_c, (w_c, h_c))
-                                        if not wri_c.isOpened():
-                                            fcc = _cv2.VideoWriter_fourcc(*"mp4v")
-                                            wri_c = _cv2.VideoWriter(str(clip_path), fcc, fps_c, (w_c, h_c))
-                                        pad_c = 0.4
-                                        f0 = max(0, int((t_start - pad_c) * fps_c))
-                                        f1 = int((t_end + pad_c) * fps_c)
-                                        cap_c.set(_cv2.CAP_PROP_POS_FRAMES, f0)
-                                        for _ in range(f1 - f0 + 1):
-                                            ok_c, fr_c = cap_c.read()
-                                            if not ok_c:
-                                                break
-                                            wri_c.write(fr_c)
-                                        cap_c.release()
-                                        wri_c.release()
-                                    except Exception:
-                                        pass
-                                if clip_path.exists() and clip_path.stat().st_size > 1000:
-                                    _video_player(clip_path)
-                                else:
-                                    _video_player(output_path, start_time=t_start)
-                elif df.empty:
-                    st.warning("Önce analiz çalıştırın.")
-                else:
-                    st.info("Tekme eventi tespit edilemedi.")
-
-            with tab6:
-                st.subheader("Sentetik Sensör Analizi — EMG + NIRS")
-                st.caption("Video analizinden fizyolojik model ile üretilen simüle EMG ve NIRS verileri. (Model tabanlı simülasyon — gerçek cihaz verisi değil)")
-
-                emg_rows  = result.synthetic_emg_rows  or []
-                nirs_rows = result.synthetic_nirs_rows or []
-                interp    = result.interpretation      or []
-
-                if not emg_rows or not nirs_rows:
-                    st.warning("Sensör verisi üretilemedi. Önce analizi çalıştırın.")
-                else:
-                    # ── Özet kartlar ─────────────────────────────────────────
-                    import numpy as _np
-                    _win  = max(1, int(result.fps * 5))
-                    _freq = [r["EMG_median_freq_Hz"] for r in emg_rows]
-                    _smo2 = [r["SmO2"]               for r in nirs_rows]
-                    _rms  = [r["EMG_RMS_mV"]         for r in emg_rows]
-                    freq_start = float(_np.mean(_freq[:_win]))
-                    freq_end   = float(_np.mean(_freq[-_win:]))
-                    smo2_start = float(_np.mean(_smo2[:_win]))
-                    smo2_end   = float(_np.mean(_smo2[-_win:]))
-
-                    sc1, sc2, sc3, sc4 = st.columns(4)
-                    sc1.metric("Toplam Tekme", len(events))
-                    sc2.metric(
-                        "EMG Frekans (başlangıç→son)",
-                        f"{freq_end:.0f} Hz",
-                        delta=f"{freq_end - freq_start:.0f} Hz",
-                        delta_color="inverse",
-                    )
-                    sc3.metric(
-                        "SmO2 (başlangıç→son)",
-                        f"%{smo2_end:.0f}",
-                        delta=f"{smo2_end - smo2_start:.0f}%",
-                        delta_color="inverse",
-                    )
-                    sc4.metric("Min SmO2", f"%{min(_smo2):.0f}")
-
-                    st.markdown("---")
-
-                    # ── NIRS grafiği ─────────────────────────────────────────
-                    _t_nirs = [r["time_sec"] for r in nirs_rows]
-                    _thb    = [r["THb"]      for r in nirs_rows]
-
-                    fig_nirs = go.Figure()
-                    fig_nirs.add_trace(go.Scatter(
-                        x=_t_nirs, y=_smo2,
-                        name="SmO2 (%)", line=dict(color="#22c55e", width=2),
-                    ))
-                    fig_nirs.add_trace(go.Scatter(
-                        x=_t_nirs, y=_thb,
-                        name="THb (g/dL)", line=dict(color="#a78bfa", width=1.5, dash="dot"),
-                        yaxis="y2",
-                    ))
-                    for ev in events:
-                        fig_nirs.add_vline(
-                            x=float(ev["peak_time_sec"]),
-                            line_dash="dot", line_color="rgba(251,191,36,0.5)", line_width=1,
-                        )
-                    fig_nirs.update_layout(
-                        title="NIRS — Kas Oksijen Satürasyonu (SmO2) ve Toplam Hemoglobin (THb)",
-                        height=280,
-                        xaxis_title="Zaman (sn)",
-                        yaxis=dict(title="SmO2 (%)", gridcolor="#333", range=[0, 100]),
-                        yaxis2=dict(title="THb (g/dL)", overlaying="y", side="right", showgrid=False),
-                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-                        font=dict(color="#fafafa"),
-                        margin=dict(l=50, r=70, t=40, b=40),
-                        legend=dict(orientation="h", y=-0.35),
-                    )
-                    st.plotly_chart(fig_nirs, use_container_width=True)
-
-                    # ── EMG RMS grafiği ───────────────────────────────────────
-                    _t_emg  = [r["time_sec"]       for r in emg_rows]
-                    _rms2   = [r["EMG_CH2_RMS_mV"] for r in emg_rows]
-
-                    fig_rms = go.Figure()
-                    fig_rms.add_trace(go.Scatter(
-                        x=_t_emg, y=_rms,
-                        name="CH1 RMS — Aktif bacak (mV)", line=dict(color="#ef4444", width=2),
-                    ))
-                    fig_rms.add_trace(go.Scatter(
-                        x=_t_emg, y=_rms2,
-                        name="CH2 RMS — Stance bacak (mV)", line=dict(color="#3b82f6", width=1.5, dash="dot"),
-                    ))
-                    for ev in events:
-                        fig_rms.add_vline(
-                            x=float(ev["peak_time_sec"]),
-                            line_dash="dot", line_color="rgba(251,191,36,0.5)", line_width=1,
-                        )
-                    fig_rms.update_layout(
-                        title="EMG — Kas Aktivasyon Büyüklüğü (RMS)",
-                        height=250,
-                        xaxis_title="Zaman (sn)",
-                        yaxis=dict(title="RMS (mV)", gridcolor="#333"),
-                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-                        font=dict(color="#fafafa"),
-                        margin=dict(l=50, r=20, t=40, b=40),
-                        legend=dict(orientation="h", y=-0.35),
-                    )
-                    st.plotly_chart(fig_rms, use_container_width=True)
-
-                    # ── EMG median frekans (yorgunluk trendi) ─────────────────
-                    fig_freq = go.Figure()
-                    fig_freq.add_trace(go.Scatter(
-                        x=_t_emg, y=_freq,
-                        name="Median Frekans (Hz)", line=dict(color="#fbbf24", width=2),
-                        fill="tozeroy", fillcolor="rgba(251,191,36,0.08)",
-                    ))
-                    for ev in events:
-                        fig_freq.add_vline(
-                            x=float(ev["peak_time_sec"]),
-                            line_dash="dot", line_color="rgba(167,139,250,0.5)", line_width=1,
-                        )
-                    fig_freq.update_layout(
-                        title="EMG Median Frekans — Nöromüsküler Yorgunluk Göstergesi",
-                        height=230,
-                        xaxis_title="Zaman (sn)",
-                        yaxis=dict(title="Frekans (Hz)", gridcolor="#333"),
-                        plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-                        font=dict(color="#fafafa"),
-                        margin=dict(l=50, r=20, t=40, b=40),
-                    )
-                    st.plotly_chart(fig_freq, use_container_width=True)
-
-                    # ── Tekme bazlı tablo ─────────────────────────────────────
-                    if events:
-                        st.markdown("#### Tekme Bazlı Sensör Özeti")
-                        kick_sensor_rows = []
-                        for ev in events:
-                            pf = int(ev.get("peak_frame", 0))
-                            pf = min(pf, len(emg_rows) - 1)
-                            kick_sensor_rows.append({
-                                "Tekme": int(ev["kick_id"]),
-                                "Bacak": ev.get("active_leg", "?"),
-                                "Peak Zaman (sn)": round(float(ev["peak_time_sec"]), 2),
-                                "EMG CH1 RMS (mV)": round(emg_rows[pf]["EMG_RMS_mV"], 3),
-                                "EMG Median Freq (Hz)": round(emg_rows[pf]["EMG_median_freq_Hz"], 1),
-                                "SmO2 (%)": round(nirs_rows[pf]["SmO2"], 1),
-                                "THb (g/dL)": round(nirs_rows[pf]["THb"], 2),
-                            })
-                        st.dataframe(
-                            pd.DataFrame(kick_sensor_rows).set_index("Tekme"),
-                            use_container_width=True,
-                        )
-
-                    # ── Otomatik yorum ────────────────────────────────────────
-                    st.markdown("---")
-                    st.markdown("#### Otomatik Yorumlama")
-                    for line in interp:
-                        st.markdown(f"- {line}")
-
-                    st.caption(
-                        "⚠️ Bu veriler gerçek EMG/NIRS ölçümü değildir. "
-                        "Fizyolojik parametreler ve tekme eventlerine dayalı model tabanlı simülasyondur. "
-                        "K-Myo + Moxy ile gerçek ölçüm yapılarak doğrulanmalıdır."
-                    )
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE 2 — Çift Video Analizi
-# ═══════════════════════════════════════════════════════════════════════════════
-elif page == "Çift Video Analizi":
-    st.title("Çift Video Analizi — Yorgunluk Değerlendirmesi")
-    st.caption("Pre ve post antrenman videolarını yükle, analiz et, açısal yorgunluk metriklerini karşılaştır.")
+if page == "Video Analizi":
+    st.title("Video Analizi — Yorgunluk Değerlendirmesi")
+    st.caption("Pre ve post antrenman videolarını yükle, analiz et, yorgunluk metriklerini ve sensör simülasyonunu incele.")
 
     # ── Sidebar params ────────────────────────────────────────────────────────
     st.sidebar.subheader("Analiz Parametreleri")
-    dv_backend = st.sidebar.selectbox(
-        "Pose backend",
-        ["mediapipe", "yolo"] if _YOLO_AVAILABLE else ["mediapipe"],
-        index=0,
-        key="dv_backend",
-        help="MediaPipe: hızlı, 33 nokta, kurulumu kolay.\n"
-             "YOLO: 17 COCO nokta, hızlı tekmelerde daha kararlı tracking — "
-             "ilk çalıştırmada model (~6 MB) indirilir."
-             + ("" if _YOLO_AVAILABLE else "\n\n⚠️ YOLO için: pip install ultralytics"),
-    )
-    dv_yolo_model = st.sidebar.selectbox(
-        "YOLO model",
-        ["yolo11n-pose.pt", "yolo11s-pose.pt", "yolov8n-pose.pt", "yolov8s-pose.pt"],
-        index=0,
-        key="dv_yolo_model",
-        help="n=nano (en hızlı), s=small (daha doğru). İlk kullanımda indirilir.",
-        disabled=(dv_backend != "yolo"),
-    )
     dv_show_labels = st.sidebar.checkbox(
         "Eklem etiketleri", value=False, key="dv_labels",
         help="Annotated videoda her eklemin üstüne kısa isim yazar (R_KNE, L_ANK vb.). "
@@ -1055,8 +518,7 @@ elif page == "Çift Video Analizi":
                 event_max_duration_sec=dv_max_dur,
                 event_min_knee_rom_deg=float(dv_min_rom),
                 event_min_peak_kick_height_norm=float(dv_min_height),
-                backend=dv_backend,
-                yolo_model=dv_yolo_model,
+                backend="mediapipe",
                 vel_assist_threshold=float(dv_vel_assist),
             )
             pre_res  = run_analysis(pre_in,  pre_out,  pre_fcsv,  pre_ecsv,  progress_callback=_prog_pre,  **kw)
@@ -1083,6 +545,46 @@ elif page == "Çift Video Analizi":
 
     pre_events  = pre_res.events
     post_events = post_res.events
+
+    # ── Pre-compute sensor stats (shared by Sensör + Rapor tabs) ─────────────
+    import numpy as _np
+
+    def _sensor_stats(emg_rows: list[dict], nirs_rows: list[dict], win: int) -> dict:
+        freq = [r["EMG_median_freq_Hz"] for r in emg_rows]
+        smo2 = [r["SmO2"]              for r in nirs_rows]
+        rms  = [r["EMG_RMS_mV"]        for r in emg_rows]
+        return {
+            "freq_start": float(_np.mean(freq[:win])),
+            "freq_end":   float(_np.mean(freq[-win:])),
+            "freq_arr":   freq,
+            "smo2_start": float(_np.mean(smo2[:win])),
+            "smo2_end":   float(_np.mean(smo2[-win:])),
+            "smo2_min":   float(min(smo2)),
+            "smo2_arr":   smo2,
+            "rms_arr":    rms,
+            "rms2_arr":   [r["EMG_CH2_RMS_mV"] for r in emg_rows],
+            "thb_arr":    [r["THb"] for r in nirs_rows],
+            "t_arr":      [r["time_sec"] for r in emg_rows],
+            "t_nirs":     [r["time_sec"] for r in nirs_rows],
+        }
+
+    _pre_emg   = pre_res.synthetic_emg_rows   or []
+    _pre_nirs  = pre_res.synthetic_nirs_rows  or []
+    _post_emg  = post_res.synthetic_emg_rows  or []
+    _post_nirs = post_res.synthetic_nirs_rows or []
+    _sensor_ok = bool(_pre_emg and _post_emg)
+
+    if _sensor_ok:
+        _win5          = max(1, int(pre_res.fps * 5))
+        _ps            = _sensor_stats(_pre_emg,  _pre_nirs,  _win5)
+        _pos           = _sensor_stats(_post_emg, _post_nirs, _win5)
+        _pre_freq_drop  = _ps["freq_start"]  - _ps["freq_end"]
+        _post_freq_drop = _pos["freq_start"] - _pos["freq_end"]
+        _pre_smo2_drop  = _ps["smo2_start"]  - _ps["smo2_end"]
+        _post_smo2_drop = _pos["smo2_start"] - _pos["smo2_end"]
+    else:
+        _ps = _pos = {}
+        _pre_freq_drop = _post_freq_drop = _pre_smo2_drop = _post_smo2_drop = 0.0
 
     # ── Summary header ────────────────────────────────────────────────────────
     fatigue_data = _compute_fatigue(pre_events, post_events)
@@ -1116,7 +618,8 @@ elif page == "Çift Video Analizi":
     # ── Tabs ──────────────────────────────────────────────────────────────────
     tabs = st.tabs(["📹 Videolar", "📐 Açı Karşılaştırma", "⚡ Hız Karşılaştırma",
                     "🔥 Yorgunluk Analizi", "📊 Tekme Bazlı", "🏃 Faz Analizi",
-                    "📏 Asimetri", "🔬 İstatistik", "💾 Export"])
+                    "📏 Asimetri", "🔬 İstatistik", "💾 Export",
+                    "🧪 Sensör Simülasyonu", "📄 Sporcu Raporu"])
 
     # ── Tab 0: Videos ─────────────────────────────────────────────────────────
     with tabs[0]:
@@ -1604,6 +1107,431 @@ elif page == "Çift Video Analizi":
             "📥 yorgunluk_raporu.csv",
             pd.DataFrame(report_rows).to_csv(index=False).encode("utf-8"),
             "yorgunluk_raporu.csv", "text/csv",
+        )
+
+    # ── Tab 9: Sensör Simülasyonu ────────────────────────────────────────────
+    with tabs[9]:
+        st.subheader("Sensör Simülasyonu — EMG + NIRS")
+        st.caption(
+            "Video analizinden fizyolojik model ile üretilen simüle EMG ve NIRS karşılaştırması. "
+            "Pre → Post arası yorgunluk değişimi, nöromüsküler ve metabolik perspektiften. "
+            "*(Model tabanlı simülasyon — gerçek K-Myo + Moxy verisi değil)*"
+        )
+
+        if not _sensor_ok:
+            st.warning("Sensör verisi üretilemedi. Analizi yeniden çalıştırın.")
+        else:
+            sc1, sc2, sc3, sc4 = st.columns(4)
+            sc1.metric("EMG Frekans — Pre sonu", f"{_ps['freq_end']:.0f} Hz",
+                       delta=f"{_ps['freq_end'] - _ps['freq_start']:.0f} Hz", delta_color="inverse")
+            sc2.metric("EMG Frekans — Post sonu", f"{_pos['freq_end']:.0f} Hz",
+                       delta=f"{_pos['freq_end'] - _pos['freq_start']:.0f} Hz", delta_color="inverse")
+            sc3.metric("SmO2 — Pre sonu", f"%{_ps['smo2_end']:.0f}",
+                       delta=f"{_ps['smo2_end'] - _ps['smo2_start']:.0f}%", delta_color="inverse")
+            sc4.metric("SmO2 — Post sonu", f"%{_pos['smo2_end']:.0f}",
+                       delta=f"{_pos['smo2_end'] - _pos['smo2_start']:.0f}%", delta_color="inverse")
+
+            st.markdown("---")
+
+            # EMG Median Frekans overlay
+            fig_freq = go.Figure()
+            fig_freq.add_trace(go.Scatter(x=_ps["t_arr"], y=_ps["freq_arr"],
+                name="Pre — EMG Median Frekans", line=dict(color="#3b82f6", width=2, dash="dot")))
+            fig_freq.add_trace(go.Scatter(x=_pos["t_arr"], y=_pos["freq_arr"],
+                name="Post — EMG Median Frekans", line=dict(color="#ef4444", width=2)))
+            for ev in pre_events:
+                fig_freq.add_vline(x=float(ev["peak_time_sec"]),
+                                   line_dash="dot", line_color="rgba(59,130,246,0.3)", line_width=1)
+            for ev in post_events:
+                fig_freq.add_vline(x=float(ev["peak_time_sec"]),
+                                   line_dash="dot", line_color="rgba(239,68,68,0.3)", line_width=1)
+            fig_freq.update_layout(
+                title="EMG Median Frekans — Nöromüsküler Yorgunluk Trendi",
+                height=270, xaxis_title="Zaman (sn)",
+                yaxis=dict(title="Frekans (Hz)", gridcolor="#333"),
+                plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                font=dict(color="#fafafa"),
+                margin=dict(l=50, r=20, t=40, b=45),
+                legend=dict(orientation="h", y=-0.4),
+            )
+            st.plotly_chart(fig_freq, use_container_width=True)
+
+            # SmO2 overlay
+            fig_smo2 = go.Figure()
+            fig_smo2.add_trace(go.Scatter(x=_ps["t_nirs"], y=_ps["smo2_arr"],
+                name="Pre — SmO2 (%)", line=dict(color="#22c55e", width=2, dash="dot")))
+            fig_smo2.add_trace(go.Scatter(x=_pos["t_nirs"], y=_pos["smo2_arr"],
+                name="Post — SmO2 (%)", line=dict(color="#f97316", width=2)))
+            for ev in pre_events:
+                fig_smo2.add_vline(x=float(ev["peak_time_sec"]),
+                                   line_dash="dot", line_color="rgba(34,197,94,0.3)", line_width=1)
+            for ev in post_events:
+                fig_smo2.add_vline(x=float(ev["peak_time_sec"]),
+                                   line_dash="dot", line_color="rgba(249,115,22,0.3)", line_width=1)
+            fig_smo2.update_layout(
+                title="NIRS — Kas Oksijen Satürasyonu (SmO2)",
+                height=270, xaxis_title="Zaman (sn)",
+                yaxis=dict(title="SmO2 (%)", gridcolor="#333", range=[0, 100]),
+                plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                font=dict(color="#fafafa"),
+                margin=dict(l=50, r=20, t=40, b=45),
+                legend=dict(orientation="h", y=-0.4),
+            )
+            st.plotly_chart(fig_smo2, use_container_width=True)
+
+            # EMG RMS overlay
+            fig_rms = go.Figure()
+            fig_rms.add_trace(go.Scatter(x=_ps["t_arr"],  y=_ps["rms_arr"],
+                name="Pre CH1 — Aktif Bacak", line=dict(color="#3b82f6", width=1.5, dash="dot")))
+            fig_rms.add_trace(go.Scatter(x=_pos["t_arr"], y=_pos["rms_arr"],
+                name="Post CH1 — Aktif Bacak", line=dict(color="#ef4444", width=1.5)))
+            fig_rms.add_trace(go.Scatter(x=_ps["t_arr"],  y=_ps["rms2_arr"],
+                name="Pre CH2 — Stance Bacak", line=dict(color="#60a5fa", width=1, dash="dot")))
+            fig_rms.add_trace(go.Scatter(x=_pos["t_arr"], y=_pos["rms2_arr"],
+                name="Post CH2 — Stance Bacak", line=dict(color="#fca5a5", width=1)))
+            fig_rms.update_layout(
+                title="EMG RMS — Kas Aktivasyon Büyüklüğü",
+                height=260, xaxis_title="Zaman (sn)",
+                yaxis=dict(title="RMS (mV)", gridcolor="#333"),
+                plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
+                font=dict(color="#fafafa"),
+                margin=dict(l=50, r=20, t=40, b=45),
+                legend=dict(orientation="h", y=-0.5, font=dict(size=10)),
+            )
+            st.plotly_chart(fig_rms, use_container_width=True)
+
+            st.caption(
+                "Detaylı yorum için → 📄 Sporcu Raporu sekmesi."
+            )
+
+    # ── Tab 10: Sporcu Raporu ────────────────────────────────────────────────
+    with tabs[10]:
+        import datetime as _dt
+
+        st.subheader("Sporcu Analiz Raporu")
+        st.caption("Biyomekanik + EMG simülasyonu + NIRS simülasyonu birleşik değerlendirmesi. Çıktı alınabilir.")
+
+        _pmv   = _events_mean(pre_events,  "active_peak_knee_vel_deg_s")
+        _pomv  = _events_mean(post_events, "active_peak_knee_vel_deg_s")
+        _prm   = _events_mean(pre_events,  "active_knee_rom_deg")
+        _porm  = _events_mean(post_events, "active_knee_rom_deg")
+        _ph    = _events_mean(pre_events,  "peak_kick_height_norm")
+        _poh   = _events_mean(post_events, "peak_kick_height_norm")
+        _ptt   = _events_mean(pre_events,  "time_to_peak_knee_vel_sec")
+        _pott  = _events_mean(post_events, "time_to_peak_knee_vel_sec")
+        _pfs   = _events_mean(pre_events,  "active_peak_foot_speed_norm")
+        _pofs  = _events_mean(post_events, "active_peak_foot_speed_norm")
+        _pexv  = _events_mean(pre_events,  "extension_peak_vel_deg_s")
+        _poexv = _events_mean(post_events, "extension_peak_vel_deg_s")
+        _prv   = _events_mean(pre_events,  "retraction_peak_vel_deg_s")
+        _porv  = _events_mean(post_events, "retraction_peak_vel_deg_s")
+
+        def _pct(a, b):
+            if a and b and abs(a) > 1e-6:
+                return (b - a) / abs(a) * 100
+            return None
+
+        def _status(pct_val, direction=-1):
+            if pct_val is None:
+                return "—"
+            signal = direction * pct_val
+            if signal > 10:
+                return "⚠️ Düşüş"
+            if signal > 5:
+                return "⚡ Hafif Düşüş"
+            if signal < -5:
+                return "✅ İyileşme"
+            return "➡️ Stabil"
+
+        _today = _dt.date.today().strftime("%d.%m.%Y")
+        _pre_dur  = round(pre_res.total_frames  / pre_res.fps,  1) if pre_res.fps  else 0
+        _post_dur = round(post_res.total_frames / post_res.fps, 1) if post_res.fps else 0
+        _vel_pct  = _pct(_pmv,  _pomv)
+        _rom_pct  = _pct(_prm,  _porm)
+
+        _fi_color     = "#ef4444" if fi >= 66 else ("#f59e0b" if fi >= 33 else "#22c55e")
+        _fi_label_txt = ("Yüksek — Yoğun antrenman yükü. Toparlanma süreci kritik." if fi >= 66
+                         else "Orta — Yorgunluk birikimi mevcut, dikkatli yüklenme önerilir." if fi >= 33
+                         else "Düşük — İyi toparlanma. Yük artışı uygun.")
+
+        st.markdown(f"""
+<div style="border:1px solid #334155;border-radius:8px;padding:16px 20px;margin-bottom:16px;background:#0f172a">
+<h3 style="margin:0 0 4px 0;color:#f1f5f9">Taekwondo Yorgunluk Analiz Raporu</h3>
+<p style="margin:0;color:#94a3b8;font-size:13px">
+Tarih: {_today} &nbsp;|&nbsp; Pre: {len(pre_events)} tekme, {_pre_dur} sn &nbsp;|&nbsp;
+Post: {len(post_events)} tekme, {_post_dur} sn &nbsp;|&nbsp;
+Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
+</p>
+</div>
+""", unsafe_allow_html=True)
+
+        # ── 1. Biyomekanik ────────────────────────────────────────────────────
+        st.markdown("### 1. Biyomekanik Bulgular")
+        _bio_rows = []
+        for _lbl, _pv, _pov, _dir in [
+            ("Peak Diz Hızı (°/s)",      _pmv,  _pomv,  -1),
+            ("Diz ROM (°)",              _prm,  _porm,  -1),
+            ("Tekme Yüksekliği (norm.)", _ph,   _poh,   -1),
+            ("Peak Hıza Süre (sn)",      _ptt,  _pott,  +1),
+            ("Ayak Hızı (norm.)",        _pfs,  _pofs,  -1),
+            ("Uzatma Hızı (°/s)",        _pexv, _poexv, -1),
+            ("Geri Çekim Hızı (°/s)",    _prv,  _porv,  -1),
+        ]:
+            _p = _pct(_pv, _pov)
+            _bio_rows.append({
+                "Metrik":      _lbl,
+                "Pre (ort.)":  f"{_pv:.2f}"  if _pv  is not None else "—",
+                "Post (ort.)": f"{_pov:.2f}" if _pov is not None else "—",
+                "Δ%":          f"{_p:+.1f}%" if _p   is not None else "—",
+                "Durum":       _status(_p, _dir),
+            })
+        st.dataframe(pd.DataFrame(_bio_rows).set_index("Metrik"), use_container_width=True)
+
+        _bio_lines = []
+        if _vel_pct is not None:
+            if _vel_pct < -10:
+                _bio_lines.append(f"Peak diz hızı antrenman sonrası **%{abs(_vel_pct):.0f} geriledi** ({_pmv:.0f} → {_pomv:.0f} °/s). Yorgunluğun hız üretme kapasitesini kısıtladığı görülmektedir.")
+            elif _vel_pct < -5:
+                _bio_lines.append(f"Peak diz hızında **hafif düşüş** (%{abs(_vel_pct):.0f}). Yorgunluk etkisi erken dönemde.")
+            else:
+                _bio_lines.append(f"Peak diz hızı stabil ({_pmv:.0f} → {_pomv:.0f} °/s, %{_vel_pct:+.0f}). Hız üretme kapasitesi korunmuş.")
+        if _rom_pct is not None:
+            if _rom_pct < -10:
+                _bio_lines.append(f"Diz eklem hareket açıklığı **%{abs(_rom_pct):.0f} azaldı** ({_prm:.1f}° → {_porm:.1f}°). Kas sertliği veya yorgunluk kaynaklı kısıtlanma.")
+            elif _rom_pct > 5:
+                _bio_lines.append(f"Diz ROM artmış (%{_rom_pct:.0f}). Isınma etkisiyle hareket serbestisi iyileşmiş.")
+        for _bl in _bio_lines:
+            st.markdown(f"> {_bl}")
+
+        # ── 2. Nöromüsküler ───────────────────────────────────────────────────
+        st.markdown("### 2. Nöromüsküler Bulgular *(EMG Simülasyonu)*")
+        if not _sensor_ok:
+            st.info("Sensör verisi mevcut değil.")
+        else:
+            _emg_tbl = [
+                {"Parametre": "Median Frekans Başlangıç — Pre",  "Değer": f"{_ps['freq_start']:.1f} Hz",  "Açıklama": "Baseline nöromüsküler aktivasyon"},
+                {"Parametre": "Median Frekans Bitiş — Pre",      "Değer": f"{_ps['freq_end']:.1f} Hz",    "Açıklama": f"Δ = {_ps['freq_end']-_ps['freq_start']:+.1f} Hz  ({(_ps['freq_end']-_ps['freq_start'])/_ps['freq_start']*100:+.1f}%)"},
+                {"Parametre": "Median Frekans Başlangıç — Post", "Değer": f"{_pos['freq_start']:.1f} Hz", "Açıklama": "Post baseline"},
+                {"Parametre": "Median Frekans Bitiş — Post",     "Değer": f"{_pos['freq_end']:.1f} Hz",   "Açıklama": f"Δ = {_pos['freq_end']-_pos['freq_start']:+.1f} Hz  ({(_pos['freq_end']-_pos['freq_start'])/_pos['freq_start']*100:+.1f}%)"},
+                {"Parametre": "Post − Pre Düşüş Farkı",          "Değer": f"{_post_freq_drop - _pre_freq_drop:+.1f} Hz", "Açıklama": "Artı değer → Post'ta daha fazla yorgunluk"},
+            ]
+            st.dataframe(pd.DataFrame(_emg_tbl).set_index("Parametre"), use_container_width=True)
+
+            if _post_freq_drop > _pre_freq_drop + 3:
+                _emg_sev = "🔴 **Belirgin nöromüsküler yorgunluk**"
+                _emg_txt = (f"Post oturumunda EMG median frekansı **{_post_freq_drop:.0f} Hz** düştü "
+                            f"(pre'de {_pre_freq_drop:.0f} Hz). Antrenman yükü kas motor ünite aktivasyonunu "
+                            "anlamlı düzeyde bozmuştur.")
+            elif _post_freq_drop > 8:
+                _emg_sev = "🟡 **Orta düzey nöromüsküler yorgunluk**"
+                _emg_txt = f"Post EMG median frekansı {_post_freq_drop:.0f} Hz geriledi. Kas dayanıklılığı geliştirilmesi önerilir."
+            else:
+                _emg_sev = "🟢 **Nöromüsküler yorgunluk sınırlı**"
+                _emg_txt = (f"Pre/Post frekans düşüşü benzer (pre: {_pre_freq_drop:.0f} Hz, post: {_post_freq_drop:.0f} Hz). "
+                            "Nöromüsküler sistem yüke dirençli.")
+            st.markdown(f"> {_emg_sev}: {_emg_txt}")
+
+        # ── 3. Metabolik ──────────────────────────────────────────────────────
+        st.markdown("### 3. Metabolik Bulgular *(NIRS Simülasyonu)*")
+        if not _sensor_ok:
+            st.info("Sensör verisi mevcut değil.")
+        else:
+            _nirs_tbl = [
+                {"Parametre": "SmO2 Başlangıç — Pre",  "Değer": f"%{_ps['smo2_start']:.1f}",  "Açıklama": "Dinlenme oksijen satürasyonu"},
+                {"Parametre": "SmO2 Bitiş — Pre",      "Değer": f"%{_ps['smo2_end']:.1f}",    "Açıklama": f"Δ = {_ps['smo2_end']-_ps['smo2_start']:+.1f}%"},
+                {"Parametre": "SmO2 Minimum — Pre",    "Değer": f"%{_ps['smo2_min']:.1f}",    "Açıklama": "<%50 → anaerobik eşik yakını"},
+                {"Parametre": "SmO2 Başlangıç — Post", "Değer": f"%{_pos['smo2_start']:.1f}", "Açıklama": "Post başlangıç"},
+                {"Parametre": "SmO2 Bitiş — Post",     "Değer": f"%{_pos['smo2_end']:.1f}",   "Açıklama": f"Δ = {_pos['smo2_end']-_pos['smo2_start']:+.1f}%"},
+                {"Parametre": "SmO2 Minimum — Post",   "Değer": f"%{_pos['smo2_min']:.1f}",   "Açıklama": "<%50 → anaerobik eşik yakını"},
+            ]
+            st.dataframe(pd.DataFrame(_nirs_tbl).set_index("Parametre"), use_container_width=True)
+
+            if _post_smo2_drop > _pre_smo2_drop + 3:
+                _nirs_sev = "🔴 **Belirgin metabolik stres**"
+                _nirs_txt = (f"Post'ta SmO2 **%{_post_smo2_drop:.0f}** düştü (pre'de %{_pre_smo2_drop:.0f}). "
+                             "Oksidatif enerji sistemi antrenman yükü altında yetersiz kalmaktadır.")
+            elif _post_smo2_drop > 5:
+                _nirs_sev = "🟡 **Orta metabolik yük**"
+                _nirs_txt = f"Post SmO2 %{_post_smo2_drop:.0f} geriledi — aerobik kapasite sınırlarına yaklaşılmaktadır."
+            else:
+                _nirs_sev = "🟢 **Metabolik sistem stabil**"
+                _nirs_txt = f"SmO2 düşüşü sınırlı (post: %{_post_smo2_drop:.0f}). Oksijenleme kapasitesi yüke yeterli."
+            if _pos["smo2_min"] < 50:
+                _nirs_txt += f" Minimum SmO2 %{_pos['smo2_min']:.0f} — anaerobik eşiğe yaklaşılmıştır."
+            st.markdown(f"> {_nirs_sev}: {_nirs_txt}")
+
+        # ── 4. Asimetri ───────────────────────────────────────────────────────
+        st.markdown("### 4. Bilateral Asimetri Bulguları")
+        _pre_ka  = [float(e["knee_asi"]) for e in pre_events  if e.get("knee_asi") is not None]
+        _post_ka = [float(e["knee_asi"]) for e in post_events if e.get("knee_asi") is not None]
+        _pre_ha  = [float(e["hip_asi"])  for e in pre_events  if e.get("hip_asi")  is not None]
+        _post_ha = [float(e["hip_asi"])  for e in post_events if e.get("hip_asi")  is not None]
+        if _pre_ka or _post_ka:
+            _asi_rows = []
+            for _albl, _pal, _poal in [("Diz ASI (%)", _pre_ka, _post_ka), ("Kalça ASI (%)", _pre_ha, _post_ha)]:
+                if not _pal and not _poal:
+                    continue
+                _pa  = sum(_pal)  / len(_pal)  if _pal  else None
+                _poa = sum(_poal) / len(_poal) if _poal else None
+                _asi_rows.append({
+                    "Ölçüm":         _albl,
+                    "Pre Ort. ASI":  f"{_pa:+.1f}%"  if _pa  is not None else "—",
+                    "Post Ort. ASI": f"{_poa:+.1f}%" if _poa is not None else "—",
+                    "Eşik":          "|ASI| > 10% = klinik anlamlı",
+                    "Durum":         ("⚠️ Asimetri" if _poa is not None and abs(_poa) > 10 else "✅ Normal"),
+                })
+            if _asi_rows:
+                st.dataframe(pd.DataFrame(_asi_rows).set_index("Ölçüm"), use_container_width=True)
+                if any(r["Durum"] == "⚠️ Asimetri" for r in _asi_rows):
+                    st.markdown("> ⚠️ Tespit edilen asimetri dominant ve non-dominant bacak arasında yük dengesizliğine işaret etmektedir. Unilateral güç antrenmanı önerilir.")
+        else:
+            st.info("ASI hesaplaması için yeterli veri yok.")
+
+        # ── 5. Genel Değerlendirme ────────────────────────────────────────────
+        st.markdown("### 5. Genel Yorgunluk Değerlendirmesi")
+        st.markdown(f"""
+<div style="border-left:4px solid {_fi_color};padding:10px 16px;border-radius:4px;background:#1e293b;margin:8px 0">
+<span style="font-size:22px;font-weight:700;color:{_fi_color}">{fi:.1f} / 100</span>
+<span style="color:#94a3b8;margin-left:12px">{_fi_label_txt}</span>
+</div>
+""", unsafe_allow_html=True)
+
+        # ── 6. Gelişim Önerileri ──────────────────────────────────────────────
+        st.markdown("### 6. Gelişim Önerileri")
+
+        _suggs: list[tuple[str, str, str]] = []
+
+        if _sensor_ok and _post_freq_drop > 10:
+            _suggs.append(("ÖNCELİK 1", "Nöromüsküler Dayanıklılık",
+                "Post oturumunda EMG median frekansı kritik düzeyde düştü. "
+                "Pliometrik antrenman (squat jump, lunge jump, plyometric roundhouse) ve hız-kuvvet devresi "
+                "(3×8 patlayıcı squat + 3×10 yavaş eksantrik) haftada 2 gün uygulanmalı. "
+                "Hedef: 8 hafta sonra post frekans düşüşünü <8 Hz'e indirmek."))
+        elif _sensor_ok and _post_freq_drop > 6:
+            _suggs.append(("ÖNCELİK 2", "Nöromüsküler Dayanıklılık (Orta Düzey)",
+                "Orta düzey frekans düşüşü tespit edildi. Mevcut güç antrenmanına plyometrik komponent eklenmesi yeterli. "
+                "Haftada 1-2 seans 20 dk patlayıcı güç devresi."))
+
+        if _sensor_ok and _post_smo2_drop > 8:
+            _suggs.append(("ÖNCELİK 1" if not _suggs else "ÖNCELİK 2", "Aerobik Kapasite Geliştirme",
+                "SmO2 post oturumunda kritik düşüş gösterdi. Kas oksijenlenmesi yetersiz. "
+                "Zone 2 aerobik antrenman (kalp hızı 130-145 bpm, 30-45 dk, haftada 3 gün) "
+                "oksidatif kapasiteyi 6-12 haftada anlamlı iyileştirir. "
+                "Ek: antrenman aralarında aktif toparlanma (hafif bisiklet, yürüyüş)."))
+        elif _sensor_ok and _post_smo2_drop > 5:
+            _suggs.append(("ÖNCELİK 3", "Aerobik Taban Güçlendirme",
+                "Orta metabolik yük. Zone 2 çalışma haftada 2 gün yeterli."))
+
+        if _vel_pct is not None and _vel_pct < -10:
+            _suggs.append(("ÖNCELİK 2" if len(_suggs) < 2 else "ÖNCELİK 3", "Yorgunlukta Hız Koruması",
+                f"Peak diz hızı %{abs(_vel_pct):.0f} geriledi. "
+                "Yorgunluk altında tekme hızı antrenmanı: 5×(10 hızlı tekme + 20sn dinlenme) devresi, "
+                "direnç bandı veya hafif ağırlık. Shadow sparring'de bilinçli hız koruması hedefi."))
+
+        if _rom_pct is not None and _rom_pct < -10:
+            _suggs.append(("ÖNCELİK 3" if len(_suggs) < 3 else "ÖNCELİK 4", "Hareket Genişliği (ROM)",
+                f"Diz ROM %{abs(_rom_pct):.0f} azaldı. Antrenman öncesi dinamik ısınma — leg swing, hip circle, lunge stretch (2×10). "
+                "Antrenman sonrası statik esneme: hamstring, quadriceps, hip flexor (30sn×3)."))
+
+        _post_ka_mean = sum(_post_ka) / len(_post_ka) if _post_ka else None
+        if _post_ka_mean is not None and abs(_post_ka_mean) > 10:
+            _suggs.append(("ÖNCELİK 4", "Bilateral Denge",
+                f"Diz ASI {_post_ka_mean:+.0f}% — dominant bacak aşırı yükleniyor. "
+                "Unilateral antrenman: tek bacak squat, single-leg RDL (3×8 her bacak ayrı). "
+                "Hedef: ASI değerini |10%| altına indirmek."))
+
+        if fi >= 50:
+            _suggs.append(("ÖNCELİK 4" if len(_suggs) < 4 else "ÖNCELİK 5", "Toparlanma Protokolü",
+                f"Yorgunluk indeksi {fi:.0f}/100. Sonraki yüksek yoğunluklu seansa kadar 48-72 saat aktif toparlanma: "
+                "hafif yürüyüş, esneme, soğuk-sıcak kontrast banyo (30sn soğuk/90sn sıcak, 3 döngü). "
+                "Uyku: 8 saat hedefi. Protein: ≥1.8 g/kg/gün."))
+
+        if not _suggs:
+            _suggs.append(("BİLGİ", "Tüm Göstergeler Normal",
+                "Yorgunluk ve performans metrikleri kabul edilebilir sınırlar içinde. "
+                "Mevcut antrenman yükü ve toparlanma dengesi uygun. Kademeli yük artışına hazır."))
+
+        for _pri, _title, _detail in _suggs:
+            _pc = "#ef4444" if "1" in _pri else ("#f59e0b" if "2" in _pri else "#3b82f6")
+            st.markdown(f"""
+<div style="border:1px solid #334155;border-radius:6px;padding:12px 16px;margin:6px 0;background:#0f172a">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+  <span style="background:{_pc};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px">{_pri}</span>
+  <span style="color:#f1f5f9;font-weight:600;font-size:15px">{_title}</span>
+</div>
+<p style="margin:0;color:#cbd5e1;font-size:13px;line-height:1.6">{_detail}</p>
+</div>
+""", unsafe_allow_html=True)
+
+        # ── Dışa Aktar ────────────────────────────────────────────────────────
+        st.markdown("---")
+        st.markdown("#### Raporu Dışa Aktar")
+
+        _txt = [
+            "TAEKWONDO YORGUNLUK ANALİZ RAPORU",
+            "=" * 50,
+            f"Tarih         : {_today}",
+            f"Pre           : {len(pre_events)} tekme, {_pre_dur} sn",
+            f"Post          : {len(post_events)} tekme, {_post_dur} sn",
+            f"Yorgunluk İnd.: {fi:.1f}/100 — {_fi_label_txt}",
+            "",
+            "1. BİYOMEKANİK BULGULAR", "-" * 40,
+        ]
+        for _r in _bio_rows:
+            _txt.append(f"  {_r['Metrik']:<38} Pre: {_r['Pre (ort.)']: <8} Post: {_r['Post (ort.)']: <8} {_r['Δ%']: <8} {_r['Durum']}")
+        for _bl in _bio_lines:
+            _txt.append(f"  > {_bl.replace('**', '')}")
+
+        if _sensor_ok:
+            _txt += ["", "2. NÖROMÜSKÜler BULGULAR (EMG Simülasyonu)", "-" * 40]
+            for _r in _emg_tbl:
+                _txt.append(f"  {_r['Parametre']:<45} {_r['Değer']:<14} {_r['Açıklama']}")
+            _txt += ["", "3. METABOLİK BULGULAR (NIRS Simülasyonu)", "-" * 40]
+            for _r in _nirs_tbl:
+                _txt.append(f"  {_r['Parametre']:<38} {_r['Değer']:<14} {_r['Açıklama']}")
+
+        _txt += ["", "6. GELİŞİM ÖNERİLERİ", "-" * 40]
+        for _pri, _title, _detail in _suggs:
+            _txt.append(f"\n  [{_pri}] {_title}")
+            for _chunk in [_detail[i:i+90] for i in range(0, len(_detail), 90)]:
+                _txt.append(f"  {_chunk}")
+
+        _txt += ["", "─" * 50,
+                 "NOT: EMG ve NIRS verileri fizyolojik model tabanlı simülasyondur.",
+                 "Gerçek ölçüm: K-Myo (EMG) + Moxy Monitor (NIRS)."]
+
+        _exp1, _exp2 = st.columns(2)
+        with _exp1:
+            st.download_button(
+                "📥 Raporu TXT olarak indir",
+                "\n".join(_txt).encode("utf-8"),
+                f"sporcu_raporu_{_today.replace('.', '-')}.txt",
+                "text/plain",
+            )
+        with _exp2:
+            _sum_rows = [
+                {"Alan": "Tarih",                "Pre": _today,          "Post": _today},
+                {"Alan": "Tekme",                "Pre": len(pre_events), "Post": len(post_events)},
+                {"Alan": "Yorgunluk İndeksi",    "Pre": "—",            "Post": f"{fi:.1f}"},
+            ]
+            for _r in _bio_rows:
+                _sum_rows.append({"Alan": _r["Metrik"], "Pre": _r["Pre (ort.)"], "Post": _r["Post (ort.)"]})
+            if _sensor_ok:
+                _sum_rows += [
+                    {"Alan": "EMG Freq Düşüşü (Hz)", "Pre": f"{_pre_freq_drop:.1f}",  "Post": f"{_post_freq_drop:.1f}"},
+                    {"Alan": "SmO2 Düşüşü (%)",      "Pre": f"{_pre_smo2_drop:.1f}",  "Post": f"{_post_smo2_drop:.1f}"},
+                    {"Alan": "Min SmO2 (%)",          "Pre": f"{_ps['smo2_min']:.1f}", "Post": f"{_pos['smo2_min']:.1f}"},
+                ]
+            st.download_button(
+                "📥 Özet CSV indir",
+                pd.DataFrame(_sum_rows).to_csv(index=False).encode("utf-8"),
+                f"sporcu_ozet_{_today.replace('.', '-')}.csv",
+                "text/csv",
+            )
+
+        st.caption(
+            "⚠️ EMG ve NIRS verileri fizyolojik model tabanlı simülasyondur. "
+            "Gerçek ölçüm için K-Myo + Moxy Monitor kullanılmalıdır."
         )
 
 

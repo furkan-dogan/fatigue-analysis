@@ -47,6 +47,538 @@ def _suggestion_card(priority: str, title: str, detail: str, source: str, color:
     )
 
 
+def _supplement_card(name: str, dose: str, timing: str, reason: str, evidence: str, color: str) -> None:
+    st.markdown(
+        f'<div style="border:1px solid {color}55;border-radius:8px;padding:14px 18px;background:#0f172a;margin:8px 0">'
+        f'<div style="font-weight:700;color:#f1f5f9;font-size:15px;margin-bottom:10px">{name}</div>'
+        f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+        f'  <div><div style="color:#64748b;font-size:10px;font-weight:600;text-transform:uppercase;margin-bottom:2px">Doz</div>'
+        f'  <div style="color:{color};font-size:13px;font-weight:600">{dose}</div></div>'
+        f'  <div><div style="color:#64748b;font-size:10px;font-weight:600;text-transform:uppercase;margin-bottom:2px">Zamanlama</div>'
+        f'  <div style="color:#e2e8f0;font-size:13px">{timing}</div></div>'
+        f'</div>'
+        f'<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:13px;line-height:1.6">{reason}</p>'
+        f'<div style="color:#64748b;font-size:11px;border-top:1px solid #1e293b;padding-top:6px">📚 Kanıt düzeyi: {evidence}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _risk_card(label: str, risk_level: str, detail: str, color: str) -> None:
+    st.markdown(
+        f'<div style="border-left:4px solid {color};padding:8px 14px;border-radius:0 6px 6px 0;background:#1e293b;margin:5px 0">'
+        f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">'
+        f'  <span style="color:{color};font-weight:600;font-size:14px">{label}</span>'
+        f'  <span style="background:{color}22;color:{color};padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700">{risk_level}</span>'
+        f'</div>'
+        f'<p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.5">{detail}</p>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_injury_risk(
+    fi: float,
+    vel_pct: float | None,
+    rom_pct: float | None,
+    post_ka_mean: float | None,
+    sensor_ok: bool,
+    sensor_post: dict,
+) -> int:
+    st.markdown("### 7. Yaralanma Risk Profili")
+    st.caption(
+        "📌 Kaynak: Bilateral asimetri, yorgunluk indeksi, ROM kaybı ve metabolik stres birleşimi. "
+        "Risk skoru 0–100 arasında hesaplanır; ≥50 = yüksek risk."
+    )
+
+    risk = 0
+    factors: list[tuple[str, str, str, str]] = []
+
+    if post_ka_mean is not None:
+        if abs(post_ka_mean) > 15:
+            risk += 25
+            factors.append(("Yüksek bilateral asimetri",
+                f"Diz ASI {post_ka_mean:+.0f}% → dominant bacak aşırı yükleniyor; tekrarlı stres yaralanması riski.",
+                "#ef4444", "YÜKSEK"))
+        elif abs(post_ka_mean) > 10:
+            risk += 12
+            factors.append(("Orta bilateral asimetri",
+                f"Diz ASI {post_ka_mean:+.0f}% → klinik eşiğin (±10%) üzerinde; izleme gerektirir.",
+                "#f59e0b", "ORTA"))
+
+    if fi > 66:
+        risk += 25
+        factors.append(("Yüksek yorgunluk",
+            f"Yorgunluk İndeksi {fi:.0f}/100 → yorgun kasta nöromüsküler kontrol bozulur.",
+            "#ef4444", "YÜKSEK"))
+    elif fi > 33:
+        risk += 12
+        factors.append(("Orta yorgunluk",
+            f"Yorgunluk İndeksi {fi:.0f}/100 → birikimli yük takip edilmeli.",
+            "#f59e0b", "ORTA"))
+
+    if rom_pct is not None and rom_pct < -15:
+        risk += 20
+        factors.append(("Belirgin ROM kısıtlanması",
+            f"Diz ROM %{abs(rom_pct):.0f} düştü → kas sertliği + eklem kısıtlanması → hamstring/quadriceps strain riski.",
+            "#ef4444", "YÜKSEK"))
+    elif rom_pct is not None and rom_pct < -8:
+        risk += 10
+        factors.append(("Hafif ROM azalması",
+            f"Diz ROM %{abs(rom_pct):.0f} düştü → esneme protokolü önerilir.",
+            "#f59e0b", "ORTA"))
+
+    if vel_pct is not None and vel_pct < -15:
+        risk += 15
+        factors.append(("Belirgin hız kaybı",
+            f"Peak hız %{abs(vel_pct):.0f} geriledi → kasın hızlı kasılma kapasitesi bozulmuş; ani yük altında risk.",
+            "#f59e0b", "ORTA"))
+
+    if sensor_ok and sensor_post:
+        smo2_min = sensor_post.get("smo2_min", 100)
+        if smo2_min < 45:
+            risk += 12
+            factors.append(("Kritik kas hipoksisi",
+                f"Min SmO2 %{smo2_min:.0f} → anaerobik eşiğin belirgin altında; kas hasarı birikmekte.",
+                "#ef4444", "YÜKSEK"))
+        elif smo2_min < 50:
+            risk += 6
+            factors.append(("Kas hipoksisi sınırında",
+                f"Min SmO2 %{smo2_min:.0f} → anaerobik eşiğe yakın.",
+                "#f59e0b", "ORTA"))
+
+    risk = min(100, risk)
+    risk_color = "#ef4444" if risk >= 50 else ("#f59e0b" if risk >= 25 else "#22c55e")
+    risk_label = "Yüksek Risk" if risk >= 50 else ("Orta Risk" if risk >= 25 else "Düşük Risk")
+
+    rc1, rc2 = st.columns([1, 2])
+    with rc1:
+        st.markdown(
+            f'<div style="border:2px solid {risk_color};border-radius:12px;padding:24px 16px;'
+            f'text-align:center;background:#0f172a">'
+            f'<div style="font-size:48px;font-weight:800;color:{risk_color}">{risk}</div>'
+            f'<div style="color:{risk_color};font-size:12px;font-weight:600">/100</div>'
+            f'<div style="color:#94a3b8;font-size:12px;margin-top:8px">Yaralanma Risk Skoru</div>'
+            f'<div style="color:{risk_color};font-size:15px;font-weight:700;margin-top:6px">{risk_label}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+    with rc2:
+        if not factors:
+            st.success("✅ Anlamlı risk faktörü tespit edilmedi. Mevcut yük profili düşük risk taşıyor.")
+        else:
+            for fname, fdesc, fcolor, flevel in factors:
+                _risk_card(fname, flevel, fdesc, fcolor)
+
+    if risk >= 25:
+        st.markdown("**Taekwondo'ya Özel Uyarılar:**")
+        if post_ka_mean is not None and abs(post_ka_mean) > 10:
+            st.markdown(f"- 🦵 **Dominant bacak tekrarlı stres**: ASI {post_ka_mean:+.0f}% → tibia/fibula stres kırığı riski; yük dağılımını dengele")
+        if rom_pct is not None and rom_pct < -10:
+            st.markdown("- 🔴 **Hamstring/quadriceps gerilmesi**: ROM düşüşü + yüksek hız kombinasyonu → kas yırtığı riski; dinamik ısınma zorunlu")
+        if fi > 50:
+            st.markdown("- ⚠️ **ACL zorlanma riski**: Yorgun kasta nöromüsküler kontrol bozulur → ani yön değişimlerinde risk artar; teknik seans öncelikli")
+        if sensor_ok and sensor_post and sensor_post.get("smo2_min", 100) < 50:
+            st.markdown("- 💧 **Dehidrasyon / elektrolit eksikliği**: Düşük SmO2, kas perfüzyon sorununa işaret edebilir; sıvı alımını artır")
+
+    return risk
+
+
+def _render_nutrition(
+    fi: float,
+    vel_pct: float | None,
+    rom_pct: float | None,
+    post_freq_drop: float,
+    post_smo2_drop: float,
+    sensor_ok: bool,
+    sensor_post: dict,
+) -> list[dict]:
+    st.markdown("### 8. Beslenme & Takviye Önerileri")
+    st.caption(
+        "📌 Kaynak: Analiz sonuçlarından türetilmiş, bireysel metrik değerlere göre önceliklendirilmiş öneriler. "
+        "Doz bilgileri ISSN (International Society of Sports Nutrition) kılavuzlarına dayanmaktadır."
+    )
+    st.warning("⚕️ Bu öneriler genel bilgi amaçlıdır. Uygulama öncesinde spor hekimi veya diyetisyen ile görüşünüz.")
+
+    supps: list[dict] = []
+
+    neuro_fatigued = (sensor_ok and post_freq_drop > 8) or (not sensor_ok and vel_pct is not None and vel_pct < -10)
+    if neuro_fatigued:
+        reason_k = (
+            f"EMG median frekansı post'ta {post_freq_drop:.0f} Hz düştü" if sensor_ok
+            else f"Peak diz hızı %{abs(vel_pct):.0f} geriledi"
+        )
+        supps.append({
+            "priority": 1, "color": "#ef4444",
+            "name": "💪 Kreatin Monohidrat",
+            "dose": "3–5 g/gün (yükleme: 20 g/gün × 5 gün)",
+            "timing": "Antrenman sonrası karbonhidrat veya protein ile",
+            "reason": (
+                f"{reason_k}. Kreatin, kasın ATP-PC sistemini hızla yeniler, Tip II hızlı kasılan liflerin "
+                "patlayıcı güç üretimini ve toparlanmasını destekler. Taekwondo'nun tekrarlı patlayıcı tekmeleri "
+                "için en kanıtlı ergojenik takviyedir."
+            ),
+            "evidence": "A — ISSN Grade A (Rawson & Volek, 2003; meta-analizlerle destekli)",
+        })
+
+    aerob_stressed = (sensor_ok and post_smo2_drop > 5) or (not sensor_ok and fi > 50)
+    if aerob_stressed:
+        reason_b = (
+            f"SmO2 post'ta %{post_smo2_drop:.0f} düştü → kas tampon kapasitesi yetersiz" if sensor_ok
+            else f"Yorgunluk indeksi {fi:.0f}/100 → tekrarlı anaerobik çalışma"
+        )
+        supps.append({
+            "priority": 1 if (sensor_ok and post_smo2_drop > 8) else 2, "color": "#f59e0b",
+            "name": "⚡ Beta-Alanin",
+            "dose": "3.2–6.4 g/gün (bölünmüş dozlarda)",
+            "timing": "Günde 2–4 kez yemekle (karıncalanma yan etkisi azalır)",
+            "reason": (
+                f"{reason_b}. Beta-alanin, kas karnosin depolarını artırarak laktik asit birikimini tamponlar. "
+                "Tekrarlı yüksek yoğunluklu tekme performansı 4–6 haftalık kullanımda iyileşir."
+            ),
+            "evidence": "A — Hobson et al. (2012); Saunders et al. (2017) meta-analiz",
+        })
+
+    if fi > 33 or (vel_pct is not None and vel_pct < -5):
+        supps.append({
+            "priority": 2, "color": "#3b82f6",
+            "name": "🥩 Whey Protein / BCAA",
+            "dose": "20–40 g whey protein veya 5–10 g BCAA (lösin ağırlıklı)",
+            "timing": "Antrenman bitiminden sonra 30 dakika içinde",
+            "reason": (
+                f"Yorgunluk indeksi {fi:.0f}/100 — yoğun antrenman sonrası kas protein sentezi artar; "
+                "toparlanma penceresi 30–60 dakikadır. Lösin (2.5–3 g) mTOR aktivasyonunu tetikler, "
+                "kas protein yıkımını sınırlar."
+            ),
+            "evidence": "A — ISSN pozisyon bildirisi (Stokes et al., 2018)",
+        })
+
+    if sensor_ok and post_smo2_drop > 8:
+        supps.append({
+            "priority": 1, "color": "#8b5cf6",
+            "name": "🍌 Karbonhidrat Stratejisi",
+            "dose": "Öncesi: 1–4 g/kg (3–4 saat önce) | Sırası: 30–60 g/saat",
+            "timing": "Antrenman 3–4 saat öncesi ve sırası",
+            "reason": (
+                f"SmO2 %{post_smo2_drop:.0f} düştü → glikojen depolarının yetersizliğine işaret. "
+                "Yeterli karbonhidrat yüklenmesi aerobik sistemi korur ve SmO2 düşüşünü yavaşlatır. "
+                "Glikojen ressentezi için antrenman sonrası ilk 2 saatte 1–1.2 g/kg karbonhidrat kritik."
+            ),
+            "evidence": "A — Burke et al. (2011) Journal of Sports Sciences",
+        })
+
+    if fi > 40:
+        supps.append({
+            "priority": 3, "color": "#22c55e",
+            "name": "🧘 Magnezyum (Bisglisinat/Malat)",
+            "dose": "300–400 mg/gün",
+            "timing": "Gece yatmadan 30–60 dakika önce",
+            "reason": (
+                f"Yorgunluk indeksi {fi:.0f}/100 — yoğun antrenmanda terlemeyle magnezyum kaybı olur. "
+                "Kas gevşemesi, uyku kalitesi (derin uyku süresi) ve sinir iletiminde kritik rol; "
+                "eksikliği kramplara ve toparlanma gecikmesine yol açar. Bisglisinat formu en iyi emilimi sağlar."
+            ),
+            "evidence": "B — Abbasi et al. (2012); Setaro et al. (2014)",
+        })
+
+    if vel_pct is not None and vel_pct < -8:
+        supps.append({
+            "priority": 2, "color": "#f97316",
+            "name": "☕ Kafein",
+            "dose": "3–6 mg/kg vücut ağırlığı (70 kg için ~210–420 mg)",
+            "timing": "Antrenman 30–60 dakika öncesi",
+            "reason": (
+                f"Peak hız %{abs(vel_pct):.0f} geriledi — kafein adenozin antagonizması ile yorgunluk algısını "
+                "azaltır, nöromüsküler iletimi hızlandırır, patlayıcı güç ve reaksiyon süresini iyileştirir. "
+                "Gece çalışmalarında uyku kalitesini bozabileceği için zamanlama önemlidir."
+            ),
+            "evidence": "A — Grgic et al. (2021) British Journal of Sports Medicine meta-analiz",
+        })
+
+    if fi > 33 or (rom_pct is not None and rom_pct < -8):
+        supps.append({
+            "priority": 3, "color": "#06b6d4",
+            "name": "🐟 Omega-3 + D Vitamini",
+            "dose": "EPA+DHA: 2–4 g/gün | D Vitamini: 2000–4000 IU/gün",
+            "timing": "Yemekle (sabah veya öğle, her gün)",
+            "reason": (
+                "Yoğun antrenman sonrası inflamasyonu azaltır (Omega-3: IL-6, TNF-α baskısı). "
+                "D vitamini kas gücü ve immün fonksiyon için kritik; Türkiye'deki sporcularda D vitamini "
+                "eksikliği yaygındır. ROM kısıtlanmasının inflamatuar bileşenini azaltmada destekleyici."
+            ),
+            "evidence": "B — Smith et al. (2011); Owens et al. (2015); Pilz et al. (2019)",
+        })
+
+    if not supps:
+        st.info("Mevcut verilere göre acil takviye ihtiyacı tespit edilmedi. Temel protein ve karbonhidrat gereksinimlerini karşılamak yeterlidir.")
+        return []
+
+    p1 = [s for s in supps if s["priority"] == 1]
+    p2 = [s for s in supps if s["priority"] == 2]
+    p3 = [s for s in supps if s["priority"] == 3]
+
+    if p1:
+        st.markdown("#### 🔴 Yüksek Öncelik")
+        for s in p1:
+            _supplement_card(s["name"], s["dose"], s["timing"], s["reason"], s["evidence"], s["color"])
+    if p2:
+        st.markdown("#### 🟡 Orta Öncelik")
+        for s in p2:
+            _supplement_card(s["name"], s["dose"], s["timing"], s["reason"], s["evidence"], s["color"])
+    if p3:
+        st.markdown("#### 🟢 Destekleyici")
+        for s in p3:
+            _supplement_card(s["name"], s["dose"], s["timing"], s["reason"], s["evidence"], s["color"])
+
+    return supps
+
+
+def _render_recovery_timeline(
+    fi: float,
+    post_freq_drop: float,
+    post_smo2_drop: float,
+    sensor_ok: bool,
+    risk_score: int,
+) -> None:
+    st.markdown("### 9. Toparlanma Takvimi")
+    st.caption(
+        f"📌 Yorgunluk İndeksi {fi:.0f}/100 + Risk skoru {risk_score}/100 temel alınarak kişiselleştirilmiştir."
+    )
+
+    cold = "10 dk buz banyosu (12–15°C) veya kriyoterapi" if fi > 50 else "Soğuk duş 3–5 dk (15–18°C)"
+    protein_note = "≥2.0 g/kg/gün" if fi > 50 else "1.6–1.8 g/kg/gün"
+    sleep_h = "≥9 saat (toparlanma kritik)" if fi > 50 else "≥8 saat"
+    next_hi = "72 saat" if fi > 66 else ("48 saat" if fi > 33 else "24 saat")
+    sparring = "❌ Sparring önerilmez" if fi > 66 else ("⚠️ Kontrollü sparring" if fi > 33 else "✅ Normal sparring")
+
+    cols = st.columns(4)
+    frames = [
+        ("0 – 2 Saat", "⚡", [
+            "20–40 g whey protein + 40–60 g karbonhidrat (toparlanma penceresi)",
+            cold,
+            "Statik esneme: quadriceps, hamstring, kalça fleksörü (3×30 sn)",
+            "500–750 ml su + elektrolit (sodyum + potasyum)",
+            "Bacakları yukarı kaldır: 10–15 dk (venöz dönüşü kolaylaştırır)",
+        ], "#ef4444"),
+        ("2 – 24 Saat", "🌙", [
+            f"Uyku: {sleep_h} — büyüme hormonu salınımının %70'i derin uykuda",
+            f"Protein: {protein_note} (öğünlere yayılmış)",
+            "Alkol ve kafein kaçın (uyku kalitesini bozar, kortizolü artırır)",
+            "Soğuk-sıcak kontrast: 90 sn sıcak / 30 sn soğuk, 3 döngü" if fi > 33 else "Ilık duş yeterli",
+            "Hidrasyon: idrar rengi açık sarı olana kadar su iç",
+        ], "#f59e0b"),
+        ("24 – 48 Saat", "🔄", [
+            "Mobilite çalışması: eklem hareket açıklığı, yoga / pilates 30 dk",
+            "Hafif teknik antrenman: shadow, yavaş tempo tekme tekniği",
+            "Karbonhidrat yüklemesi: 5–7 g/kg/gün (glikojen depolarını tamamla)",
+            "Masaj veya foam roller: vastus lateralis, hamstring, IT band (15 dk)",
+            f"Bir sonraki yüksek yoğunluklu seans: {next_hi} sonra",
+        ], "#3b82f6"),
+        ("48 – 72 Saat", "💪", [
+            f"{'Teknik odaklı düşük yoğunluklu seans' if fi > 50 else 'Normal yüke kademeli dönüş'}",
+            sparring,
+            "Güç antrenmanı: hafif direnç + yüksek tekrar (patlayıcı lunge, squat jump)",
+            "Mental hazırlık: video analizi, taktik çalışma",
+            "Performans testi: birkaç tekme ile hız/ROM kontrolü",
+        ], "#22c55e"),
+    ]
+
+    for col, (tf, icon, acts, clr) in zip(cols, frames):
+        items_html = "".join(
+            f'<li style="margin:4px 0;color:#cbd5e1;font-size:12px;line-height:1.5">{a}</li>'
+            for a in acts
+        )
+        col.markdown(
+            f'<div style="border:1px solid {clr}44;border-radius:8px;padding:12px 14px;background:#0f172a">'
+            f'<div style="color:{clr};font-weight:700;font-size:13px;margin-bottom:8px">{icon} {tf}</div>'
+            f'<ul style="margin:0;padding-left:18px;line-height:1.6">{items_html}</ul>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+
+def _generate_weekly_plan(fi: float, has_neuro: bool, has_aerob: bool, has_rom: bool, has_asi: bool) -> list[dict]:
+    inten = "Düşük" if fi > 66 else ("Orta" if fi > 33 else "Normal")
+    return [
+        {"Gün": "Pazartesi",
+         "Odak": "Aerobik Kapasite" if has_aerob else "Teknik",
+         "İçerik": "30–40 dk Zone 2 koşu + teknik drill (roundhouse serisi)" if has_aerob else "Shadow boksing + teknik analiz",
+         "Yoğunluk": inten},
+        {"Gün": "Salı",
+         "Odak": "Nöromüsküler Güç" if has_neuro else "Kombine",
+         "İçerik": "Patlayıcı squat jump 4×8 + elastik bant tekme 3×10" if has_neuro else "Kombine tekme-yumruk drill",
+         "Yoğunluk": inten},
+        {"Gün": "Çarşamba",
+         "Odak": "Mobilite & Toparlanma",
+         "İçerik": "Foam roller 15 dk + esneme + hafif shadow",
+         "Yoğunluk": "Düşük"},
+        {"Gün": "Perşembe",
+         "Odak": "Bilateral Denge" if has_asi else "Güç",
+         "İçerik": "Tek bacak squat 3×8 + single-leg RDL 3×10" if has_asi else "Plyometrik devre + hız tekmeleri",
+         "Yoğunluk": inten},
+        {"Gün": "Cuma",
+         "Odak": "Teknik / Sparring",
+         "İçerik": "Shadow + video analizi (yüksek FI)" if fi > 50 else "Kontrollü sparring + teknik analiz",
+         "Yoğunluk": "Orta" if fi > 50 else inten},
+        {"Gün": "Cumartesi",
+         "Odak": "Aktif Toparlanma",
+         "İçerik": "Yürüyüş 30 dk + statik esneme",
+         "Yoğunluk": "Çok Düşük"},
+        {"Gün": "Pazar",
+         "Odak": "Dinlenme",
+         "İçerik": "Tam dinlenme veya hafif yürüyüş",
+         "Yoğunluk": "—"},
+    ]
+
+
+def _render_next_session(
+    fi: float,
+    vel_pct: float | None,
+    rom_pct: float | None,
+    post_ka_mean: float | None,
+    post_freq_drop: float,
+    post_smo2_drop: float,
+    sensor_ok: bool,
+    pre_events: list[dict],
+    post_events: list[dict],
+    risk_score: int,
+) -> None:
+    st.markdown("### 10. Sonraki Antrenman Haftası Önerisi")
+    st.caption(
+        f"📌 Yorgunluk İndeksi {fi:.0f}/100, Risk Skoru {risk_score}/100 ve "
+        "tespit edilen zayıf noktalara göre kişiselleştirilmiştir."
+    )
+
+    if fi > 66:
+        vol_adj, int_adj, vol_color = "Hacmi %30–40 azalt", "Düşük yoğunluk (MKH %60–70)", "#ef4444"
+    elif fi > 33:
+        vol_adj, int_adj, vol_color = "Hacmi koru / %10–15 azalt", "Orta yoğunluk (MKH %70–80)", "#f59e0b"
+    else:
+        vol_adj, int_adj, vol_color = "Hacmi %10–15 artırabilirsin", "Yüksek yoğunluk uygun (MKH %80–90)", "#22c55e"
+
+    vc1, vc2, vc3 = st.columns(3)
+    for col, lbl, val in [
+        (vc1, "HAFTALık HACİM", vol_adj),
+        (vc2, "YOğUNLUK", int_adj),
+        (vc3, "SPARRING", "❌ Önerilmez (FI > 66)" if fi > 66 else ("⚠️ Kontrollü" if fi > 33 else "✅ Normal")),
+    ]:
+        col.markdown(
+            f'<div style="border-left:4px solid {vol_color};padding:10px 16px;background:#1e293b;border-radius:4px">'
+            f'<div style="color:#64748b;font-size:10px;font-weight:600;text-transform:uppercase">{lbl}</div>'
+            f'<div style="color:{vol_color};font-size:14px;font-weight:700;margin-top:4px">{val}</div>'
+            f'</div>', unsafe_allow_html=True
+        )
+
+    st.markdown("#### Odak Alanları")
+
+    focus: list[dict] = []
+    has_neuro = (sensor_ok and post_freq_drop > 8) or (not sensor_ok and vel_pct is not None and vel_pct < -10)
+    has_aerob = (sensor_ok and post_smo2_drop > 5) or (not sensor_ok and fi > 50)
+    has_rom   = rom_pct is not None and rom_pct < -8
+    has_asi   = post_ka_mean is not None and abs(post_ka_mean) > 10
+
+    if has_neuro:
+        drop_str = f"{post_freq_drop:.0f} Hz EMG freq düşüşü" if sensor_ok else f"%{abs(vel_pct):.0f} hız kaybı"
+        focus.append({
+            "priority": 1, "color": "#ef4444",
+            "title": "🔴 Nöromüsküler Patlayıcı Güç",
+            "trigger": drop_str,
+            "frequency": "Haftada 2 gün (Salı + Perşembe)",
+            "drills": [
+                "Patlayıcı squat jump: 4×8 set (max hız, 90 sn tam dinlenme)",
+                "Elastik bant ile hızlı roundhouse: 3×10 her bacak",
+                "Kum torbası kombinasyon: roundhouse + yan tekme, 5×(6 tekme), 45 sn ara",
+                "CMJ (countermovement jump) tek bacak: 3×5 her bacak",
+                "Sprint merdiven: 3×5 (patlayıcı ilk adım, taekwondo çıkış pozisyonu)",
+            ],
+        })
+
+    if has_aerob:
+        smo2_str = f"SmO2 %{post_smo2_drop:.0f} düşüşü" if sensor_ok else f"FI {fi:.0f}/100"
+        focus.append({
+            "priority": 1 if (sensor_ok and post_smo2_drop > 8) else 2, "color": "#3b82f6",
+            "title": "🔵 Aerobik Kapasite (Zone 2)",
+            "trigger": smo2_str,
+            "frequency": "Haftada 2–3 gün (Pazartesi + Çarşamba + opsiyonel Cumartesi)",
+            "drills": [
+                "Sürekli koşu 30–40 dk, MKH %65–75 (konuşabilme eşiği)",
+                "Merdiven/basamak protokolü: 20 dk kesintisiz tempo",
+                "Shadow boksing: 5×3 dk (60 sn ara) teknik odaklı, düşük hız",
+                "Bisiklet ergometre (düşük direnç): 30 dk Zone 2",
+                "Uzun mesafe atlama ipi: 3×5 dk (70 rpm sabit tempo)",
+            ],
+        })
+
+    if has_rom:
+        focus.append({
+            "priority": 2, "color": "#22c55e",
+            "title": "🟢 Hareket Genişliği & Mobilite",
+            "trigger": f"Diz ROM %{abs(rom_pct):.0f} azalması",
+            "frequency": "Her antrenman öncesi 15 dk + haftada 1 gün sadece mobilite",
+            "drills": [
+                "Dinamik ısınma: leg swing (öne-arkaya-yana) 2×15 tekrar",
+                "Hip flexor lunge stretch: 3×30 sn her taraf",
+                "Hamstring PNF gerdirme: 6×(10 sn kasılma + 30 sn pasif germe)",
+                "Foam roller: IT band, vastus lateralis, hamstring — 2×60 sn her bölge",
+                "Yoga: pigeon pose + lizard pose, 2×45 sn her taraf",
+            ],
+        })
+
+    if has_asi:
+        side = "sol" if (post_ka_mean is not None and post_ka_mean > 0) else "sağ"
+        focus.append({
+            "priority": 2, "color": "#8b5cf6",
+            "title": "🟣 Bilateral Denge & Simetri",
+            "trigger": f"Diz ASI {post_ka_mean:+.0f}%",
+            "frequency": "Haftada 2 gün (güç günleri başında, 20 dk)",
+            "drills": [
+                f"Tek bacak squat ({side} taraf önce): 3×8 yavaş tempo",
+                "Single-leg Romanian deadlift: 3×10 her bacak ayrı",
+                "Lateral band walk: 3×20 adım her yön (mini bant)",
+                "Tek bacak denge: 3×30 sn gözler kapalı (her bacak)",
+                f"Non-dominant ({side}) bacakla tekme tekniği: hacim +25%",
+            ],
+        })
+
+    focus.append({
+        "priority": 3, "color": "#f59e0b",
+        "title": "🟡 Teknik Kalite & Taktik",
+        "trigger": "Temel bileşen (her zaman)",
+        "frequency": "Her seans sonunda 15–20 dk",
+        "drills": [
+            "Yavaş tempo tekme analizi: ayna / video kaydı, faz kontrolü",
+            "Hedef kombinasyonları: jiryo + dolyo tekme serisi (düşük hız, yüksek teknik)",
+            f"{'Shadow sparring (gerçek sparring önerilmez, FI yüksek)' if fi > 50 else 'Kontrollü sparring: teknik odaklı, kontrollü yoğunluk'}",
+            "Video geri bildirim: bugünkü pre/post analiz karşılaştırması",
+            "Reaksiyon drill: partner komutla tekme (kognitif yük + teknik)",
+        ],
+    })
+
+    focus.sort(key=lambda x: x["priority"])
+
+    for item in focus:
+        drills_html = "".join(
+            f'<li style="margin:3px 0;color:#cbd5e1;font-size:13px">{d}</li>'
+            for d in item["drills"]
+        )
+        st.markdown(
+            f'<div style="border:1px solid {item["color"]}44;border-radius:8px;padding:14px 18px;background:#0f172a;margin:8px 0">'
+            f'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">'
+            f'  <span style="font-weight:700;color:#f1f5f9;font-size:15px">{item["title"]}</span>'
+            f'  <span style="background:{item["color"]}22;color:{item["color"]};padding:2px 8px;border-radius:3px;font-size:11px">'
+            f'    Tetikleyen: {item["trigger"]}</span>'
+            f'  <span style="color:#64748b;font-size:11px;margin-left:auto">{item["frequency"]}</span>'
+            f'</div>'
+            f'<ul style="margin:0;padding-left:20px;line-height:1.7">{drills_html}</ul>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("#### 📅 Örnek Haftalık Plan")
+    weekly = _generate_weekly_plan(fi, has_neuro, has_aerob, has_rom, has_asi)
+    st.dataframe(pd.DataFrame(weekly).set_index("Gün"), use_container_width=True)
+
+
 def render_athlete_report(
     pre_events: list[dict],
     post_events: list[dict],
@@ -390,6 +922,22 @@ def render_athlete_report(
     for pri, title, detail, src in suggs:
         pc = "#ef4444" if "1" in pri else ("#f59e0b" if "2" in pri else "#3b82f6")
         _suggestion_card(pri, title, detail, src, pc)
+
+    # ── 7. Yaralanma Risk ─────────────────────────────────────────────────────
+    risk_score = _render_injury_risk(fi, vel_pct, rom_pct, post_ka_mean, sensor_ok, sensor_post if sensor_ok else {})
+
+    # ── 8. Beslenme & Takviye ─────────────────────────────────────────────────
+    _render_nutrition(fi, vel_pct, rom_pct, post_freq_drop, post_smo2_drop, sensor_ok, sensor_post if sensor_ok else {})
+
+    # ── 9. Toparlanma Takvimi ─────────────────────────────────────────────────
+    _render_recovery_timeline(fi, post_freq_drop, post_smo2_drop, sensor_ok, risk_score)
+
+    # ── 10. Sonraki Antrenman ─────────────────────────────────────────────────
+    _render_next_session(
+        fi, vel_pct, rom_pct, post_ka_mean,
+        post_freq_drop, post_smo2_drop,
+        sensor_ok, pre_events, post_events, risk_score,
+    )
 
     # ── Dışa Aktar ────────────────────────────────────────────────────────────
     st.markdown("---")

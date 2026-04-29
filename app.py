@@ -10,8 +10,10 @@ st.set_page_config(
     page_title="Video Analizi",
     page_icon="🥊",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-from pages.video_analysis import render
+st.sidebar.title("🥊 Video Analizi")
+
+from ui.video_analysis import render
 render()

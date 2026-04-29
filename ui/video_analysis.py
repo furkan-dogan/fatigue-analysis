@@ -459,44 +459,42 @@ def render() -> None:
         "yorgunluk metriklerini ve sensör simülasyonunu incele."
     )
 
-    # ── Params expander ────────────────────────────────────────────────────────
-    with st.expander("⚙️ Analiz Parametreleri", expanded=False):
-        pc1, pc2, pc3 = st.columns(3)
-        with pc1:
-            dv_show_labels = st.checkbox(
-                "Eklem etiketleri", value=False, key="dv_labels",
-                help="Annotated videoda her eklemin üstüne kısa isim yazar.",
-            )
-            dv_prominence = st.slider(
-                "Event prominence", 0.02, 0.20, 0.06, 0.01, key="dv_prom",
-                help="Ayağın baseline'ın ne kadar üstüne çıkınca 'tekme başladı' sayılsın.",
-            )
-            dv_min_dist = st.slider(
-                "Min peak mesafe (sn)", 0.1, 1.5, 0.25, 0.05, key="dv_dist",
-                help="İki ayrı tekme arasındaki minimum süre.",
-            )
-        with pc2:
-            dv_min_dur = st.slider(
-                "Min event süresi (sn)", 0.05, 0.5, 0.10, 0.05, key="dv_dur",
-                help="Bu süreden kısa hareketler tekme sayılmaz.",
-            )
-            dv_max_dur = st.slider(
-                "Max event süresi (sn)", 1.0, 10.0, 6.0, 0.5, key="dv_maxdur",
-                help="Bu süreden uzun hareketler tekme sayılmaz.",
-            )
-        with pc3:
-            dv_min_rom = st.slider(
-                "Min diz ROM (°)", 0, 60, 12, 5, key="dv_rom",
-                help="Tekme sayılması için dizin en az bu kadar açılıp kapanması gerekir.",
-            )
-            dv_min_height = st.slider(
-                "Min peak yükseklik", -1.0, 0.5, -0.5, 0.05, key="dv_height",
-                help="Tekme anında ayağın ulaşması gereken minimum normalize yükseklik.",
-            )
-            dv_vel_assist = st.slider(
-                "Hız yardımı eşiği (°/s)", 50, 500, 100, 25, key="dv_vel_assist",
-                help="Diz açısal hızı bu değeri geçen anlarda ikincil tekme adayı oluşturulur.",
-            )
+    # ── Sidebar params ─────────────────────────────────────────────────────────
+    st.sidebar.subheader("Analiz Parametreleri")
+    dv_show_labels = st.sidebar.checkbox(
+        "Eklem etiketleri", value=False, key="dv_labels",
+        help="Annotated videoda her eklemin üstüne kısa isim yazar. "
+             "Pose takibini görsel kontrol etmek için açın.",
+    )
+    dv_prominence = st.sidebar.slider(
+        "Event prominence", 0.02, 0.20, 0.06, 0.01, key="dv_prom",
+        help="Ayağın baseline'ın ne kadar üstüne çıkınca 'tekme başladı' sayılsın.",
+    )
+    dv_min_dist = st.sidebar.slider(
+        "Min peak mesafe (sn)", 0.1, 1.5, 0.25, 0.05, key="dv_dist",
+        help="İki ayrı tekme arasındaki minimum süre.",
+    )
+    dv_min_dur = st.sidebar.slider(
+        "Min event süresi (sn)", 0.05, 0.5, 0.10, 0.05, key="dv_dur",
+        help="Bu süreden kısa hareketler tekme sayılmaz.",
+    )
+    dv_max_dur = st.sidebar.slider(
+        "Max event süresi (sn)", 1.0, 10.0, 6.0, 0.5, key="dv_maxdur",
+        help="Bu süreden uzun hareketler tekme sayılmaz.",
+    )
+    st.sidebar.subheader("Kick Doğrulama")
+    dv_min_rom = st.sidebar.slider(
+        "Min diz ROM (°)", 0, 60, 12, 5, key="dv_rom",
+        help="Tekme sayılması için dizin en az bu kadar açılıp kapanması gerekir.",
+    )
+    dv_min_height = st.sidebar.slider(
+        "Min peak yükseklik", -1.0, 0.5, -0.5, 0.05, key="dv_height",
+        help="Tekme anında ayağın ulaşması gereken minimum normalize yükseklik.",
+    )
+    dv_vel_assist = st.sidebar.slider(
+        "Hız yardımı eşiği (°/s)", 50, 500, 100, 25, key="dv_vel_assist",
+        help="Diz açısal hızı bu değeri geçen anlarda ikincil tekme adayı oluşturulur.",
+    )
 
     # ── Upload ─────────────────────────────────────────────────────────────────
     col_pre, col_post = st.columns(2)

@@ -1209,7 +1209,10 @@ if page == "Video Analizi":
         import datetime as _dt
 
         st.subheader("Sporcu Analiz Raporu")
-        st.caption("Biyomekanik + EMG simülasyonu + NIRS simülasyonu birleşik değerlendirmesi. Çıktı alınabilir.")
+        st.caption(
+            "Biyomekanik (video/pose analizi) + EMG simülasyonu + NIRS simülasyonu birleşik değerlendirmesi. "
+            "Her bulgu için ölçüm kaynağı belirtilmiştir. Çıktı alınabilir."
+        )
 
         _pmv   = _events_mean(pre_events,  "active_peak_knee_vel_deg_s")
         _pomv  = _events_mean(post_events, "active_peak_knee_vel_deg_s")
@@ -1267,15 +1270,16 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
 
         # ── 1. Biyomekanik ────────────────────────────────────────────────────
         st.markdown("### 1. Biyomekanik Bulgular")
+        st.caption("📌 Kaynak: MediaPipe pose tahmin modeli — video üzerinden frame bazlı eklem açısı, hız ve normalize yükseklik (Savitzky-Golay filtrelemeli).")
         _bio_rows = []
         for _lbl, _pv, _pov, _dir in [
-            ("Peak Diz Hızı (°/s)",      _pmv,  _pomv,  -1),
-            ("Diz ROM (°)",              _prm,  _porm,  -1),
-            ("Tekme Yüksekliği (norm.)", _ph,   _poh,   -1),
-            ("Peak Hıza Süre (sn)",      _ptt,  _pott,  +1),
-            ("Ayak Hızı (norm.)",        _pfs,  _pofs,  -1),
-            ("Uzatma Hızı (°/s)",        _pexv, _poexv, -1),
-            ("Geri Çekim Hızı (°/s)",    _prv,  _porv,  -1),
+            ("Peak Diz Hızı (°/s)",       _pmv,  _pomv,  -1),
+            ("Diz ROM (°)",               _prm,  _porm,  -1),
+            ("Tekme Yüksekliği (norm.)",  _ph,   _poh,   -1),
+            ("Peak Hıza Süre (sn)",       _ptt,  _pott,  +1),
+            ("Ayak Hızı (norm.)",         _pfs,  _pofs,  -1),
+            ("Uzatma Hızı (°/s)",         _pexv, _poexv, -1),
+            ("Geri Çekim Hızı (°/s)",     _prv,  _porv,  -1),
         ]:
             _p = _pct(_pv, _pov)
             _bio_rows.append({
@@ -1288,80 +1292,142 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
         st.dataframe(pd.DataFrame(_bio_rows).set_index("Metrik"), use_container_width=True)
 
         _bio_lines = []
+        _src_pose = "*(📐 Video pose analizi)*"
         if _vel_pct is not None:
             if _vel_pct < -10:
-                _bio_lines.append(f"Peak diz hızı antrenman sonrası **%{abs(_vel_pct):.0f} geriledi** ({_pmv:.0f} → {_pomv:.0f} °/s). Yorgunluğun hız üretme kapasitesini kısıtladığı görülmektedir.")
+                _bio_lines.append(
+                    f"**Peak diz hızı** antrenman sonrası **%{abs(_vel_pct):.0f} geriledi** "
+                    f"({_pmv:.0f} → {_pomv:.0f} °/s). Yorgunluğun hız üretme kapasitesini "
+                    f"kısıtladığı görülmektedir. {_src_pose}"
+                )
             elif _vel_pct < -5:
-                _bio_lines.append(f"Peak diz hızında **hafif düşüş** (%{abs(_vel_pct):.0f}). Yorgunluk etkisi erken dönemde.")
+                _bio_lines.append(
+                    f"**Peak diz hızında hafif düşüş** (%{abs(_vel_pct):.0f}): "
+                    f"{_pmv:.0f} → {_pomv:.0f} °/s. Yorgunluk etkisi erken dönemde başlamaktadır. {_src_pose}"
+                )
             else:
-                _bio_lines.append(f"Peak diz hızı stabil ({_pmv:.0f} → {_pomv:.0f} °/s, %{_vel_pct:+.0f}). Hız üretme kapasitesi korunmuş.")
+                _bio_lines.append(
+                    f"**Peak diz hızı stabil** ({_pmv:.0f} → {_pomv:.0f} °/s, Δ%{_vel_pct:+.0f}). "
+                    f"Hız üretme kapasitesi antrenman yükü altında korunmuştur. {_src_pose}"
+                )
         if _rom_pct is not None:
             if _rom_pct < -10:
-                _bio_lines.append(f"Diz eklem hareket açıklığı **%{abs(_rom_pct):.0f} azaldı** ({_prm:.1f}° → {_porm:.1f}°). Kas sertliği veya yorgunluk kaynaklı kısıtlanma.")
+                _bio_lines.append(
+                    f"**Diz eklem hareket açıklığı %{abs(_rom_pct):.0f} azaldı** "
+                    f"({_prm:.1f}° → {_porm:.1f}°). Kas sertliği veya yorgunluk "
+                    f"kaynaklı eklem kısıtlanması. {_src_pose}"
+                )
             elif _rom_pct > 5:
-                _bio_lines.append(f"Diz ROM artmış (%{_rom_pct:.0f}). Isınma etkisiyle hareket serbestisi iyileşmiş.")
+                _bio_lines.append(
+                    f"**Diz ROM artmış** (%{_rom_pct:.0f}): {_prm:.1f}° → {_porm:.1f}°. "
+                    f"Isınma etkisiyle hareket serbestisi iyileşmiş. {_src_pose}"
+                )
+            else:
+                _bio_lines.append(
+                    f"**Diz ROM stabil**: {_prm:.1f}° → {_porm:.1f}° (Δ%{_rom_pct:+.0f}). {_src_pose}"
+                )
+        if _ph is not None and _poh is not None:
+            _h_pct = _pct(_ph, _poh)
+            if _h_pct is not None and _h_pct < -10:
+                _bio_lines.append(
+                    f"**Tekme yüksekliği %{abs(_h_pct):.0f} düştü** ({_ph:.2f} → {_poh:.2f} norm.). "
+                    f"Yorgunlukla birlikte kalça fleksör gücü zayıflamaktadır. {_src_pose}"
+                )
         for _bl in _bio_lines:
             st.markdown(f"> {_bl}")
 
         # ── 2. Nöromüsküler ───────────────────────────────────────────────────
         st.markdown("### 2. Nöromüsküler Bulgular *(EMG Simülasyonu)*")
+        st.caption(
+            "📌 Kaynak: K-Myo benzeri yüzey EMG simülasyonu — quadriceps + hamstring kas grubu. "
+            "Median frekans düşüşü kas yorgunluğunun kanıtlanmış nörofizyolojik göstergesidir: "
+            "hızlı kasılan (Tip II) lifler yorulunca ateşleme frekansı düşer. "
+            "NOT: Fizyolojik model tabanlı simülasyon; gerçek ölçüm için K-Myo cihazı gerekir."
+        )
         if not _sensor_ok:
             st.info("Sensör verisi mevcut değil.")
         else:
             _emg_tbl = [
                 {"Parametre": "Median Frekans Başlangıç — Pre",  "Değer": f"{_ps['freq_start']:.1f} Hz",  "Açıklama": "Baseline nöromüsküler aktivasyon"},
                 {"Parametre": "Median Frekans Bitiş — Pre",      "Değer": f"{_ps['freq_end']:.1f} Hz",    "Açıklama": f"Δ = {_ps['freq_end']-_ps['freq_start']:+.1f} Hz  ({(_ps['freq_end']-_ps['freq_start'])/_ps['freq_start']*100:+.1f}%)"},
-                {"Parametre": "Median Frekans Başlangıç — Post", "Değer": f"{_pos['freq_start']:.1f} Hz", "Açıklama": "Post baseline"},
+                {"Parametre": "Median Frekans Başlangıç — Post", "Değer": f"{_pos['freq_start']:.1f} Hz", "Açıklama": "Post-antrenman baseline"},
                 {"Parametre": "Median Frekans Bitiş — Post",     "Değer": f"{_pos['freq_end']:.1f} Hz",   "Açıklama": f"Δ = {_pos['freq_end']-_pos['freq_start']:+.1f} Hz  ({(_pos['freq_end']-_pos['freq_start'])/_pos['freq_start']*100:+.1f}%)"},
-                {"Parametre": "Post − Pre Düşüş Farkı",          "Değer": f"{_post_freq_drop - _pre_freq_drop:+.1f} Hz", "Açıklama": "Artı değer → Post'ta daha fazla yorgunluk"},
+                {"Parametre": "Post − Pre Düşüş Farkı",          "Değer": f"{_post_freq_drop - _pre_freq_drop:+.1f} Hz", "Açıklama": "Artı değer → Post'ta daha fazla nöromüsküler yorgunluk"},
             ]
             st.dataframe(pd.DataFrame(_emg_tbl).set_index("Parametre"), use_container_width=True)
 
             if _post_freq_drop > _pre_freq_drop + 3:
                 _emg_sev = "🔴 **Belirgin nöromüsküler yorgunluk**"
-                _emg_txt = (f"Post oturumunda EMG median frekansı **{_post_freq_drop:.0f} Hz** düştü "
-                            f"(pre'de {_pre_freq_drop:.0f} Hz). Antrenman yükü kas motor ünite aktivasyonunu "
-                            "anlamlı düzeyde bozmuştur.")
+                _emg_txt = (
+                    f"Post oturumunda EMG median frekansı **{_post_freq_drop:.0f} Hz** düştü "
+                    f"(pre'de {_pre_freq_drop:.0f} Hz). Antrenman yükü motor ünite aktivasyonunu anlamlı "
+                    "düzeyde bozmuştur. Hızlı kasılan (Tip II) liflerin yorulduğunu ve kasılma "
+                    "verimliliğinin düştüğünü göstermektedir."
+                )
             elif _post_freq_drop > 8:
                 _emg_sev = "🟡 **Orta düzey nöromüsküler yorgunluk**"
-                _emg_txt = f"Post EMG median frekansı {_post_freq_drop:.0f} Hz geriledi. Kas dayanıklılığı geliştirilmesi önerilir."
+                _emg_txt = (
+                    f"Post EMG median frekansı {_post_freq_drop:.0f} Hz geriledi. "
+                    "Nöromüsküler yorgunluk tespit edilmiş; kas dayanıklılığı geliştirilmesi önerilir."
+                )
             else:
                 _emg_sev = "🟢 **Nöromüsküler yorgunluk sınırlı**"
-                _emg_txt = (f"Pre/Post frekans düşüşü benzer (pre: {_pre_freq_drop:.0f} Hz, post: {_post_freq_drop:.0f} Hz). "
-                            "Nöromüsküler sistem yüke dirençli.")
+                _emg_txt = (
+                    f"Pre/Post frekans düşüşü benzer (pre: {_pre_freq_drop:.0f} Hz, post: {_post_freq_drop:.0f} Hz). "
+                    "Nöromüsküler sistem antrenman yüküne dirençli; motor ünite kalıpları korunmuştur."
+                )
             st.markdown(f"> {_emg_sev}: {_emg_txt}")
 
         # ── 3. Metabolik ──────────────────────────────────────────────────────
         st.markdown("### 3. Metabolik Bulgular *(NIRS Simülasyonu)*")
+        st.caption(
+            "📌 Kaynak: Moxy Monitor benzeri yakın kızılötesi spektroskopi (NIRS) simülasyonu — vastus lateralis kas oksijenlenmesi. "
+            "SmO2 (kas oksijen satürasyonu) aerobik enerji sisteminin kapasitesini yansıtır. "
+            "NOT: Fizyolojik model tabanlı simülasyon; gerçek ölçüm için Moxy Monitor cihazı gerekir."
+        )
         if not _sensor_ok:
             st.info("Sensör verisi mevcut değil.")
         else:
             _nirs_tbl = [
-                {"Parametre": "SmO2 Başlangıç — Pre",  "Değer": f"%{_ps['smo2_start']:.1f}",  "Açıklama": "Dinlenme oksijen satürasyonu"},
-                {"Parametre": "SmO2 Bitiş — Pre",      "Değer": f"%{_ps['smo2_end']:.1f}",    "Açıklama": f"Δ = {_ps['smo2_end']-_ps['smo2_start']:+.1f}%"},
-                {"Parametre": "SmO2 Minimum — Pre",    "Değer": f"%{_ps['smo2_min']:.1f}",    "Açıklama": "<%50 → anaerobik eşik yakını"},
-                {"Parametre": "SmO2 Başlangıç — Post", "Değer": f"%{_pos['smo2_start']:.1f}", "Açıklama": "Post başlangıç"},
-                {"Parametre": "SmO2 Bitiş — Post",     "Değer": f"%{_pos['smo2_end']:.1f}",   "Açıklama": f"Δ = {_pos['smo2_end']-_pos['smo2_start']:+.1f}%"},
-                {"Parametre": "SmO2 Minimum — Post",   "Değer": f"%{_pos['smo2_min']:.1f}",   "Açıklama": "<%50 → anaerobik eşik yakını"},
+                {"Parametre": "SmO2 Başlangıç — Pre",  "Değer": f"%{_ps['smo2_start']:.1f}",  "Açıklama": "Dinlenme kas oksijen satürasyonu (normal: %60-80)"},
+                {"Parametre": "SmO2 Bitiş — Pre",      "Değer": f"%{_ps['smo2_end']:.1f}",    "Açıklama": f"Δ = {_ps['smo2_end']-_ps['smo2_start']:+.1f}%  |  Pre oturumu toplam düşüş"},
+                {"Parametre": "SmO2 Minimum — Pre",    "Değer": f"%{_ps['smo2_min']:.1f}",    "Açıklama": "<%50 → anaerobik eşik; <%40 → kritik hipoksi"},
+                {"Parametre": "SmO2 Başlangıç — Post", "Değer": f"%{_pos['smo2_start']:.1f}", "Açıklama": "Post başlangıç — pre bitiş ile kıyasla"},
+                {"Parametre": "SmO2 Bitiş — Post",     "Değer": f"%{_pos['smo2_end']:.1f}",   "Açıklama": f"Δ = {_pos['smo2_end']-_pos['smo2_start']:+.1f}%  |  Post oturumu toplam düşüş"},
+                {"Parametre": "SmO2 Minimum — Post",   "Değer": f"%{_pos['smo2_min']:.1f}",   "Açıklama": "<%50 → anaerobik eşik; <%40 → kritik hipoksi"},
             ]
             st.dataframe(pd.DataFrame(_nirs_tbl).set_index("Parametre"), use_container_width=True)
 
             if _post_smo2_drop > _pre_smo2_drop + 3:
                 _nirs_sev = "🔴 **Belirgin metabolik stres**"
-                _nirs_txt = (f"Post'ta SmO2 **%{_post_smo2_drop:.0f}** düştü (pre'de %{_pre_smo2_drop:.0f}). "
-                             "Oksidatif enerji sistemi antrenman yükü altında yetersiz kalmaktadır.")
+                _nirs_txt = (
+                    f"Post'ta SmO2 **%{_post_smo2_drop:.0f}** düştü (pre'de %{_pre_smo2_drop:.0f}). "
+                    "Oksidatif enerji sistemi antrenman yükü altında yetersiz kalmaktadır. "
+                    "Bu SmO2 paterni mitokondrial kapasite veya kardiyak debi kapasitesinin "
+                    "sınırlayıcı faktör olduğuna işaret etmektedir."
+                )
             elif _post_smo2_drop > 5:
                 _nirs_sev = "🟡 **Orta metabolik yük**"
-                _nirs_txt = f"Post SmO2 %{_post_smo2_drop:.0f} geriledi — aerobik kapasite sınırlarına yaklaşılmaktadır."
+                _nirs_txt = (
+                    f"Post SmO2 %{_post_smo2_drop:.0f} geriledi. "
+                    "Aerobik kapasite sınırlarına yaklaşılmaktadır; zone 2 antrenman ile iyileştirilebilir."
+                )
             else:
                 _nirs_sev = "🟢 **Metabolik sistem stabil**"
-                _nirs_txt = f"SmO2 düşüşü sınırlı (post: %{_post_smo2_drop:.0f}). Oksijenleme kapasitesi yüke yeterli."
+                _nirs_txt = (
+                    f"SmO2 düşüşü sınırlı (post: %{_post_smo2_drop:.0f}). "
+                    "Oksijenleme kapasitesi antrenman yüküne yeterlidir; aerobik taban güçlü."
+                )
             if _pos["smo2_min"] < 50:
-                _nirs_txt += f" Minimum SmO2 %{_pos['smo2_min']:.0f} — anaerobik eşiğe yaklaşılmıştır."
+                _nirs_txt += (
+                    f" **Uyarı:** Minimum SmO2 %{_pos['smo2_min']:.0f} — anaerobik eşiğe yaklaşılmıştır. "
+                    "Yüksek yoğunluklu eforlarda oksijen borcu biriktiği görülmektedir."
+                )
             st.markdown(f"> {_nirs_sev}: {_nirs_txt}")
 
         # ── 4. Asimetri ───────────────────────────────────────────────────────
         st.markdown("### 4. Bilateral Asimetri Bulguları")
+        st.caption("📌 Kaynak: Video pose analizi — sol/sağ bacak tekme metrikleri karşılaştırması ile ASI = |(dominant − non-dominant) / max| × 100 hesabı.")
         _pre_ka  = [float(e["knee_asi"]) for e in pre_events  if e.get("knee_asi") is not None]
         _post_ka = [float(e["knee_asi"]) for e in post_events if e.get("knee_asi") is not None]
         _pre_ha  = [float(e["hip_asi"])  for e in pre_events  if e.get("hip_asi")  is not None]
@@ -1377,18 +1443,30 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
                     "Ölçüm":         _albl,
                     "Pre Ort. ASI":  f"{_pa:+.1f}%"  if _pa  is not None else "—",
                     "Post Ort. ASI": f"{_poa:+.1f}%" if _poa is not None else "—",
-                    "Eşik":          "|ASI| > 10% = klinik anlamlı",
+                    "Klinik Eşik":   "|ASI| > 10% klinik anlamlı",
                     "Durum":         ("⚠️ Asimetri" if _poa is not None and abs(_poa) > 10 else "✅ Normal"),
                 })
             if _asi_rows:
                 st.dataframe(pd.DataFrame(_asi_rows).set_index("Ölçüm"), use_container_width=True)
                 if any(r["Durum"] == "⚠️ Asimetri" for r in _asi_rows):
-                    st.markdown("> ⚠️ Tespit edilen asimetri dominant ve non-dominant bacak arasında yük dengesizliğine işaret etmektedir. Unilateral güç antrenmanı önerilir.")
+                    st.markdown(
+                        "> ⚠️ Tespit edilen asimetri dominant ve non-dominant bacak arasında yük "
+                        "dengesizliğine işaret etmektedir. Dominant bacak daha hızlı/güçlü hareket "
+                        "ederken non-dominant kompanse etmekte; uzun vadede sakatlık riski artmaktadır. "
+                        "Unilateral güç antrenmanı önerilir."
+                    )
+                else:
+                    st.markdown("> ✅ Bilateral asimetri klinik eşiğin altında. Sol/sağ bacak dengesi korunmuş.")
         else:
-            st.info("ASI hesaplaması için yeterli veri yok.")
+            st.info("ASI hesaplaması için yeterli veri yok (sol ve sağ bacak tekmeleri gerekli).")
 
         # ── 5. Genel Değerlendirme ────────────────────────────────────────────
         st.markdown("### 5. Genel Yorgunluk Değerlendirmesi")
+        st.caption(
+            "📌 Kaynak: 7 biyomekanik metriğin ağırlıklı ortalaması — "
+            "Diz ROM ×0.25 | Peak hız ×0.25 | Peak hıza süre ×0.15 | "
+            "Tekme yüksekliği ×0.15 | Ayak hızı ×0.10 | Tekme süresi ×0.05 | Ort. hız ×0.05"
+        )
         st.markdown(f"""
 <div style="border-left:4px solid {_fi_color};padding:10px 16px;border-radius:4px;background:#1e293b;margin:8px 0">
 <span style="font-size:22px;font-weight:700;color:{_fi_color}">{fi:.1f} / 100</span>
@@ -1396,68 +1474,108 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
 </div>
 """, unsafe_allow_html=True)
 
+        _fi_detail = []
+        if _vel_pct is not None:
+            _fi_detail.append(f"Peak diz hızı Δ%{_vel_pct:+.0f} (ağırlık %25)")
+        if _rom_pct is not None:
+            _fi_detail.append(f"Diz ROM Δ%{_rom_pct:+.0f} (ağırlık %25)")
+        if _sensor_ok:
+            _fi_detail.append(f"EMG freq düşüşü post: {_post_freq_drop:.0f} Hz | pre: {_pre_freq_drop:.0f} Hz")
+            _fi_detail.append(f"SmO2 düşüşü post: %{_post_smo2_drop:.0f} | pre: %{_pre_smo2_drop:.0f}")
+        if _fi_detail:
+            st.markdown("**İndekse katkıda bulunan başlıca faktörler:**")
+            for _fd in _fi_detail:
+                st.markdown(f"- {_fd}")
+
         # ── 6. Gelişim Önerileri ──────────────────────────────────────────────
         st.markdown("### 6. Gelişim Önerileri")
+        st.caption("Bulgulara göre öncelik sıralamasıyla üretilmiştir. Her önerinin kaynağı sağ üstte gösterilmektedir.")
 
-        _suggs: list[tuple[str, str, str]] = []
+        _suggs_raw: list[tuple[int, str, str, str]] = []
 
         if _sensor_ok and _post_freq_drop > 10:
-            _suggs.append(("ÖNCELİK 1", "Nöromüsküler Dayanıklılık",
-                "Post oturumunda EMG median frekansı kritik düzeyde düştü. "
-                "Pliometrik antrenman (squat jump, lunge jump, plyometric roundhouse) ve hız-kuvvet devresi "
-                "(3×8 patlayıcı squat + 3×10 yavaş eksantrik) haftada 2 gün uygulanmalı. "
-                "Hedef: 8 hafta sonra post frekans düşüşünü <8 Hz'e indirmek."))
+            _suggs_raw.append((10, "Nöromüsküler Dayanıklılık",
+                f"EMG median frekansı post'ta kritik düşüş gösterdi ({_post_freq_drop:.0f} Hz Δ, "
+                f"pre: {_pre_freq_drop:.0f} Hz). Motor ünite yorgunluğu belirgin. "
+                "Pliometrik antrenman (squat jump, lunge jump, patlayıcı roundhouse serisi) ve "
+                "hız-kuvvet devresi (3×8 patlayıcı squat + 3×10 yavaş eksantrik) haftada 2 gün. "
+                "Hedef: 8 haftada post frekans düşüşünü <8 Hz'e indirmek.",
+                "EMG Simülasyonu"))
         elif _sensor_ok and _post_freq_drop > 6:
-            _suggs.append(("ÖNCELİK 2", "Nöromüsküler Dayanıklılık (Orta Düzey)",
-                "Orta düzey frekans düşüşü tespit edildi. Mevcut güç antrenmanına plyometrik komponent eklenmesi yeterli. "
-                "Haftada 1-2 seans 20 dk patlayıcı güç devresi."))
+            _suggs_raw.append((20, "Nöromüsküler Dayanıklılık (Orta Düzey)",
+                f"Orta düzey EMG median frekans düşüşü ({_post_freq_drop:.0f} Hz Δ). "
+                "Mevcut güç antrenmanına plyometrik komponent eklenmesi yeterli: "
+                "haftada 1-2 seans 20 dk patlayıcı güç devresi.",
+                "EMG Simülasyonu"))
 
         if _sensor_ok and _post_smo2_drop > 8:
-            _suggs.append(("ÖNCELİK 1" if not _suggs else "ÖNCELİK 2", "Aerobik Kapasite Geliştirme",
-                "SmO2 post oturumunda kritik düşüş gösterdi. Kas oksijenlenmesi yetersiz. "
-                "Zone 2 aerobik antrenman (kalp hızı 130-145 bpm, 30-45 dk, haftada 3 gün) "
-                "oksidatif kapasiteyi 6-12 haftada anlamlı iyileştirir. "
-                "Ek: antrenman aralarında aktif toparlanma (hafif bisiklet, yürüyüş)."))
+            _suggs_raw.append((11, "Aerobik Kapasite Geliştirme",
+                f"SmO2 post'ta kritik düşüş (%{_post_smo2_drop:.0f} Δ, pre: %{_pre_smo2_drop:.0f}). "
+                "Kas oksijenlenmesi yetersiz; mitokondrial kapasite veya kardiyak debi sınırlayıcı. "
+                "Zone 2 aerobik antrenman (KH 130-145 bpm, 30-45 dk, haftada 3 gün) oksidatif "
+                "kapasiteyi 6-12 haftada anlamlı iyileştirir. "
+                "Antrenman aralarında aktif toparlanma (hafif bisiklet, yürüyüş) önerilir.",
+                "NIRS Simülasyonu"))
         elif _sensor_ok and _post_smo2_drop > 5:
-            _suggs.append(("ÖNCELİK 3", "Aerobik Taban Güçlendirme",
-                "Orta metabolik yük. Zone 2 çalışma haftada 2 gün yeterli."))
+            _suggs_raw.append((30, "Aerobik Taban Güçlendirme",
+                f"Orta metabolik yük (SmO2 Δ %{_post_smo2_drop:.0f}). "
+                "Zone 2 çalışma haftada 2 gün yeterli. "
+                "Uzun vadede aerobik taban güçlendirilerek toparlanma hızlanacaktır.",
+                "NIRS Simülasyonu"))
 
         if _vel_pct is not None and _vel_pct < -10:
-            _suggs.append(("ÖNCELİK 2" if len(_suggs) < 2 else "ÖNCELİK 3", "Yorgunlukta Hız Koruması",
-                f"Peak diz hızı %{abs(_vel_pct):.0f} geriledi. "
-                "Yorgunluk altında tekme hızı antrenmanı: 5×(10 hızlı tekme + 20sn dinlenme) devresi, "
-                "direnç bandı veya hafif ağırlık. Shadow sparring'de bilinçli hız koruması hedefi."))
+            _suggs_raw.append((12, "Yorgunlukta Hız Koruması",
+                f"Peak diz hızı %{abs(_vel_pct):.0f} geriledi ({_pmv:.0f} → {_pomv:.0f} °/s). "
+                "Yorgunluk altında hız üretme kapasitesi bozulmuş. "
+                "Antrenman önerisi: 5×(10 hızlı tekme + 20 sn dinlenme) devresi, "
+                "direnç bandı veya hafif ağırlık ile. "
+                "Shadow sparring'de bilinçli hız koruması hedefi belirlenmeli.",
+                "Video Pose Analizi"))
 
         if _rom_pct is not None and _rom_pct < -10:
-            _suggs.append(("ÖNCELİK 3" if len(_suggs) < 3 else "ÖNCELİK 4", "Hareket Genişliği (ROM)",
-                f"Diz ROM %{abs(_rom_pct):.0f} azaldı. Antrenman öncesi dinamik ısınma — leg swing, hip circle, lunge stretch (2×10). "
-                "Antrenman sonrası statik esneme: hamstring, quadriceps, hip flexor (30sn×3)."))
+            _suggs_raw.append((13, "Hareket Genişliği (ROM) Geliştirme",
+                f"Diz ROM %{abs(_rom_pct):.0f} azaldı ({_prm:.1f}° → {_porm:.1f}°). "
+                "Antrenman sonrası kas sertliği veya yorgunluk kaynaklı eklem kısıtlanması. "
+                "Önce: dinamik ısınma — leg swing, hip circle, lunge stretch (2×10). "
+                "Sonra: statik esneme — hamstring, quadriceps, hip flexor (30 sn×3). "
+                "Sürekli ROM geriliyor ise mobilite antrenmanı programa eklenmeli.",
+                "Video Pose Analizi"))
 
         _post_ka_mean = sum(_post_ka) / len(_post_ka) if _post_ka else None
         if _post_ka_mean is not None and abs(_post_ka_mean) > 10:
-            _suggs.append(("ÖNCELİK 4", "Bilateral Denge",
-                f"Diz ASI {_post_ka_mean:+.0f}% — dominant bacak aşırı yükleniyor. "
+            _suggs_raw.append((40, "Bilateral Denge Geliştirme",
+                f"Diz ASI {_post_ka_mean:+.0f}% — dominant bacak aşırı yükleniyor, sakatlık riski artar. "
                 "Unilateral antrenman: tek bacak squat, single-leg RDL (3×8 her bacak ayrı). "
-                "Hedef: ASI değerini |10%| altına indirmek."))
+                "Tekme antrenmanında non-dominant baca"
+                "ğa ekstra seans ayrılması önerilir. Hedef: |ASI| < 10%.",
+                "Video Pose Analizi"))
 
         if fi >= 50:
-            _suggs.append(("ÖNCELİK 4" if len(_suggs) < 4 else "ÖNCELİK 5", "Toparlanma Protokolü",
-                f"Yorgunluk indeksi {fi:.0f}/100. Sonraki yüksek yoğunluklu seansa kadar 48-72 saat aktif toparlanma: "
-                "hafif yürüyüş, esneme, soğuk-sıcak kontrast banyo (30sn soğuk/90sn sıcak, 3 döngü). "
-                "Uyku: 8 saat hedefi. Protein: ≥1.8 g/kg/gün."))
+            _suggs_raw.append((50, "Toparlanma Protokolü",
+                f"Yorgunluk indeksi {fi:.0f}/100 — toparlanma süreci kritik öneme sahip. "
+                "Sonraki yüksek yoğunluklu seansa kadar 48-72 saat aktif toparlanma: "
+                "hafif yürüyüş (20 dk), esneme rutini, "
+                "soğuk-sıcak kontrast banyo (30 sn soğuk/90 sn sıcak, 3 döngü). "
+                "Uyku: ≥8 saat. Protein alımı: ≥1.8 g/kg/gün. Hidrasyon takibi önerilir.",
+                "Yorgunluk İndeksi"))
 
-        if not _suggs:
-            _suggs.append(("BİLGİ", "Tüm Göstergeler Normal",
+        if not _suggs_raw:
+            _suggs_raw.append((99, "Tüm Göstergeler Normal",
                 "Yorgunluk ve performans metrikleri kabul edilebilir sınırlar içinde. "
-                "Mevcut antrenman yükü ve toparlanma dengesi uygun. Kademeli yük artışına hazır."))
+                "Mevcut antrenman yükü ve toparlanma dengesi uygun; kademeli yük artışına hazır.",
+                "Tüm sistemler"))
 
-        for _pri, _title, _detail in _suggs:
+        _suggs_raw.sort(key=lambda x: x[0])
+        _suggs = [(f"ÖNCELİK {i+1}", t, d, s) for i, (_, t, d, s) in enumerate(_suggs_raw)]
+
+        for _pri, _title, _detail, _src in _suggs:
             _pc = "#ef4444" if "1" in _pri else ("#f59e0b" if "2" in _pri else "#3b82f6")
             st.markdown(f"""
 <div style="border:1px solid #334155;border-radius:6px;padding:12px 16px;margin:6px 0;background:#0f172a">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
   <span style="background:{_pc};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px">{_pri}</span>
   <span style="color:#f1f5f9;font-weight:600;font-size:15px">{_title}</span>
+  <span style="color:#64748b;font-size:11px;margin-left:auto">📊 {_src}</span>
 </div>
 <p style="margin:0;color:#cbd5e1;font-size:13px;line-height:1.6">{_detail}</p>
 </div>
@@ -1469,36 +1587,37 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
 
         _txt = [
             "TAEKWONDO YORGUNLUK ANALİZ RAPORU",
-            "=" * 50,
+            "=" * 60,
             f"Tarih         : {_today}",
             f"Pre           : {len(pre_events)} tekme, {_pre_dur} sn",
             f"Post          : {len(post_events)} tekme, {_post_dur} sn",
             f"Yorgunluk İnd.: {fi:.1f}/100 — {_fi_label_txt}",
             "",
-            "1. BİYOMEKANİK BULGULAR", "-" * 40,
+            "1. BİYOMEKANİK BULGULAR (Kaynak: Video Pose Analizi)",
+            "-" * 60,
         ]
         for _r in _bio_rows:
             _txt.append(f"  {_r['Metrik']:<38} Pre: {_r['Pre (ort.)']: <8} Post: {_r['Post (ort.)']: <8} {_r['Δ%']: <8} {_r['Durum']}")
         for _bl in _bio_lines:
-            _txt.append(f"  > {_bl.replace('**', '')}")
+            _txt.append(f"  > {_bl.replace('**', '').replace('*(', '(').replace(')*', ')')}")
 
         if _sensor_ok:
-            _txt += ["", "2. NÖROMÜSKÜler BULGULAR (EMG Simülasyonu)", "-" * 40]
+            _txt += ["", "2. NÖROMÜSKÜler BULGULAR (Kaynak: EMG Simülasyonu)", "-" * 60]
             for _r in _emg_tbl:
                 _txt.append(f"  {_r['Parametre']:<45} {_r['Değer']:<14} {_r['Açıklama']}")
-            _txt += ["", "3. METABOLİK BULGULAR (NIRS Simülasyonu)", "-" * 40]
+            _txt += ["", "3. METABOLİK BULGULAR (Kaynak: NIRS Simülasyonu)", "-" * 60]
             for _r in _nirs_tbl:
                 _txt.append(f"  {_r['Parametre']:<38} {_r['Değer']:<14} {_r['Açıklama']}")
 
-        _txt += ["", "6. GELİŞİM ÖNERİLERİ", "-" * 40]
-        for _pri, _title, _detail in _suggs:
-            _txt.append(f"\n  [{_pri}] {_title}")
+        _txt += ["", "6. GELİŞİM ÖNERİLERİ", "-" * 60]
+        for _pri, _title, _detail, _src in _suggs:
+            _txt.append(f"\n  [{_pri}] {_title}  (Kaynak: {_src})")
             for _chunk in [_detail[i:i+90] for i in range(0, len(_detail), 90)]:
                 _txt.append(f"  {_chunk}")
 
-        _txt += ["", "─" * 50,
+        _txt += ["", "─" * 60,
                  "NOT: EMG ve NIRS verileri fizyolojik model tabanlı simülasyondur.",
-                 "Gerçek ölçüm: K-Myo (EMG) + Moxy Monitor (NIRS)."]
+                 "Gerçek ölçüm: K-Myo (EMG) + Moxy Monitor (NIRS) cihazları ile yapılmalıdır."]
 
         _exp1, _exp2 = st.columns(2)
         with _exp1:
@@ -1510,9 +1629,9 @@ Yorgunluk İndeksi: <b style="color:{_fi_color}">{fi:.1f}/100</b>
             )
         with _exp2:
             _sum_rows = [
-                {"Alan": "Tarih",                "Pre": _today,          "Post": _today},
-                {"Alan": "Tekme",                "Pre": len(pre_events), "Post": len(post_events)},
-                {"Alan": "Yorgunluk İndeksi",    "Pre": "—",            "Post": f"{fi:.1f}"},
+                {"Alan": "Tarih",             "Pre": _today,          "Post": _today},
+                {"Alan": "Tekme",             "Pre": len(pre_events), "Post": len(post_events)},
+                {"Alan": "Yorgunluk İnd.",    "Pre": "—",             "Post": f"{fi:.1f}"},
             ]
             for _r in _bio_rows:
                 _sum_rows.append({"Alan": _r["Metrik"], "Pre": _r["Pre (ort.)"], "Post": _r["Post (ort.)"]})

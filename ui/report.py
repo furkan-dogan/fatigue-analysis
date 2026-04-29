@@ -60,12 +60,17 @@ def render_athlete_report(
     pre_smo2_drop: float,
     post_smo2_drop: float,
     sensor_ok: bool,
+    real_sensor: bool = False,
 ) -> None:
     """Render the full athlete report tab."""
 
     st.subheader("Sporcu Analiz Raporu")
+    if real_sensor:
+        st.success("📡 Gerçek Sensör Verisi aktif — EMG ve NIRS grafikleri gerçek cihaz çıktısından üretilmiştir.")
+    else:
+        st.info("🧪 Sensör verisi simüle edilmiştir. Gerçek veri için **📡 Gerçek Sensör** sekmesini kullanın.")
     st.caption(
-        "Biyomekanik (video/pose analizi) + EMG simülasyonu + NIRS simülasyonu birleşik değerlendirmesi. "
+        "Biyomekanik (video/pose analizi) + EMG + NIRS birleşik değerlendirmesi. "
         "Her bulgu için ölçüm kaynağı belirtilmiştir. Çıktı alınabilir."
     )
 

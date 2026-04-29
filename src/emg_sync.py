@@ -286,6 +286,130 @@ def export_synced_frame_csv(
         writer.writerows(merged)
 
 
+def load_nirs_csv(
+    path: str | Path,
+    time_col: str | None = None,
+    smo2_col: str | None = None,
+    thb_col:  str | None = None,
+    delimiter: str = ",",
+    skip_rows: int = 0,
+) -> dict:
+    """Load a Moxy (or generic) NIRS CSV file.
+
+    Returns:
+        {
+          "time_s": list[float],
+          "smo2":   list[float],
+          "thb":    list[float] | None,
+          "sample_rate_hz": float,
+          "path": str,
+        }
+    """
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"NIRS dosyası bulunamadı: {path}")
+
+    with path.open("r", encoding="utf-8-sig", newline="") as f:
+        for _ in range(skip_rows):
+            f.readline()
+        reader = csv.DictReader(f, delimiter=delimiter)
+        rows = list(reader)
+
+    if not rows:
+        raise ValueError("NIRS CSV boş veya okunamadı.")
+
+    headers = list(rows[0].keys())
+
+    # Auto-detect time column
+    if time_col is None:
+        for h in headers:
+            if h.strip().lower() in ("time", "time_s", "time_sec", "t", "timestamp"):
+                time_col = h
+                break
+        if time_col is None:
+            time_col = headers[0]
+
+    # Auto-detect SmO2 column
+    if smo2_col is None:
+        for h in headers:
+            hl = h.strip().lower()
+            if "smo2" in hl or "smo₂" in hl or "oxy" in hl:
+                smo2_col = h
+                break
+
+    # Auto-detect THb column
+    if thb_col is None:
+        for h in headers:
+            hl = h.strip().lower()
+            if "thb" in hl or "hemoglobin" in hl or "hb" in hl:
+                thb_col = h
+                break
+
+    if smo2_col is None:
+        raise ValueError(f"SmO2 sütunu bulunamadı. Sütunlar: {headers}")
+
+    def _p(val: str) -> float:
+        try:
+            return float(val.strip())
+        except (ValueError, AttributeError):
+            return float("nan")
+
+    time_s = [_p(r[time_col]) for r in rows]
+    smo2   = [_p(r[smo2_col]) for r in rows]
+    thb    = [_p(r[thb_col])  for r in rows] if thb_col else None
+
+    return {
+        "time_s": time_s,
+        "smo2":   smo2,
+        "thb":    thb,
+        "sample_rate_hz": _estimate_sample_rate(time_s),
+        "path": str(path),
+    }
+
+
+def resample_nirs_to_video_times(
+    nirs_data: dict,
+    video_times: list[float],
+    time_offset_sec: float = 0.0,
+) -> dict:
+    """Interpolate NIRS SmO2 and THb onto video frame timestamps."""
+    t = [x + time_offset_sec for x in nirs_data["time_s"]]
+    t_min, t_max = min(t), max(t)
+
+    def _resample(values: list[float]) -> list[float | None]:
+        out: list[float | None] = []
+        for vt in video_times:
+            if vt < t_min or vt > t_max:
+                out.append(None)
+            else:
+                out.append(_lerp(t, values, vt))
+        return out
+
+    result: dict = {"smo2": _resample(nirs_data["smo2"])}
+    if nirs_data.get("thb"):
+        result["thb"] = _resample(nirs_data["thb"])
+    return result
+
+
+def compute_nirs_per_kick(
+    nirs_resampled: dict,
+    kick_events: list[dict],
+) -> list[dict]:
+    """Return mean SmO2 and THb within each kick window."""
+    results = []
+    for ev in kick_events:
+        start, end = int(ev["start_frame"]), int(ev["end_frame"])
+        row: dict = {"kick_id": ev.get("kick_id")}
+        for key in ("smo2", "thb"):
+            vals = nirs_resampled.get(key)
+            if not vals:
+                continue
+            window = [v for v in vals[start:end + 1] if v is not None and not math.isnan(v)]
+            row[f"mean_{key}"] = round(sum(window) / len(window), 2) if window else None
+        results.append(row)
+    return results
+
+
 def export_kick_emg_csv(
     path: str | Path,
     kick_emg_rows: list[dict],

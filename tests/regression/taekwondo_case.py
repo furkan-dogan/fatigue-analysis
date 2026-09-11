@@ -3,10 +3,8 @@
 import math
 
 from src.sports.taekwondo.events import JOINT_KEYS, detect_movement_events
-from src.sports.taekwondo.fatigue import compute_fatigue
 from src.core.signals import compute_angular_velocity
 from src.sports.taekwondo.metrics import compute_foot_speed
-from src.sports.taekwondo.simulation import generate_emg, generate_nirs
 
 
 def legacy_snapshot() -> dict:
@@ -28,14 +26,10 @@ def legacy_snapshot() -> dict:
         confidence_series=[0.9] * 120,
     )
     assert events, 'Regression input must contain detected kicks'
-    rows = [{'time_sec': i / fps} for i in range(120)]
     # Rounded values allow harmless floating-point variation across platforms.
     return {
         'events': events,
         'velocity': [round(v, 6) for v in velocity],
         'acceleration': [round(v, 6) for v in acceleration],
         'foot_speed': [round(v, 6) for v in foot_speed],
-        'fatigue': compute_fatigue(events, events),
-        'synthetic_emg': generate_emg(rows, events, fps),
-        'synthetic_nirs': generate_nirs(rows, events, fps),
     }

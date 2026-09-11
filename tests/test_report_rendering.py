@@ -1,34 +1,29 @@
-"""Report regression covers populated data, including legacy unvalidated rules."""
-
-import hashlib
-import json
-from pathlib import Path
 import unittest
+from src.sports.taekwondo.reporting import comparison_rows, quality_notices, statistics_rows
 
-from streamlit.testing.v1 import AppTest
+class VideoReportTest(unittest.TestCase):
+    def test_zero_and_missing_values(self):
+        rows = comparison_rows([{'duration_sec': 0}], [{'duration_sec': 2}])
+        self.assertEqual(rows[0]['Önce'], 0)
+        self.assertEqual(rows[0]['Fark'], 2)
+        self.assertIsNone(rows[0]['Değişim (%)'])
+        self.assertIsNone(rows[1]['Önce'])
 
-from tests.fixtures.dashboard import render_report_case
+    def test_empty_and_nonfinite_values(self):
+        rows = comparison_rows([{'duration_sec': float('nan')}], [])
+        self.assertIsNone(rows[0]['Önce'])
+        self.assertEqual(statistics_rows([], []), [])
+        self.assertTrue(any(level == 'warning' for level, _ in quality_notices([], [])))
+        self.assertFalse(any(level == 'success' for level, _ in quality_notices([{}]*6, [{}]*6)))
 
-
-def report_snapshot(app):
-    import datetime
-    today = datetime.date.today().strftime('%d.%m.%Y')
-    result = {}
-    for kind in ('markdown', 'info', 'warning', 'success', 'caption'):
-        values = [item.value.replace(today, '<DATE>') for item in app.get(kind)]
-        result[kind] = hashlib.sha256(json.dumps(values, ensure_ascii=False).encode()).hexdigest()
-    result['tables'] = [
-        hashlib.sha256(frame.value.to_json(orient='split', force_ascii=False).encode()).hexdigest()
-        for frame in app.dataframe
-    ]
-    return result
-
-
-class ReportRenderingTest(unittest.TestCase):
-    def test_populated_reports_preserve_legacy_content(self):
-        expected = json.loads((Path(__file__).parent / 'fixtures/report_rendering.json').read_text())
-        for sensors in (False, True):
-            with self.subTest(sensors=sensors):
-                app = AppTest.from_function(render_report_case, args=(sensors,)).run(timeout=30)
-                self.assertFalse(list(app.exception))
-                self.assertEqual(report_snapshot(app), expected[str(sensors)])
+    def test_video_player_uses_managed_media_and_seek(self):
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from unittest.mock import patch
+        from ui.components.video_player import video_player
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / 'clip.mp4'
+            path.write_bytes(b'placeholder')
+            with patch('ui.components.video_player.st.video') as render:
+                video_player(path, start_time=1.25)
+                render.assert_called_once_with(str(path), start_time=1.25)

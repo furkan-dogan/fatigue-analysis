@@ -2,53 +2,27 @@
 
 ## Devralan geliştirici için başlangıç
 
-- Kullanıcının önceliği önce dosya yapısı, sonra voleybol; video en son test aşamasında gelecek.
-- Kullanıcı dosya düzenleme ve yerel commit atma yetkisi verdi. Push istenmedi.
-- Python/Streamlit korunacak. Şimdilik tek kullanıcı, yüklenen video analizi.
-- Canlı analiz, React geçişi, çok kullanıcılı altyapı ve servis kuyruğu bu sürümün kapsamında değil.
-- Taekwondo'nun mevcut davranışını yapısal taşıma sırasında koru. Ölçüm düzeltmelerini ayrı commitlerde yap.
-- Türkçe arayüz; kısa, mevcut geçmişe uygun `refactor: ...`, `fix: ...`, `feat: ...`, `docs: ...` commitleri.
-- Her anlamlı aşamada bu dosyayı güncelle: yapılanlar, doğrulama, açık sorunlar ve sıradaki somut iş.
-- Başlamadan `git status --short`, `git log -5 --oneline`, bu dosya ve `CLAUDE.md` okunmalı.
-- Tamamlanmayan analizleri hazır gösterme; doğruluk test edilmeden doğruluk yüzdesi verme.
+Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit ve tek kullanıcı korunacak. Canlı analiz, çok kullanıcı ve yeni frontend kapsam dışında. Video isteme: kullanıcı 7. adımda verecek.
 
-## Güncel durum
+## Güncel durum — 2026-09-11
 
-2026-09-11: **Adım 1 tamamlandı. Adım 2 üzerinde çalışılıyor.**
-Kullanıcıdan kalan UI, grafik, rapor ve sentetik sensör değişiklikleri `611bd59` commitinde korundu.
-Çekirdek, adaptör, branş ve UI sınırları ayrıldı; mevcut taekwondo ekranı yeni konumundan açılıyor.
-Voleybol/basketbol analiz ve UI klasörleri sorumluluk README'leriyle hazır, ancak ekranları/algoritmaları henüz yok.
-Eski belgeler `docs/archive/`, futbol rapor aracı `tools/legacy/`, YOLO ağırlıkları `models/` altında korundu.
-Adım 2'nin ortak video/grafik ayırma kısmı taşıma sırasında yapıldı; diğer parçaları bekliyor.
-Henüz gerçek video doğrulaması yapılmadı. Mevcut taekwondo ölçüm sorunları çözülmüş sayılmamalı.
+**Adım 1 tamamlandı; Adım 2 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Voleybol/basketbol klasörleri var; ekran ve algoritmaları henüz yok.
 
-## Sıralı uygulama planı
+Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
-### 1. Proje yapısı ve mevcut dosyalar — tamamlandı
+### 1. Proje yapısı — tamamlandı
 
-- [x] Mevcut çalışmayı incele, syntax kontrolü yap ve ayrı committe koru.
-- [x] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
-- [x] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
-- [x] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
-- [x] UI'da uygulama kabuğu, ortak bileşen ve taekwondo ekranlarını ayır.
-- [x] Voleybol ve basketbol için sorumlulukları açıklanmış modül alanları aç.
-- [x] CLI girişlerini ve tüm importları güncelle; kullanılmayan boş eski sayfa klasörünü kaldır.
-- [x] Eski belgeler ve rapor aracını arşivle; aktif README ve CLAUDE haritasını güncelle.
-- [x] Syntax, import, CLI, arayüz açılışı ve davranış regresyon kontrollerini çalıştır.
-- [x] Taşınan dosyalar için bağımlılık sınırlarını test et ve aşamayı commitle.
+Çekirdek, adaptör, branş, ortak UI ve CLI ayrıldı. Voleybol ve basketbol için alan açıldı. Detaylı harita `README.md` ve `docs/architecture.md` içinde.
 
-Kabul: Taekwondo girişleri açılır, mevcut hesapların davranışı korunur, ortak çekirdek UI/branş import etmez.
-Bu aşamada yeni ölçüm algoritması geliştirilmez; bilinen ölçüm sorunları aşağıda izlenir.
+### 2. Component-first arayüz — son kontrollerde
 
-### 2. Component-first arayüz — kısmen yapıldı, sıradaki aşama
-
-- Ortak video oynatıcı, yükleyici, zaman çizelgesi, metrik kartı, kalite paneli ve karşılaştırma paneli.
-- Taekwondo'ya özel tekme tabloları/fazları ortak bileşenlerden ayrılmalı.
-- Büyük analiz ve rapor ekranları sorumluluklarına göre bölünmeli.
-- UI hesaplama yapmamalı; hesaplanmış sonuçları göstermeli. Rapor kuralları ayrı katmana çıkarılmalı.
-- Bileşenlerin boş veri, eksik değer, hata ve yükleniyor durumları olmalı.
-
-Kabul: Genel bileşenler taekwondo import etmez; sayfalar bileşenleri birleştirir.
+- Ortak yükleyici, video, olay zaman çizelgesi, metrik, kalite ve karşılaştırma bileşenleri hazır.
+- Sayfa yalnızca oturum ve görünümleri birleştirir; rapor hesapları backend'de.
+- Altı bölüm: özet, açı/hız, tekmeler, faz/asimetri, istatistik, rapor/CSV.
+- Cihaz alanları pipeline, UI, rapor ve örneklerden kaldırıldı.
+- Doğrulanmamış yorgunluk skoru, sağlık/beslenme önerileri kaldırıldı. Açı/faz/olay hesapları korundu.
+- Özel localhost video sunucusu yerine Streamlit medya sunumu kullanılıyor.
+- Tek kullanımlık çok sayıda rapor/sekme dosyası yerine kısa sorumluluk modülleri kullanıldı.
 
 ### 3. Branş navigasyonu — bekliyor
 
@@ -67,7 +41,6 @@ Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve
 - SQLite: oturum/analiz/sonuç kayıtları. Yerel analiz kimliği klasörleri: video ve büyük zaman serileri.
 - Orijinal video korunur; düzeltmeler ayrı revizyon olarak kaydedilir.
 - Pose landmarkları, görünürlük ve gerçek zaman damgaları saklanmalı; yalnızca açı CSV'si yeterli değil.
-- Sensör kaynağı sonuçla taşınır; sentetik veri gerçek veriyle karışmaz. Voleybol video akışında sensör simülasyonu yok.
 - Hatalı/yarım analiz, tekrar çalıştırma ve uygulama yeniden açılınca kayıtları bulma senaryoları.
 
 Kabul: Bir analiz kaydedilip yeniden açılır; kaynağı, birimi ve sürümü izlenebilir.
@@ -137,84 +110,24 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Rapor gözlem ve ölçüm yöntemini açıklar; doğrulanmamış yorgunluk/sağlık çıkarımı yapmaz.
 - Dışa aktarma ve önceki kaydı açma uçtan uca kontrol edilir.
 
-## Mimari kurallar
+## Bilinen sınırlar
 
-- Ortak çekirdek: geometri, sinyal, sayısal yardımcılar, veri tipleri.
-- Adaptörler: MediaPipe, OpenCV çizimi, CSV/sensör dosyaları gibi dış bağımlılıklar.
-- Branş: test protokolü, olay tespiti, branşa özel metrik/yorum ve orkestrasyon.
-- UI: uygulama kabuğu, ortak bileşenler ve branş ekranları. Analiz motoru Streamlit bilmez.
-- Branşlar birbirini import etmez; ortak yetenekler daha sonra `src/movements/` altında paylaşılır.
-- Erken framework/servis artışı yok. Canlı video için gelecekte zaman damgalı kare kaynağı; çevrimdışı filtrelerin canlı gecikmesi ayrıca doğrulanır.
+- Normalize ayak hızı gövde uzunluğu bulunamayınca piksel/s değerine düşebiliyor. Mevcut ham CSV'de bu eski sorun sürüyor; UI raporunda bu metrik gösterilmiyor. Ölçüm aşamasında birim sözleşmesiyle düzelt.
+- Genel landmark görünürlüğü ölçüm doğruluğu değildir; metrik bazında kalite kontrolü eksik.
+- Sabit FPS ve eksik nokta doldurma zaman/hız doğruluğunu etkileyebilir.
+- Taekwondo yükleme akışı halen iki video ister. Voleybol tek video akışı 5. adımda.
+- Arayüz kayıtları geçici; uygulama yeniden açılınca geçmiş kayıt garantisi yok (4. adım).
+- Otomatik video/model doğruluğu, sıçrama ve sprint ölçümleri henüz doğrulanmadı.
 
-## Bilinen mevcut sorunlar — yapısal taşımadan ayrı düzeltilecek
+## Kontroller ve commit günlüğü
 
-1. Taekwondo fatigue skoru değişim yokken veya veri yokken 50 veriyor. Skor anlamı ve eksik veri davranışı yeniden tasarlanmalı.
-2. Ayak hızı gövde uzunluğu yokken piksel/s'ye düşüyor, aynı alanda birimler karışıyor.
-3. Pipeline sentetik EMG/NIRS üretiyor; rapor gerçek sensör bayrağı ile sentetik özetleri birlikte kullanabiliyor.
-4. Video oynatıcı localhost HTTP adresine bağlı; uzak sunucuda uygun değil. Dosya yolu sınırlandırması ve Range doğrulaması da gerekli.
-5. Genel visibility skoru ölçüm doğruluğu değildir; metrik bazında gerekli landmark kontrolü eksik.
-6. Sabit FPS üzerinden zamanlama ve kayıp noktaların doldurulması hız/olay doğruluğunu etkileyebilir.
-7. Mevcut raporda doğrulanmamış sağlık, takviye ve risk yorumları bulunuyor; voleybola taşınmayacak.
-
-## Doğrulama ve çalışma günlüğü
-
-### Adım 2 çalışması
-
-- Dolu sporcu raporu için sensörlü/sensörsüz iki AppTest referansı alındı. Mevcut metin/tablo içeriği taşınırken karşılaştırılacak; bu tıbbi/ölçümsel geçerlilik testi değildir.
-- Ortak gösterim sözleşmeleri ve metrik, kalite, karşılaştırma, yükleyici, olay zaman çizelgesi bileşenleri eklendi; gerçek taekwondo çağrılarına bağlandı. Çizelgede seçilen olay video başlangıç zamanını belirliyor.
-- Analiz sayfası `tabs/` altında özet, yorgunluk, olay, faz, asimetri, istatistik, export ve sensör sekmelerine ayrıldı.
-- Metrik kataloğu, biçimlendirme, karşılaştırma/EMG tabloları ve bulgu kuralları `src/sports/taekwondo/reporting/` altına taşındı; Streamlit bağımlılığı yok.
-- Dolu/boş/sensörsüz 12 sekme ve ortak bileşen durum/olay seçimi testleri eklendi. Dolu özet sekmesinde taşıma sırasında eksik kalan CSV importu testte yakalanıp düzeltildi.
-- Sıradaki iş: büyük sporcu raporunun kurallarını ve render bölümlerini ayır; sayfa orkestrasyonunu sadeleştir; son kontroller.
-
-### Adım 1 geçmişi
-
-- Başlangıç: 22 Python dosyası AST/syntax kontrolünden geçti; mevcut venv'de Streamlit, MediaPipe, OpenCV importları başarılı.
-- `611bd59`: Kullanıcıdan kalan çalışma ve bu plan korundu.
-- Taşıma öncesi Streamlit AppTest: boş yükleme ekranı hatasız açıldı.
-- Taşıma öncesi iki sentetik tekme içeren sabit regresyon kaydı alındı; olay/faz metrikleri, hız/ivme, yorgunluk ve simülasyon çıktıları karşılaştırılıyor. Bu test bilimsel geçerlilik iddiası değildir; bilinen eski davranışı da korur.
-- `.venv/bin/python -m unittest discover -v`: 1 regresyon testi geçti.
-- `439b3e9`: Taşıma öncesi regresyon referansı kaydedildi.
-- Backend: `src/core/`, `src/adapters/`, `src/sports/{taekwondo,volleyball,basketball}/` ayrıldı. Genel açı ve sinyal hesapları MediaPipe import etmeden kullanılabiliyor.
-- Tekme odaklı sensör pencereleme/simülasyon taekwondo altında tutuldu; ortak sensör adaptörüymüş gibi sunulmadı.
-- Backend taşıması sonrası sabit regresyon testi ve `main.py --help` geçti. Mimari sınır testleri eklendi.
-- `ecfc058`: Backend katmanları ayrıldı; 5 test geçti.
-- UI: `ui/app.py` kabuk, `ui/theme.py` stil, `ui/components/` ortak video/grafik, `ui/sports/taekwondo/` mevcut ekran/rapor/tekme sunumu olarak ayrıldı.
-- Klip çıkarma `src/adapters/video_clips.py`, sensör özeti `src/sports/taekwondo/sensor_summary.py` oldu; hesaplama UI bileşeninden çıkarıldı.
-- `ui/paths.py` örnek CSV yolunu köke bağlar; taşınan sayfalardan örnekler bulunabiliyor.
-- CLI uygulaması `cli/analyze.py`; `python main.py ...` giriş komutu korunuyor.
-- UI taşıması sonrası AppTest açılışı, örnek kaynak kontrolü ve regresyon testleri geçti. Adım 2'nin video/grafik ayırma kısmı bu taşıma sırasında yapıldı; diğer bileşenler henüz tamamlanmadı.
-- `4478f93`: UI/CLI ayrımı, örnek kaynak yolları ve giriş/pipeline testleri eklendi.
-- Son doğrulama: 52 Python dosyası AST kontrolünden geçti. Eski `src/metrics.py` içindeki 8 fonksiyonun AST gövdeleri taşınan karşılıklarıyla aynı.
-- `.venv/bin/python -m unittest discover -v`: **10 test geçti**. Regresyon, mimari sınırlar, ortak UI bağımlılıkları, dört CLI girişi, AppTest açılışı, örnek CSV yolları ve model çalıştırılmadan video→CSV/anotasyon akışı.
-- İki Word belgesi ve iki YOLO ağırlığının Git blob hash'leri taşıma öncesiyle aynı; içerik kaybı yok.
-- `git diff --check` temiz. Son belge commitinde bu devir notu ve güncel README/CLAUDE/AGENTS yer alıyor.
-- Test edilmeyenler: gerçek sporcu videosunda model/ölçüm doğruluğu, tüm dolu rapor sekmeleri, uzaktan video erişimi, eski Word aracının çalıştırılması.
-
-## Bugünkü commit sırası
-
-1. `611bd59` — mevcut kullanıcı çalışmasını ve planı koru.
-2. `439b3e9` — taşıma öncesi regresyon referansı.
-3. `ecfc058` — analiz çekirdeği/adaptör/branş ayrımı.
-4. `4478f93` — ortak bileşen, taekwondo ekranı ve CLI ayrımı.
-5. `docs: proje haritasını ve devam notlarını güncelle` — arşiv ve model düzeni, aktif belgeler, Adım 1 kapanışı. Hash için `git log` kullan.
-
-Commitler yereldir; push yapılmadı.
+- Adım 1: `611bd59`, `439b3e9`, `ecfc058`, `4478f93`, `748305d`.
+- `2dea859`: ortak bileşenler ve ilk sekme ayrımı; 17 test geçti.
+- Yeni video-only düzen: 21 test geçti. Mimari, CLI, boş/dolu altı sekme, bileşen durumları, eksik/0/NaN rapor değerleri, hareket regresyonu, modelsiz video→CSV/anotasyon kontrol edildi.
+- Regresyondan yalnızca kaldırılan cihaz/sentetik çıktılar ve eski yorgunluk skoru çıkarıldı; mevcut açı/hız/olay referansı yeniden hesaplanmadı.
+- Eski sensör/sağlık raporu metin snapshot'ı kaldırıldı; yeni ölçüm karşılaştırması ve eksik veri testleriyle değiştirildi.
+- Çift analiz sırası/ilerleme, hata durumunda yarım dosya temizliği, gerçek olay seçimi ve yönetilen video başlangıç zamanı da test edildi. AST/syntax kontrolü başarılı. Kod testleri bilimsel doğruluk testi değildir.
 
 ## Sıradaki somut iş
 
-**Adım 2'den devam et; Adım 1 taşımasını yeniden yapma. Video isteme.**
-
-1. `ui/sports/taekwondo/page.py` içindeki `_metric_cards` gibi tekrar kullanılan gösterimleri `ui/components/` altında açık veri sözleşmeleriyle ayır.
-2. Metrik kartı, yükleyici, kalite paneli, olay zaman çizelgesi ve karşılaştırma panelini sırayla ekle. Ortak bileşenlerde tekme/yorgunluk varsayımı olmasın.
-3. Mevcut taekwondo sayfa/raporunun sekmelerini sorumluluğa göre böl; rapor hesaplarını UI'dan çıkar. Davranış değişiklikleri gerekiyorsa ayrı committe ve açık notla yap.
-4. Mevcut testleri güncelle/çalıştır; uygulamanın açılışını ve taşınan sekmeleri kontrol et.
-5. Adım 2 bitince bu dosyayı güncelle, commitle; sonra Adım 3 branş navigasyonuna geç.
-
-Gerçek video Adım 7'de gelecek. Adım 6'da algoritma geliştirilse bile bağımsız video doğrulaması olmadan hazır/doğru kabul edilmemeli.
-
-## Yöntem kaynakları
-
-- Uçuş süresi varsayımları: https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2023.1112739/full
-- Video kare hızı ve sıçrama hatası: https://pmc.ncbi.nlm.nih.gov/articles/PMC10108745/
-- Düzlem dönüşümü: https://docs.opencv.org/4.13.0/d9/dab/tutorial_homography.html
+Adım 2 son kontrollerini tamamla ve commitle; ardından **Adım 3: voleybol öncelikli branş navigasyonu ve branşa göre ayrılmış state**. Henüz video isteme veya voleybol algoritması geliştirmeye geçme.

@@ -32,3 +32,6 @@ nohup.out
 .claude/settings.local.json
 .pytest_cache/
 .ruff_cache/
+
+# Local source videos and analysis artifacts
+data/

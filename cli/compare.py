@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compare pre/post movement event metrics")
     parser.add_argument("--pre-events", required=True, help="Pre-fatigue events CSV path")
     parser.add_argument("--post-events", required=True, help="Post-fatigue events CSV path")
-    parser.add_argument("--output", default="output/pre_post_comparison.csv", help="Output comparison CSV path")
+    parser.add_argument("--output", default="data/output/pre_post_comparison.csv", help="Output comparison CSV path")
     parser.add_argument("--delimiter", default=";", help="CSV delimiter (default: ';')")
     return parser.parse_args()
 

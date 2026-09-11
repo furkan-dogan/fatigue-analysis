@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1 tamamlandı; Adım 2 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Voleybol/basketbol klasörleri var; ekran ve algoritmaları henüz yok.
+**Adım 1 ve Adım 2 tamamlandı. Sırada Adım 3 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Voleybol/basketbol klasörleri var; ekran ve algoritmaları henüz yok.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -14,7 +14,7 @@ Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, N
 
 Çekirdek, adaptör, branş, ortak UI ve CLI ayrıldı. Voleybol ve basketbol için alan açıldı. Detaylı harita `README.md` ve `docs/architecture.md` içinde.
 
-### 2. Component-first arayüz — son kontrollerde
+### 2. Component-first arayüz — tamamlandı
 
 - Ortak yükleyici, video, olay zaman çizelgesi, metrik, kalite ve karşılaştırma bileşenleri hazır.
 - Sayfa yalnızca oturum ve görünümleri birleştirir; rapor hesapları backend'de.
@@ -123,6 +123,8 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 - Adım 1: `611bd59`, `439b3e9`, `ecfc058`, `4478f93`, `748305d`.
 - `2dea859`: ortak bileşenler ve ilk sekme ayrımı; 17 test geçti.
+- `de326c2`: cihaz akışları kaldırıldı; video raporu ve ekranlar sadeleşti.
+- Son temizlik commitinde gereksiz model/arşiv/araç klasörleri kaldırıldı, CLI varsayılanları `data/` altına alındı; `git diff --check` temiz. Commitler yereldir; push yapılmadı.
 - Yeni video-only düzen: 21 test geçti. Mimari, CLI, boş/dolu altı sekme, bileşen durumları, eksik/0/NaN rapor değerleri, hareket regresyonu, modelsiz video→CSV/anotasyon kontrol edildi.
 - Regresyondan yalnızca kaldırılan cihaz/sentetik çıktılar ve eski yorgunluk skoru çıkarıldı; mevcut açı/hız/olay referansı yeniden hesaplanmadı.
 - Eski sensör/sağlık raporu metin snapshot'ı kaldırıldı; yeni ölçüm karşılaştırması ve eksik veri testleriyle değiştirildi.
@@ -130,4 +132,4 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-Adım 2 son kontrollerini tamamla ve commitle; ardından **Adım 3: voleybol öncelikli branş navigasyonu ve branşa göre ayrılmış state**. Henüz video isteme veya voleybol algoritması geliştirmeye geçme.
+**Adım 3: voleybol öncelikli branş navigasyonu ve branşa göre ayrılmış state**. Henüz video isteme veya voleybol algoritması geliştirmeye geçme.

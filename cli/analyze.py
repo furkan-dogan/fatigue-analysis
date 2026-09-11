@@ -9,11 +9,11 @@ from src.sports.taekwondo.pipeline import run_analysis
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Taekwondo movement analysis")
-    parser.add_argument("--input", default="videos/sample.mp4", help="Input video path")
-    parser.add_argument("--output", default="output/annotated.mp4", help="Output annotated video path")
+    parser.add_argument("--input", default="data/videos/sample.mp4", help="Input video path")
+    parser.add_argument("--output", default="data/output/annotated.mp4", help="Output annotated video path")
     parser.add_argument("--show-joint-labels", action="store_true", help="Overlay joint labels on video")
-    parser.add_argument("--frame-csv", default="output/frame_metrics.csv")
-    parser.add_argument("--events-csv", default="output/kick_events.csv")
+    parser.add_argument("--frame-csv", default="data/output/frame_metrics.csv")
+    parser.add_argument("--events-csv", default="data/output/kick_events.csv")
     parser.add_argument("--event-peak-prominence-norm", type=float, default=0.06)
     parser.add_argument("--event-min-distance-sec", type=float, default=0.4)
     parser.add_argument("--event-min-duration-sec", type=float, default=0.15)

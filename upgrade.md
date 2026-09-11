@@ -2,11 +2,11 @@
 
 ## Devralan geliştirici için başlangıç
 
-Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit ve tek kullanıcı korunacak. Canlı analiz, çok kullanıcı ve yeni frontend kapsam dışında. Video isteme: kullanıcı 7. adımda verecek.
+Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit ve tek kullanıcı korunacak. Canlı analiz, çok kullanıcı ve yeni frontend kapsam dışında. Şimdi video isteme: kullanıcı model seçimi için 6. adımda örnek video verecek; bağımsız doğrulama 8. adımda.
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1, 2 ve 3 tamamlandı. Sırada Adım 4 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
+**Adım 1, 2 ve 3 tamamlandı. Adım 4 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -34,7 +34,7 @@ Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, N
 
 Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve sahte sonuç gösterilmez.
 
-### 4. Analiz sözleşmeleri ve kalıcı kayıt — bekliyor
+### 4. Analiz sözleşmeleri ve kalıcı kayıt — son kontrollerde
 
 - VideoAsset, Session, AnalysisRun, MovementEvent, MetricResult ve Comparison modelleri.
 - Sonuç: değer, birim, yöntem, kaynak video/zaman aralığı, kalite, protokol/model/algoritma sürümü.
@@ -57,9 +57,22 @@ Kabul: Bir analiz kaydedilip yeniden açılır; kaynağı, birimi ve sürümü i
 
 Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkça belirtilir.
 
-### 6. Voleybol algoritmaları — bekliyor, kendi içinde sırayla
+### 6. Örnek video üzerinden model seçimi — bekliyor, ayrı karar aşaması
 
-#### 6A. Dikey sıçrama
+- Kullanıcı örnek videoyu bu aşamada paylaşacak. Önce dosya/kayıt/voleybol inceleme akışı tamamlanır.
+- YOLO26x-Pose yalnızca araştırma adayı; mevcut MediaPipe ve ayak noktaları içeren uygun bir pose modeli aynı karelerde karşılaştırılır.
+- Video zamanlaması, çekim açısı, ayakların görünürlüğü ve sporcu hareketi incelenir. Model dosyası/sürümü, çalışma ayarları ve donanım kaydedilir.
+- Elle işaretlenmiş ortak noktalar, ayak teması çevresindeki kareler, takip kopmaları, örtüşme, zamansal titreme, çalışma süresi ve bellek karşılaştırılır.
+- Algoritmalar henüz hazır değilken sıçrama cm veya sprint hız doğruluğu iddiası üretilmez. İlk seçim noktaların/temas görünümünün uygunluğuna göre yapılır; ölçüm sonucu kararı 8. adımda doğrulanır.
+- Gerekli noktaları vermeyen modelde ayak bileği ayak ucu yerine konmaz. Hiçbir aday yeterli değilse sonuç açıkça yetersiz kabul edilir.
+- Tek örnek videodan tüm sporcular için en iyi model sonucu çıkarılmaz. Bu video geliştirme verisidir; bağımsız doğrulama videolarından ayrı tutulur.
+- Çıktı: aday tablosu, görsel karşılaştırma ve gerekçeli ilk model/adaptör kararı. Canlı analiz modeli ayrıca daha sonra değerlendirilebilir.
+
+Kabul: Örnek video üzerinde kanıtlı ilk seçim yapılır; seçim ölçüm doğruluğu onayı gibi sunulmaz.
+
+### 7. Voleybol algoritmaları — bekliyor, kendi içinde sırayla
+
+#### 7A. Dikey sıçrama
 
 - İlk protokol kontrollü, yerinde çift ayak CMJ. Blok ve yaklaşmalı smaç ayrı protokoller olarak sonra.
 - Tekrar tespiti, son ayak yerden ayrılması ve ilk ayak yere teması üzerinden uçuş süresi.
@@ -69,7 +82,7 @@ Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkç
 - Önerilen çekim: sabit kamera, iyi ışık, ayaklar net, orijinal 120/240 FPS. Yüksek FPS doğruluk garantisi değildir.
 - Otomatik temas aralıkları ve manuel düzeltme birlikte desteklenmeli.
 
-#### 6B. Yana sapma ve iniş asimetrisi
+#### 7B. Yana sapma ve iniş asimetrisi
 
 - Önden/arkadan uygun görünümde pelvis orta noktası sapması, gövde/pelvis eğimi, sağ-sol temas zaman farkı.
 - Kamera eğimi, vücut yönelimi, örtüşme ve landmark kalitesi kontrol edilmeli.
@@ -77,7 +90,7 @@ Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkç
 - Görsel asimetri bacak kuvvet farkını kanıtlamaz; güçlü/zayıf bacak teşhisi veya yaralanma riski üretme.
 - Sadece gözlenen 2D düzlem hakkında sonuç ver; gerçek 3D ölçüm iddiası yok.
 
-#### 6C. Sprint
+#### 7C. Sprint
 
 - Ölçülmüş düz parkur, sabit yandan kamera, bilinen referanslar, kadrajda tek sporcu.
 - Kamera pan/zoom ve kesintiler ilk protokol dışında.
@@ -89,7 +102,7 @@ Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkç
 
 Kabul: Algoritmalar kontrollü/sentetik girdilerle sınanır; gerçek video doğrulaması olmadan doğruluk iddiası yok.
 
-### 7. Örnek videolar ve doğruluk — kullanıcı video verecek
+### 8. Bağımsız videolar ve ölçüm doğruluğu — kullanıcı video verecek
 
 - Videoyu kullanıcı bu aşamada sohbete veya uygulamaya verecek; dosya düzenlemek için video bekleme.
 - İlk video: metadata, gerçek süre, görünürlük, kamera ve kalibrasyon uygunluğu incelenir.
@@ -103,7 +116,7 @@ Kabul: Algoritmalar kontrollü/sentetik girdilerle sınanır; gerçek video doğ
 
 Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla değerlendirilir.
 
-### 8. Karşılaştırma ve rapor — bekliyor
+### 9. Karşılaştırma ve rapor — bekliyor
 
 - Aynı sporcu/test/yöntem, uyumlu çekim ve kalibrasyon koşulları eşleşir.
 - CMJ, blok ve yaklaşmalı smaç tek metrikmiş gibi karıştırılmaz.
@@ -166,3 +179,17 @@ Bu nedenle ölçüm aşamasında MediaPipe referansı, YOLO26x-Pose ve ayak nokt
 Seçim deneyi: aynı sporcu/çekim kesitlerinde kalkış–iniş zaman hatası, sıçrama cm hatası, görüntü düzlemi açı hatası, kalibre parkur hız hatası, takip kopması, ölçüm verilemeyen tekrar oranı ve işleme süresi değerlendirilecek. Ayar ve doğrulama videoları ayrılacak. Tek model tüm metriklerde en iyi çıkmak zorunda değil. Model/adaptör arayüzü 4. adımın kayıt sözleşmesiyle kaynak, nokta şeması ve sürüm bilgisini taşımalı; uygulama bir ağırlık adına kilitlenmemeli.
 
 Navigasyon commit: `43b42a2`. Bu araştırma belge güncellemesidir; 4. adım başlatılmadı. Sıradaki iş halen kalıcı kayıt ve analiz sözleşmeleridir.
+
+
+### Adım 4 çalışma günlüğü
+
+- `src/core/records.py`: bağımsız Session, VideoAsset, AnalysisRun, MovementEvent, MetricResult, Comparison sözleşmeleri; birim/yöntem, eksik değer ve olay zamanı kontrolleri.
+- `src/adapters/analysis_store.py`: SQLite şema v1, ilişkili kayıtlar, tek işlemde olay/metrik/tamamlanma kaydı; orijinal video ve çıktı bütünlük hash'leri, değiştirilemeyen tamamlanmış kayıtlar.
+- Veriler `data/analyses.sqlite3` ve `data/analyses/<oturum>/sources/`, `runs/<analiz>/` altında. JSON/CSV/video/pose serileri yerel dosyalarda; SQLite sonuç ve kaynak ilişkilerini tutar.
+- Mevcut taekwondo çift analiz akışı kalıcı kayda bağlandı. Ortak geçmiş bileşeninden kayıt açma ve kaynakları koruyarak yeni revizyon oluşturma çalışıyor. Uygulama kapansa da kayıt katalogdan seçilebilir.
+- Yarım/başarısız analizler başarı sayılmaz. Kaynaklar ve önceki tamamlanmış sonuç korunur. Kesilen analizlerin durumu geçmiş ekranından açıkça işaretlenir; sırf yeni bağlantı açıldı diye çalışan iş kesilmiş sayılmaz.
+- Pose JSONL: her çözülen kare için filtrelenmemiş model noktaları ve görünürlük; nokta şeması/koordinat türü metadata'da. Modelin göreli z çıktısı metre veya gerçek 3D diye sunulmaz.
+- ffprobe varsa kaynak best-effort PTS saklanır; yoksa zaman damgası eksik olarak kaydedilir. Kaynak PTS ile mevcut nominal FPS hesap zamanı ayrı alanlardır. Ağır çekimin gerçek fiziksel zamanı hâlâ doğrulanmış değildir; algoritma bu aşamada PTS'ye geçirilmedi.
+- Model ve dedektör SHA256, paket sürümleri, algoritma kaynak hash'leri, protokol sürümü ve tüm analiz parametreleri kaydedilir.
+- 31 test geçti: yeni uygulama oturumunda geçmişten açma, branş izolasyonu, başarısız ikinci analiz, revizyon, kaynak/çıktı bozulması, eksik değer/0, PTS ve ham landmark kontrolleri dahil. AST/syntax başarılı.
+- Sıradaki son kontrol: normalize ayak hızındaki eski birim karışmasını ayrı davranış düzeltmesinde gider; kayıt belgelerini güncelle ve aşamayı kapat.

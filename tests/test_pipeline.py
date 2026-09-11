@@ -1,6 +1,7 @@
 """Check video/CSV integration without downloading or evaluating pose models."""
 
 import csv
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -18,6 +19,10 @@ class NoPoseRunner:
 
     def get_confidence(self, raw):
         return None
+
+    @staticmethod
+    def landmark_record(raw):
+        return []
 
     def close(self):
         pass
@@ -39,6 +44,11 @@ class PipelineIntegrationTest(unittest.TestCase):
                 result = run_analysis(source, root / 'annotated.mp4', root / 'frames.csv', root / 'events.csv')
             self.assertEqual(result.total_frames, 30)
             self.assertEqual(result.events, [])
+            pose = [json.loads(line) for line in Path(result.pose_path).read_text().splitlines()]
+            self.assertEqual(len(pose), 30)
+            self.assertEqual(pose[0]['landmarks'], [])
+            self.assertIn('source_timestamp_sec', pose[0])
+            self.assertEqual(result.metadata['calculation_time_basis'], 'frame_index/nominal_fps')
             with Path(result.frame_csv_path).open() as handle:
                 rows = list(csv.DictReader(handle))
             self.assertEqual(len(rows), 30)

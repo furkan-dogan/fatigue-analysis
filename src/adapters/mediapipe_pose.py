@@ -88,3 +88,12 @@ class MediaPipePoseRunner:
         vals = [lms[i].visibility for i in _MP_KEY_LANDMARK_INDICES if i < len(lms)]
         return float(sum(vals) / len(vals)) if vals else None
 
+
+    @staticmethod
+    def landmark_record(raw_result):
+        """Unfiltered model output: normalized image xyz and per-point visibility."""
+        if raw_result is None:
+            return []
+        return [{'index': i, 'x': float(point.x), 'y': float(point.y),
+                 'z': float(point.z), 'visibility': float(point.visibility)}
+                for i, point in enumerate(raw_result.landmark)]

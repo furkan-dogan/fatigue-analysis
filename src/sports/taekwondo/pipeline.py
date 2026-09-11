@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
+
+import json
+import math
 
 import cv2
 import numpy as np
@@ -21,6 +24,7 @@ from src.sports.taekwondo.metrics import (
     summarize_knee_angles,
 )
 from src.adapters.mediapipe_pose import MediaPipePoseRunner
+from src.adapters.video_metadata import probe_video
 
 
 @dataclass
@@ -33,6 +37,8 @@ class AnalysisResult:
     frame_csv_path: str
     events_csv_path: str
     output_video_path: str
+    pose_path: str | None = None
+    metadata: dict = field(default_factory=dict)
 
 
 def _empty_angle_map() -> dict[str, float | None]:
@@ -84,10 +90,19 @@ def run_analysis(
     if not cap.isOpened():
         raise RuntimeError(f"Video açılamadı: {input_path}")
 
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
+    metadata = probe_video(input_path)
+    source_times = metadata.pop("timestamps")
+    nominal_fps = cap.get(cv2.CAP_PROP_FPS)
+    fps = nominal_fps if math.isfinite(nominal_fps) and nominal_fps > 0 else 30.0
+    metadata.update(nominal_fps=nominal_fps if math.isfinite(nominal_fps) else None,
+                    analysis_fps=fps, fps_fallback=fps != nominal_fps,
+                    calculation_time_basis="frame_index/nominal_fps",
+                    landmark_schema="mediapipe_pose_33", coordinates="normalized_image_xyz",
+                    z_unit="relative_model_depth_not_meters")
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     total_frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    metadata.update(width=width, height=height)
 
     # avc1 (H.264) → tarayıcı/Streamlit'te doğrudan oynatılabilir
     # mp4v fallback: avc1 bu sistemde desteklenmiyorsa devreye girer
@@ -97,7 +112,20 @@ def run_analysis(
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         writer = cv2.VideoWriter(str(output_path), fourcc, fps, (width, height))
 
-    runner = MediaPipePoseRunner()
+    if not writer.isOpened():
+        cap.release()
+        writer.release()
+        raise RuntimeError("Çıktı videosu oluşturulamadı.")
+    try:
+        runner = MediaPipePoseRunner()
+        pose_path = frame_csv_path.with_suffix(".pose.jsonl")
+        pose_file = pose_path.open("w", encoding="utf-8")
+    except Exception:
+        cap.release()
+        writer.release()
+        if "runner" in locals():
+            runner.close()
+        raise
     total_frames = 0
 
     # Accumulate time-series for post-loop analytics
@@ -120,6 +148,12 @@ def run_analysis(
                 break
 
             keypoints, pose_landmarks = runner.process_frame(frame)
+
+            pts = source_times[total_frames] if total_frames < len(source_times) else None
+            record = {"frame": total_frames, "source_timestamp_sec": pts,
+                      "analysis_time_sec": total_frames / fps,
+                      "landmarks": MediaPipePoseRunner.landmark_record(pose_landmarks)}
+            pose_file.write(json.dumps(record, allow_nan=False) + "\n")
 
             angle_map = _empty_angle_map()
             right_height: float | None = None
@@ -181,6 +215,11 @@ def run_analysis(
         cap.release()
         writer.release()
         runner.close()
+        pose_file.close()
+
+    if total_frames == 0:
+        raise RuntimeError("Videoda çözümlenebilir kare bulunamadı.")
+    metadata["timestamp_count_matches_frames"] = len(source_times) == total_frames
 
     # ── Post-loop: velocity / acceleration / foot-speed ──────────────────────
     velocity_series: dict[str, list[float | None]] = {}
@@ -244,4 +283,6 @@ def run_analysis(
         frame_csv_path=str(frame_csv_path),
         events_csv_path=str(events_csv_path),
         output_video_path=str(output_path),
+        pose_path=str(pose_path),
+        metadata=metadata,
     )

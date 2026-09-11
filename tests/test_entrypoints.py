@@ -4,6 +4,8 @@ from pathlib import Path
 import subprocess
 import sys
 import unittest
+import tempfile
+from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
@@ -14,6 +16,13 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class EntryPointTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        store_root = patch('src.adapters.analysis_store.DEFAULT_ROOT', Path(temp.name))
+        store_root.start()
+        self.addCleanup(store_root.stop)
+
     def test_dashboard_opens(self):
         app = AppTest.from_file(str(ROOT / 'app.py')).run(timeout=30)
         self.assertFalse(list(app.exception))

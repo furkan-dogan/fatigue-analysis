@@ -2,6 +2,8 @@
 
 from pathlib import Path
 import unittest
+import tempfile
+from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
 
@@ -9,6 +11,13 @@ from tests.fixtures.dashboard import session_pair
 
 
 class DashboardTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        store_root = patch('src.adapters.analysis_store.DEFAULT_ROOT', Path(temp.name))
+        store_root.start()
+        self.addCleanup(store_root.stop)
+
     def test_all_tabs_with_and_without_events(self):
         for empty in (False, True):
             with self.subTest(empty=empty):

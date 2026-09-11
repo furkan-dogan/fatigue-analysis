@@ -1,11 +1,20 @@
 """Exercise real sport switching and persistence of completed analysis results."""
 from pathlib import Path
 import unittest
+import tempfile
+from unittest.mock import patch
 from streamlit.testing.v1 import AppTest
 from tests.fixtures.dashboard import session_pair
 
 
 class NavigationTest(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        store_root = patch('src.adapters.analysis_store.DEFAULT_ROOT', Path(temp.name))
+        store_root.start()
+        self.addCleanup(store_root.stop)
+
     def test_default_and_unavailable_sports(self):
         app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
         self.assertEqual(app.radio[0].value, 'volleyball')

@@ -138,3 +138,31 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 ### Adım 3 doğrulaması
 
 23 unittest testi geçti; AST/syntax ve `git diff --check` temiz. Varsayılan voleybol, hazır olmayan branşlarda yükleme/analiz bulunmaması, taekwondo → voleybol → basketbol → taekwondo geçişlerinde sonuçların korunması ve branşlar arasında sızmaması kontrol edildi. Mevcut altı taekwondo sekmesi testleri de geçti.
+
+## Model araştırması — 2026-09-11
+
+Mevcut çalışan motor `src/adapters/mediapipe_pose.py` içindeki MediaPipePoseRunner'dır (`model_complexity=1` varsayılanı). Eski `yolo11n-pose.pt` / `yolo11s-pose.pt` ağırlıkları çalışan pipeline'a bağlı değildi; kullanılmadıkları için kaldırılmıştı. Bu aşamada model indirilmedi, paket eklenmedi veya analiz motoru değiştirilmedi.
+
+**YOLO ailesinde doğruluk öncelikli ilk değerlendirme adayı: `yolo26x-pose.pt`.** Bu bir üretim doğruluğu onayı değildir. Ultralytics güncel model olarak YOLO26'yı gösteriyor; Pose sürümü RLE ile nokta konumlandırmasını geliştiriyor. Kaynak: [YOLO26 resmi dokümanı](https://docs.ultralytics.com/models/yolo26/).
+
+640 piksel COCO Keypoints val2017 için yayınlanan pose mAP50–95 skorları:
+
+| Model | Pose mAP50–95 |
+| --- | ---: |
+| YOLO11n-Pose | 50.0 |
+| YOLO11s-Pose | 58.9 |
+| YOLO11x-Pose | 69.5 |
+| YOLO26l-Pose | 70.4 |
+| YOLO26x-Pose | 71.6 |
+
+Kaynaklar: [YOLO11 resmi tablo kaynağı](https://raw.githubusercontent.com/ultralytics/ultralytics/main/docs/en/models/yolo11.md), [YOLO26 Pose tablosu](https://docs.ultralytics.com/tasks/pose/). Bunlar yayıncı benchmarkları; kendi donanımımızda ölçülmedi. COCO skoru santimetre/hız doğruluğu veya başarılı analiz yüzdesi değildir. Sürümler arasında yayınlanan çıkarım ayarları da birebir aynı kabul edilmemeli.
+
+Öneri gerekçesi: canlı çalışma zorunluluğu yok, doğruluk öncelikli; bu nedenle YOLO26 ailesinde yayınlanan en yüksek pose skoruna sahip x ile başla. l sürümü hız/bellek karşılaştırma adayıdır. x için yayınlanan CPU ONNX süresi yaklaşık 565 ms/kare; yerel Mac süresi değildir. Gerçek donanımda işleme süresi ve bellek ayrıca ölçülecek.
+
+**Sıçrama için kritik sınır:** standart YOLO Pose 17 nokta verir; ayak bileği var, topuk/ayak ucu yok. Nokta listesi: [resmi Pose dokümanı](https://docs.ultralytics.com/tasks/pose/). Bizim mevcut Keypoints2D ve tekme hesabımız ayak ucu da kullanıyor; YOLO dosyasını değiştirip devam etmek doğru olmaz. Eksik noktalar açıkça eksik kalmalı; ayak bileği ayak ucu yerine konmamalı.
+
+Bu nedenle ölçüm aşamasında MediaPipe referansı, YOLO26x-Pose ve ayak noktaları içeren RTMPose WholeBody gibi bir aday aynı işaretli videolarda karşılaştırılmalı. MMPose WholeBody ayak değerlendirmesi ve model bilgileri: [resmi model kataloğu](https://github.com/open-mmlab/mmpose/blob/main/configs/wholebody_2d_keypoint/rtmpose/coco-wholebody/rtmpose_coco-wholebody.yml). Nokta sayısının fazla olması tek başına daha doğru ölçüm kanıtı değildir.
+
+Seçim deneyi: aynı sporcu/çekim kesitlerinde kalkış–iniş zaman hatası, sıçrama cm hatası, görüntü düzlemi açı hatası, kalibre parkur hız hatası, takip kopması, ölçüm verilemeyen tekrar oranı ve işleme süresi değerlendirilecek. Ayar ve doğrulama videoları ayrılacak. Tek model tüm metriklerde en iyi çıkmak zorunda değil. Model/adaptör arayüzü 4. adımın kayıt sözleşmesiyle kaynak, nokta şeması ve sürüm bilgisini taşımalı; uygulama bir ağırlık adına kilitlenmemeli.
+
+Navigasyon commit: `43b42a2`. Bu araştırma belge güncellemesidir; 4. adım başlatılmadı. Sıradaki iş halen kalıcı kayıt ve analiz sözleşmeleridir.

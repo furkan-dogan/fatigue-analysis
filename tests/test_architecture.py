@@ -34,6 +34,9 @@ class ArchitectureTest(unittest.TestCase):
     def test_analysis_does_not_import_ui(self):
         self.assert_no_dependencies('src', ('ui', 'streamlit'))
 
+    def test_shared_components_do_not_import_sports(self):
+        self.assert_no_dependencies('ui/components', ('src.sports', 'ui.sports'))
+
     def test_adapters_do_not_import_sports(self):
         self.assert_no_dependencies('src/adapters', ('src.sports',))
 

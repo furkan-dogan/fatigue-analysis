@@ -28,9 +28,9 @@ Henüz voleybol algoritması veya doğrulanmış ölçümü yok.
 - [x] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
 - [x] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
 - [x] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
-- [ ] UI'da uygulama kabuğu, ortak bileşen ve taekwondo ekranlarını ayır.
+- [x] UI'da uygulama kabuğu, ortak bileşen ve taekwondo ekranlarını ayır.
 - [ ] Voleybol ve basketbol için sorumlulukları açıklanmış modül alanları aç.
-- [ ] CLI girişlerini ve tüm importları güncelle; kullanılmayan boş eski sayfa klasörünü kaldır.
+- [x] CLI girişlerini ve tüm importları güncelle; kullanılmayan boş eski sayfa klasörünü kaldır.
 - [ ] Eski belgeler ve rapor aracını arşivle; aktif README ve CLAUDE haritasını güncelle.
 - [ ] Syntax, import, CLI, arayüz açılışı ve davranış regresyon kontrollerini çalıştır.
 - [ ] Taşınan dosyalar için bağımlılık sınırlarını test et ve aşamayı commitle.
@@ -165,10 +165,16 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Backend: `src/core/`, `src/adapters/`, `src/sports/{taekwondo,volleyball,basketball}/` ayrıldı. Genel açı ve sinyal hesapları MediaPipe import etmeden kullanılabiliyor.
 - Tekme odaklı sensör pencereleme/simülasyon taekwondo altında tutuldu; ortak sensör adaptörüymüş gibi sunulmadı.
 - Backend taşıması sonrası sabit regresyon testi ve `main.py --help` geçti. Mimari sınır testleri eklendi.
+- `ecfc058`: Backend katmanları ayrıldı; 5 test geçti.
+- UI: `ui/app.py` kabuk, `ui/theme.py` stil, `ui/components/` ortak video/grafik, `ui/sports/taekwondo/` mevcut ekran/rapor/tekme sunumu olarak ayrıldı.
+- Klip çıkarma `src/adapters/video_clips.py`, sensör özeti `src/sports/taekwondo/sensor_summary.py` oldu; hesaplama UI bileşeninden çıkarıldı.
+- `ui/paths.py` örnek CSV yolunu köke bağlar; taşınan sayfalardan örnekler bulunabiliyor.
+- CLI uygulaması `cli/analyze.py`; `python main.py ...` giriş komutu korunuyor.
+- UI taşıması sonrası AppTest açılışı, örnek kaynak kontrolü ve regresyon testleri geçti. Adım 2'nin video/grafik ayırma kısmı bu taşıma sırasında yapıldı; diğer bileşenler henüz tamamlanmadı.
 
 ## Sıradaki somut iş
 
-Adım 1: UI dosyalarını ortak bileşenler ve taekwondo ekranları olarak ayır; örnek CSV yollarını yeni konuma göre düzelt; belge/araç arşivini düzenle.
+Adım 1: Giriş/pipeline entegrasyon testlerini çalıştır, belge/araç arşivini düzenle, aktif README ve CLAUDE haritasını güncelle.
 
 ## Yöntem kaynakları
 

@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from src.core.numeric import events_mean, pct_change, change_status
-from ui.analysis_helpers import (
+from ui.sports.taekwondo.presentation import (
     PRIMARY_METRICS,
     analysis_paragraph,
     comparison_rows,

@@ -10,7 +10,7 @@ import streamlit as st
 
 from src.sports.taekwondo.fatigue import FATIGUE_METRICS, compute_fatigue
 from src.core.numeric import events_mean
-from ui.analysis_helpers import (
+from ui.sports.taekwondo.presentation import (
     EMG_CH1_GROUP,
     EMG_CH1_MUSCLE,
     EMG_CH2_GROUP,
@@ -33,9 +33,13 @@ from ui.analysis_helpers import (
     session_summary_rows,
     top_findings,
 )
-from ui.charts import gauge, overlay_chart, per_kick_trend, readable_bar_comparison
-from ui.components import kick_video_section, phase_bars, sensor_stats, video_player
-from ui.report import render_athlete_report
+from ui.sports.taekwondo.charts import gauge, overlay_chart, per_kick_trend
+from ui.components.charts import readable_bar_comparison
+from ui.sports.taekwondo.components import kick_video_section, phase_bars
+from src.sports.taekwondo.sensor_summary import sensor_stats
+from ui.components.video_player import video_player
+from ui.paths import SAMPLE_DATA_DIR
+from ui.sports.taekwondo.report import render_athlete_report
 
 
 def _read_csv(path: str) -> pd.DataFrame:
@@ -966,8 +970,8 @@ def _render_real_sensor_tab(
         "Sistem sensör zaman serisini video frame zamanlarına yeniden örnekler, tekme pencereleriyle eşleştirir ve her tekme için RMS/SmO2 özeti üretir."
     )
 
-    sample_emg  = Path(__file__).parent.parent / "sample_data" / "emg_sample.csv"
-    sample_nirs = Path(__file__).parent.parent / "sample_data" / "nirs_moxy_sample.csv"
+    sample_emg  = SAMPLE_DATA_DIR / "emg_sample.csv"
+    sample_nirs = SAMPLE_DATA_DIR / "nirs_moxy_sample.csv"
     dl1, dl2, _ = st.columns([1, 1, 3])
     if sample_emg.exists():
         dl1.download_button(

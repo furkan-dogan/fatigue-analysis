@@ -14,31 +14,33 @@
 
 ## Güncel durum
 
-2026-09-11: Başlangıç incelemesi tamamlandı. Adım 1 üzerinde çalışılıyor.
-Mevcut çalışma ağacında kullanıcıdan kalan UI, grafik, rapor ve sentetik sensör değişiklikleri var.
-Bu değişiklikler önce ayrı bir başlangıç commitinde korunacak; sonraki yapısal değişikliklerle karıştırılmayacak.
-Kökteki `generate_report_doc.py` futbol odaklı bağımsız bir eski rapor aracıdır; silinmeden arşivlenecek.
-Henüz voleybol algoritması veya doğrulanmış ölçümü yok.
+2026-09-11: **Adım 1 tamamlandı. Sıradaki aşama Adım 2.**
+Kullanıcıdan kalan UI, grafik, rapor ve sentetik sensör değişiklikleri `611bd59` commitinde korundu.
+Çekirdek, adaptör, branş ve UI sınırları ayrıldı; mevcut taekwondo ekranı yeni konumundan açılıyor.
+Voleybol/basketbol analiz ve UI klasörleri sorumluluk README'leriyle hazır, ancak ekranları/algoritmaları henüz yok.
+Eski belgeler `docs/archive/`, futbol rapor aracı `tools/legacy/`, YOLO ağırlıkları `models/` altında korundu.
+Adım 2'nin ortak video/grafik ayırma kısmı taşıma sırasında yapıldı; diğer parçaları bekliyor.
+Henüz gerçek video doğrulaması yapılmadı. Mevcut taekwondo ölçüm sorunları çözülmüş sayılmamalı.
 
 ## Sıralı uygulama planı
 
-### 1. Proje yapısı ve mevcut dosyalar — devam ediyor
+### 1. Proje yapısı ve mevcut dosyalar — tamamlandı
 
 - [x] Mevcut çalışmayı incele, syntax kontrolü yap ve ayrı committe koru.
 - [x] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
 - [x] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
 - [x] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
 - [x] UI'da uygulama kabuğu, ortak bileşen ve taekwondo ekranlarını ayır.
-- [ ] Voleybol ve basketbol için sorumlulukları açıklanmış modül alanları aç.
+- [x] Voleybol ve basketbol için sorumlulukları açıklanmış modül alanları aç.
 - [x] CLI girişlerini ve tüm importları güncelle; kullanılmayan boş eski sayfa klasörünü kaldır.
-- [ ] Eski belgeler ve rapor aracını arşivle; aktif README ve CLAUDE haritasını güncelle.
-- [ ] Syntax, import, CLI, arayüz açılışı ve davranış regresyon kontrollerini çalıştır.
-- [ ] Taşınan dosyalar için bağımlılık sınırlarını test et ve aşamayı commitle.
+- [x] Eski belgeler ve rapor aracını arşivle; aktif README ve CLAUDE haritasını güncelle.
+- [x] Syntax, import, CLI, arayüz açılışı ve davranış regresyon kontrollerini çalıştır.
+- [x] Taşınan dosyalar için bağımlılık sınırlarını test et ve aşamayı commitle.
 
 Kabul: Taekwondo girişleri açılır, mevcut hesapların davranışı korunur, ortak çekirdek UI/branş import etmez.
 Bu aşamada yeni ölçüm algoritması geliştirilmez; bilinen ölçüm sorunları aşağıda izlenir.
 
-### 2. Component-first arayüz — bekliyor
+### 2. Component-first arayüz — kısmen yapıldı, sıradaki aşama
 
 - Ortak video oynatıcı, yükleyici, zaman çizelgesi, metrik kartı, kalite paneli ve karşılaştırma paneli.
 - Taekwondo'ya özel tekme tabloları/fazları ortak bileşenlerden ayrılmalı.
@@ -171,10 +173,34 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - `ui/paths.py` örnek CSV yolunu köke bağlar; taşınan sayfalardan örnekler bulunabiliyor.
 - CLI uygulaması `cli/analyze.py`; `python main.py ...` giriş komutu korunuyor.
 - UI taşıması sonrası AppTest açılışı, örnek kaynak kontrolü ve regresyon testleri geçti. Adım 2'nin video/grafik ayırma kısmı bu taşıma sırasında yapıldı; diğer bileşenler henüz tamamlanmadı.
+- `4478f93`: UI/CLI ayrımı, örnek kaynak yolları ve giriş/pipeline testleri eklendi.
+- Son doğrulama: 52 Python dosyası AST kontrolünden geçti. Eski `src/metrics.py` içindeki 8 fonksiyonun AST gövdeleri taşınan karşılıklarıyla aynı.
+- `.venv/bin/python -m unittest discover -v`: **10 test geçti**. Regresyon, mimari sınırlar, ortak UI bağımlılıkları, dört CLI girişi, AppTest açılışı, örnek CSV yolları ve model çalıştırılmadan video→CSV/anotasyon akışı.
+- İki Word belgesi ve iki YOLO ağırlığının Git blob hash'leri taşıma öncesiyle aynı; içerik kaybı yok.
+- `git diff --check` temiz. Son belge commitinde bu devir notu ve güncel README/CLAUDE/AGENTS yer alıyor.
+- Test edilmeyenler: gerçek sporcu videosunda model/ölçüm doğruluğu, tüm dolu rapor sekmeleri, uzaktan video erişimi, eski Word aracının çalıştırılması.
+
+## Bugünkü commit sırası
+
+1. `611bd59` — mevcut kullanıcı çalışmasını ve planı koru.
+2. `439b3e9` — taşıma öncesi regresyon referansı.
+3. `ecfc058` — analiz çekirdeği/adaptör/branş ayrımı.
+4. `4478f93` — ortak bileşen, taekwondo ekranı ve CLI ayrımı.
+5. `docs: proje haritasını ve devam notlarını güncelle` — arşiv ve model düzeni, aktif belgeler, Adım 1 kapanışı. Hash için `git log` kullan.
+
+Commitler yereldir; push yapılmadı.
 
 ## Sıradaki somut iş
 
-Adım 1: Giriş/pipeline entegrasyon testlerini çalıştır, belge/araç arşivini düzenle, aktif README ve CLAUDE haritasını güncelle.
+**Adım 2'den devam et; Adım 1 taşımasını yeniden yapma. Video isteme.**
+
+1. `ui/sports/taekwondo/page.py` içindeki `_metric_cards` gibi tekrar kullanılan gösterimleri `ui/components/` altında açık veri sözleşmeleriyle ayır.
+2. Metrik kartı, yükleyici, kalite paneli, olay zaman çizelgesi ve karşılaştırma panelini sırayla ekle. Ortak bileşenlerde tekme/yorgunluk varsayımı olmasın.
+3. Mevcut taekwondo sayfa/raporunun sekmelerini sorumluluğa göre böl; rapor hesaplarını UI'dan çıkar. Davranış değişiklikleri gerekiyorsa ayrı committe ve açık notla yap.
+4. Mevcut testleri güncelle/çalıştır; uygulamanın açılışını ve taşınan sekmeleri kontrol et.
+5. Adım 2 bitince bu dosyayı güncelle, commitle; sonra Adım 3 branş navigasyonuna geç.
+
+Gerçek video Adım 7'de gelecek. Adım 6'da algoritma geliştirilse bile bağımsız video doğrulaması olmadan hazır/doğru kabul edilmemeli.
 
 ## Yöntem kaynakları
 

@@ -1,6 +1,7 @@
 """
 Kapsamlı sistem raporu — Word belgesi oluşturucu (v2)
-Çalıştır: .venv/bin/python generate_report_doc.py
+Tarihsel futbol raporu; aktif voleybol ürününün teknik belgesi değildir.
+Çalıştır: .venv/bin/python tools/legacy/generate_report_doc.py
 """
 
 from docx import Document
@@ -10,6 +11,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import datetime
+from pathlib import Path
 
 doc = Document()
 
@@ -1267,6 +1269,8 @@ r = p.add_run("— Rapor Sonu —")
 r.font.size = Pt(10); r.font.color.rgb = C_GREY
 
 # ── Kaydet ──────────────────────────────────────────────────────────────────
-out_path = "/Users/furkandogan/Desktop/Futbol_Performans_Analiz_Sistemi_Rapor.docx"
-doc.save(out_path)
-print(f"✅ Kaydedildi: {out_path}")
+if __name__ == "__main__":
+    out_path = Path(__file__).resolve().parents[2] / "output" / "reports" / "Futbol_Performans_Analiz_Sistemi_Rapor.docx"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(out_path)
+    print(f"✅ Kaydedildi: {out_path}")

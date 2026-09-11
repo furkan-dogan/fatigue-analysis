@@ -27,3 +27,8 @@ output/
 # Logs
 *.log
 nohup.out
+
+# Local assistant settings and tool caches
+.claude/settings.local.json
+.pytest_cache/
+.ruff_cache/

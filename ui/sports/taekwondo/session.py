@@ -8,11 +8,11 @@ from ui.components.upload import video_uploader
 def load_session():
     before, after = st.columns(2)
     with before:
-        pre_upload = video_uploader('Antrenman öncesi video', key='dv_pre')
+        pre_upload = video_uploader('Antrenman öncesi video', key='taekwondo_upload_pre')
     with after:
-        post_upload = video_uploader('Antrenman sonrası video', key='dv_post')
+        post_upload = video_uploader('Antrenman sonrası video', key='taekwondo_upload_post')
     ready = pre_upload is not None and post_upload is not None
-    if st.button('İki videoyu analiz et', disabled=not ready, type='primary') and ready:
+    if st.button('İki videoyu analiz et', disabled=not ready, type='primary', key='taekwondo_analyze') and ready:
         progress = st.progress(0, text='Analiz başlıyor…')
         try:
             pre, post, directory = analyze_pair(
@@ -25,11 +25,13 @@ def load_session():
         finally:
             progress.empty()
         # Replace the displayed pair only after both analyses succeed.
-        st.session_state.update(dv_pre_result=pre, dv_post_result=post,
-                                dv_pre_df=pd.DataFrame(pre.frame_rows),
-                                dv_post_df=pd.DataFrame(post.frame_rows), dv_tmp=directory)
-    pre, post = st.session_state.get('dv_pre_result'), st.session_state.get('dv_post_result')
+        st.session_state['taekwondo_analysis'] = {
+            'pre': pre, 'post': post, 'pre_df': pd.DataFrame(pre.frame_rows),
+            'post_df': pd.DataFrame(post.frame_rows), 'directory': directory,
+        }
+    analysis = st.session_state.get('taekwondo_analysis', {})
+    pre, post = analysis.get('pre'), analysis.get('post')
     if pre is None or post is None:
         st.info('Her iki videoyu yükleyip analiz başlatın.')
         return None
-    return pre, post, st.session_state.get('dv_pre_df'), st.session_state.get('dv_post_df')
+    return pre, post, analysis.get('pre_df'), analysis.get('post_df')

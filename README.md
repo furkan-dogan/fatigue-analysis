@@ -1,6 +1,6 @@
 # Spor video analizi
 
-Python, Streamlit ve MediaPipe ile yerel video analizi. Mevcut çalışan branş taekwondo; voleybol sıradaki öncelik, basketbol daha sonra. Gerçek video ölçüm doğrulaması henüz yapılmadı.
+Python, Streamlit ve MediaPipe ile yerel video analizi. Açılış branşı voleybol; üç branş ayrı girişlerden seçilir. Çalışan analiz taekwondo; voleybol ve basketbol ekranları geliştirme durumunu gösterir. Gerçek video ölçüm doğrulaması henüz yapılmadı.
 
 ## Çalıştırma
 

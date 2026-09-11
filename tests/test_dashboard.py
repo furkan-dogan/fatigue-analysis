@@ -14,9 +14,8 @@ class DashboardTest(unittest.TestCase):
             with self.subTest(empty=empty):
                 pre, post, pre_df, post_df = session_pair(empty=empty)
                 app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py'))
-                for key, value in {'dv_pre_result': pre, 'dv_post_result': post,
-                                   'dv_pre_df': pre_df, 'dv_post_df': post_df, 'dv_tmp': None}.items():
-                    app.session_state[key] = value
+                app.session_state['active_sport'] = 'taekwondo'
+                app.session_state['taekwondo_analysis'] = dict(pre=pre, post=post, pre_df=pre_df, post_df=post_df)
                 app.run(timeout=30)
                 self.assertFalse(list(app.exception))
                 self.assertEqual(len(app.tabs), 6)
@@ -24,9 +23,8 @@ class DashboardTest(unittest.TestCase):
     def test_event_selector_reaches_real_detected_events(self):
         pre, post, a, b = session_pair()
         app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py'))
-        for key, value in {'dv_pre_result': pre, 'dv_post_result': post,
-                           'dv_pre_df': a, 'dv_post_df': b}.items():
-            app.session_state[key] = value
+        app.session_state['active_sport'] = 'taekwondo'
+        app.session_state['taekwondo_analysis'] = dict(pre=pre, post=post, pre_df=a, post_df=b)
         app.run(timeout=30)
         self.assertFalse(list(app.exception))
         self.assertEqual(len(app.selectbox), 2)

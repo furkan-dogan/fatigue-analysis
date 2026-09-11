@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1 ve Adım 2 tamamlandı. Sırada Adım 3 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Voleybol/basketbol klasörleri var; ekran ve algoritmaları henüz yok.
+**Adım 1, 2 ve 3 tamamlandı. Sırada Adım 4 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -24,11 +24,12 @@ Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, N
 - Özel localhost video sunucusu yerine Streamlit medya sunumu kullanılıyor.
 - Tek kullanımlık çok sayıda rapor/sekme dosyası yerine kısa sorumluluk modülleri kullanıldı.
 
-### 3. Branş navigasyonu — bekliyor
+### 3. Branş navigasyonu — tamamlandı
 
 - Voleybol, taekwondo, basketbol için ayrı ekran girişleri.
 - Voleybol varsayılan öncelik; basketbol geliştirme durumunu açık gösterir.
-- Branş değişimi eski sonuçları başka branş altında göstermez; state anahtarları branş/oturumla ayrılır.
+- Branş değişimi eski sonuçları başka branş altında göstermez. Tamamlanmış çift analiz `taekwondo_analysis` altında tutulur; widget anahtarları branşa özeldir. Kalıcı oturum kimlikleri 4. adımda.
+- Branş değiştirip dönünce tamamlanmış sonuçlar korunur. Yükleyici widgetları Streamlit yaşam döngüsü gereği yeniden dosya seçimi isteyebilir; mevcut sonuçlar etkilenmez.
 - Taekwondo'nun mevcut ekranı erişilebilir kalır.
 
 Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve sahte sonuç gösterilmez.
@@ -132,4 +133,8 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-**Adım 3: voleybol öncelikli branş navigasyonu ve branşa göre ayrılmış state**. Henüz video isteme veya voleybol algoritması geliştirmeye geçme.
+**Adım 4: analiz sözleşmeleri ve yerel kalıcı kayıt.** Önce sonuç/video/oturum modellerini ve SQLite deposunu kur; sonra mevcut taekwondo akışını bağla. Yeniden açma, eksik metrik, yarım/hatalı analiz ve sürüm bilgisi testlerini ekle. Voleybol algoritmalarına geçme; video isteme.
+
+### Adım 3 doğrulaması
+
+23 unittest testi geçti; AST/syntax ve `git diff --check` temiz. Varsayılan voleybol, hazır olmayan branşlarda yükleme/analiz bulunmaması, taekwondo → voleybol → basketbol → taekwondo geçişlerinde sonuçların korunması ve branşlar arasında sızmaması kontrol edildi. Mevcut altı taekwondo sekmesi testleri de geçti.

@@ -8,8 +8,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.fatigue import FATIGUE_METRICS, compute_fatigue
-from src.utils import events_mean
+from src.sports.taekwondo.fatigue import FATIGUE_METRICS, compute_fatigue
+from src.core.numeric import events_mean
 from ui.analysis_helpers import (
     EMG_CH1_GROUP,
     EMG_CH1_MUSCLE,
@@ -559,7 +559,7 @@ def _render_stats_tab(pre_events: list[dict], post_events: list[dict]) -> None:
         "Tekme sayısı düşükse güven aralıkları genişler; bu durumda sonuç ön bulgu olarak raporlanmalıdır."
     )
 
-    from src.stats import compare_metric
+    from src.core.statistics import compare_metric
 
     STAT_METRICS = {
         "active_knee_rom_deg":         "Aktif Diz ROM (°)",
@@ -954,7 +954,7 @@ def _render_real_sensor_tab(
 ) -> bool:
     """EMG+NIRS CSV yükleme, senkron ve görselleştirme. CSV yüklüyse True döner."""
     import tempfile
-    from src.emg_sync import (
+    from src.sports.taekwondo.sensor_sync import (
         load_emg_csv, load_nirs_csv,
         resample_to_video_times, resample_nirs_to_video_times,
         compute_rms_per_kick, compute_nirs_per_kick,
@@ -1165,7 +1165,7 @@ def render() -> None:
         })
 
     if run_dual and both_ready:
-        from src.pipeline import run_analysis
+        from src.sports.taekwondo.pipeline import run_analysis
 
         tmp = Path(tempfile.mkdtemp())
         pre_in,   post_in   = tmp / "pre_input.mp4",     tmp / "post_input.mp4"

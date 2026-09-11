@@ -1,7 +1,7 @@
 """Fatigue index computation from kick event metrics."""
 from __future__ import annotations
 
-from src.utils import events_mean
+from src.core.numeric import events_mean
 
 FATIGUE_METRICS: dict[str, tuple[str, str, int]] = {
     "active_knee_rom_deg":         ("Aktif Diz ROM",          "°",   -1),

@@ -5,21 +5,10 @@ from __future__ import annotations
 from typing import Sequence
 
 import numpy as np
-from src.utils import fill_missing as _fill_missing, moving_average as _moving_average_util
+from src.core.numeric import fill_missing as _fill_missing, moving_average as _moving_average_util
 
 
-JOINT_KEYS = [
-    "R_SHOULDER",
-    "L_SHOULDER",
-    "R_ELBOW",
-    "L_ELBOW",
-    "R_HIP",
-    "L_HIP",
-    "R_KNEE",
-    "L_KNEE",
-    "R_ANKLE",
-    "L_ANKLE",
-]
+from src.core.types import JOINT_KEYS
 
 
 def _moving_average(values: Sequence[float], window: int = 3) -> np.ndarray:

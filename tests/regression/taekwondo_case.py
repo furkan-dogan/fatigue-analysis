@@ -2,10 +2,11 @@
 
 import math
 
-from src.events import JOINT_KEYS, detect_movement_events
-from src.fatigue import compute_fatigue
-from src.metrics import compute_angular_velocity, compute_foot_speed
-from src.sensors import generate_emg, generate_nirs
+from src.sports.taekwondo.events import JOINT_KEYS, detect_movement_events
+from src.sports.taekwondo.fatigue import compute_fatigue
+from src.core.signals import compute_angular_velocity
+from src.sports.taekwondo.metrics import compute_foot_speed
+from src.sports.taekwondo.simulation import generate_emg, generate_nirs
 
 
 def legacy_snapshot() -> dict:

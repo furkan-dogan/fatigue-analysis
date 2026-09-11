@@ -6,7 +6,7 @@ import datetime
 import pandas as pd
 import streamlit as st
 
-from src.utils import events_mean, pct_change, change_status
+from src.core.numeric import events_mean, pct_change, change_status
 from ui.analysis_helpers import (
     PRIMARY_METRICS,
     analysis_paragraph,

@@ -8,32 +8,16 @@ Interface:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 import cv2
+from src.core.types import Keypoints2D
 import mediapipe as mp
 
 # MediaPipe lower-body landmark indices used for frame confidence scoring
 _MP_KEY_LANDMARK_INDICES = [11, 12, 23, 24, 25, 26, 27, 28, 31, 32]
 
 
-@dataclass
-class Keypoints2D:
-    left_shoulder: tuple[float, float] | None
-    right_shoulder: tuple[float, float] | None
-    left_elbow: tuple[float, float] | None
-    right_elbow: tuple[float, float] | None
-    left_wrist: tuple[float, float] | None
-    right_wrist: tuple[float, float] | None
-    left_hip: tuple[float, float] | None
-    right_hip: tuple[float, float]
-    left_knee: tuple[float, float] | None
-    right_knee: tuple[float, float]
-    left_ankle: tuple[float, float] | None
-    right_ankle: tuple[float, float]
-    left_foot_index: tuple[float, float] | None
-    right_foot_index: tuple[float, float] | None
 
 
 class MediaPipePoseRunner:
@@ -103,5 +87,4 @@ class MediaPipePoseRunner:
         lms = raw_result.landmark
         vals = [lms[i].visibility for i in _MP_KEY_LANDMARK_INDICES if i < len(lms)]
         return float(sum(vals) / len(vals)) if vals else None
-
 

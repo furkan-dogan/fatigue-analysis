@@ -7,8 +7,8 @@ from typing import Iterable
 import pandas as pd
 import streamlit as st
 
-from src.fatigue import FATIGUE_WEIGHTS
-from src.utils import events_mean, pct_change
+from src.sports.taekwondo.fatigue import FATIGUE_WEIGHTS
+from src.core.numeric import events_mean, pct_change
 
 
 @dataclass(frozen=True)

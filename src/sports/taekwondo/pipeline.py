@@ -2,27 +2,26 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
 import cv2
 import numpy as np
 
-from src.draw import draw_joint_angle_panel, draw_pose
-from src.events import JOINT_KEYS, detect_movement_events
-from src.exporter import write_event_metrics_csv, write_frame_metrics_csv
-from src.metrics import (
-    VELOCITY_JOINT_KEYS,
-    calculate_joint_angles,
-    compute_angular_velocity,
+from src.adapters.drawing import draw_joint_angle_panel, draw_pose
+from src.core.types import JOINT_KEYS, VELOCITY_JOINT_KEYS
+from src.sports.taekwondo.events import detect_movement_events
+from src.core.geometry import calculate_joint_angles, compute_torso_length
+from src.core.signals import compute_angular_velocity
+from src.adapters.csv_export import write_event_metrics_csv, write_frame_metrics_csv
+from src.sports.taekwondo.metrics import (
     compute_foot_speed,
     compute_normalized_kick_heights,
-    compute_torso_length,
     summarize_knee_angles,
 )
-from src.pose_runner import MediaPipePoseRunner
-from src.sensors import generate_emg, generate_interpretation, generate_nirs
+from src.adapters.mediapipe_pose import MediaPipePoseRunner
+from src.sports.taekwondo.simulation import generate_emg, generate_interpretation, generate_nirs
 
 
 @dataclass

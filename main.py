@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from src.pipeline import run_analysis
+from src.sports.taekwondo.pipeline import run_analysis
 
 
 def parse_args() -> argparse.Namespace:

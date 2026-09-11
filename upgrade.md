@@ -25,9 +25,9 @@ Henüz voleybol algoritması veya doğrulanmış ölçümü yok.
 ### 1. Proje yapısı ve mevcut dosyalar — devam ediyor
 
 - [x] Mevcut çalışmayı incele, syntax kontrolü yap ve ayrı committe koru.
-- [ ] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
-- [ ] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
-- [ ] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
+- [x] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
+- [x] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
+- [x] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
 - [ ] UI'da uygulama kabuğu, ortak bileşen ve taekwondo ekranlarını ayır.
 - [ ] Voleybol ve basketbol için sorumlulukları açıklanmış modül alanları aç.
 - [ ] CLI girişlerini ve tüm importları güncelle; kullanılmayan boş eski sayfa klasörünü kaldır.
@@ -161,10 +161,14 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Taşıma öncesi Streamlit AppTest: boş yükleme ekranı hatasız açıldı.
 - Taşıma öncesi iki sentetik tekme içeren sabit regresyon kaydı alındı; olay/faz metrikleri, hız/ivme, yorgunluk ve simülasyon çıktıları karşılaştırılıyor. Bu test bilimsel geçerlilik iddiası değildir; bilinen eski davranışı da korur.
 - `.venv/bin/python -m unittest discover -v`: 1 regresyon testi geçti.
+- `439b3e9`: Taşıma öncesi regresyon referansı kaydedildi.
+- Backend: `src/core/`, `src/adapters/`, `src/sports/{taekwondo,volleyball,basketball}/` ayrıldı. Genel açı ve sinyal hesapları MediaPipe import etmeden kullanılabiliyor.
+- Tekme odaklı sensör pencereleme/simülasyon taekwondo altında tutuldu; ortak sensör adaptörüymüş gibi sunulmadı.
+- Backend taşıması sonrası sabit regresyon testi ve `main.py --help` geçti. Mimari sınır testleri eklendi.
 
 ## Sıradaki somut iş
 
-Başlangıç değişikliklerini koruyan commit; ardından Adım 1 dosya taşıması ve import güncellemesi.
+Adım 1: UI dosyalarını ortak bileşenler ve taekwondo ekranları olarak ayır; örnek CSV yollarını yeni konuma göre düzelt; belge/araç arşivini düzenle.
 
 ## Yöntem kaynakları
 

@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as _components
 
+from ui.analysis_helpers import readable_kick_rows, render_metric_help
+
 _video_servers: dict[str, int] = {}
 
 
@@ -139,13 +141,6 @@ def trim_clip(src: Path, start: float, end: float, out: Path) -> bool:
         return False
 
 
-_KICK_DISP_COLS = [
-    "kick_id", "active_leg", "duration_sec", "active_knee_rom_deg",
-    "active_peak_knee_vel_deg_s", "time_to_peak_knee_vel_sec",
-    "peak_kick_height_norm", "active_peak_foot_speed_norm",
-]
-
-
 def kick_video_section(
     events_list: list[dict],
     video_path: str,
@@ -157,10 +152,20 @@ def kick_video_section(
         st.info("Tekme tespit edilemedi.")
         return
 
-    ev_df = pd.DataFrame(events_list)
+    ev_df = pd.DataFrame(readable_kick_rows(events_list))
     st.dataframe(
-        ev_df[[c for c in _KICK_DISP_COLS if c in ev_df.columns]].set_index("kick_id"),
+        ev_df.set_index("Tekme"),
         use_container_width=True,
+    )
+    render_metric_help(
+        [
+            "duration_sec",
+            "active_knee_rom_deg",
+            "active_peak_knee_vel_deg_s",
+            "peak_kick_height_norm",
+            "pose_confidence",
+        ],
+        "Bu tekme tablosundaki sütunlar ne anlama geliyor?",
     )
 
     vid_path = Path(video_path)
@@ -213,14 +218,14 @@ def phase_bars(events_list: list[dict], label: str, color: str) -> None:
                 legendgroup=phase, showlegend=(int(ev["kick_id"]) == 1),
             ))
     fig.update_layout(
-        barmode="stack", height=220,
-        title=dict(text=label, font=dict(color="#fafafa", size=13)),
+        barmode="stack", height=300,
+        title=dict(text=label, font=dict(color="#fafafa", size=17)),
         plot_bgcolor="#0e1117", paper_bgcolor="#0e1117",
-        font=dict(color="#fafafa"),
-        xaxis=dict(gridcolor="#333"),
+        font=dict(color="#fafafa", size=13),
+        xaxis=dict(gridcolor="#333", title="Tekme numarası"),
         yaxis=dict(gridcolor="#333", title="Süre (sn)"),
-        margin=dict(l=40, r=10, t=35, b=30),
-        legend=dict(orientation="h", y=-0.35),
+        margin=dict(l=65, r=20, t=55, b=55),
+        legend=dict(orientation="h", y=-0.30),
     )
     st.plotly_chart(fig, use_container_width=True)
 

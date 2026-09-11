@@ -7,6 +7,13 @@ import pandas as pd
 import streamlit as st
 
 from src.utils import events_mean, pct_change, change_status
+from ui.analysis_helpers import (
+    PRIMARY_METRICS,
+    analysis_paragraph,
+    comparison_rows,
+    render_data_quality,
+    render_metric_help,
+)
 
 
 def _header_card(title: str, subtitle: str) -> None:
@@ -120,7 +127,7 @@ def _render_injury_risk(
     if rom_pct is not None and rom_pct < -15:
         risk += 20
         factors.append(("Belirgin ROM kısıtlanması",
-            f"Diz ROM %{abs(rom_pct):.0f} düştü → kas sertliği + eklem kısıtlanması → hamstring/quadriceps strain riski.",
+            f"Diz ROM %{abs(rom_pct):.0f} düştü → kas sertliği + eklem kısıtlanması → rectus femoris / biceps femoris gerilme riski.",
             "#ef4444", "YÜKSEK"))
     elif rom_pct is not None and rom_pct < -8:
         risk += 10
@@ -175,7 +182,7 @@ def _render_injury_risk(
         if post_ka_mean is not None and abs(post_ka_mean) > 10:
             st.markdown(f"- 🦵 **Dominant bacak tekrarlı stres**: ASI {post_ka_mean:+.0f}% → tibia/fibula stres kırığı riski; yük dağılımını dengele")
         if rom_pct is not None and rom_pct < -10:
-            st.markdown("- 🔴 **Hamstring/quadriceps gerilmesi**: ROM düşüşü + yüksek hız kombinasyonu → kas yırtığı riski; dinamik ısınma zorunlu")
+            st.markdown("- 🔴 **Rectus femoris / biceps femoris gerilmesi**: ROM düşüşü + yüksek hız kombinasyonu → kas yırtığı riski; dinamik ısınma zorunlu")
         if fi > 50:
             st.markdown("- ⚠️ **ACL zorlanma riski**: Yorgun kasta nöromüsküler kontrol bozulur → ani yön değişimlerinde risk artar; teknik seans öncelikli")
         if sensor_ok and sensor_post and sensor_post.get("smo2_min", 100) < 50:
@@ -356,7 +363,7 @@ def _render_recovery_timeline(
         ("0 – 2 Saat", "⚡", [
             "20–40 g whey protein + 40–60 g karbonhidrat (toparlanma penceresi)",
             cold,
-            "Statik esneme: quadriceps, hamstring, kalça fleksörü (3×30 sn)",
+            "Statik esneme: rectus femoris, biceps femoris, kalça fleksörü (3×30 sn)",
             "500–750 ml su + elektrolit (sodyum + potasyum)",
             "Bacakları yukarı kaldır: 10–15 dk (venöz dönüşü kolaylaştırır)",
         ], "#ef4444"),
@@ -371,7 +378,7 @@ def _render_recovery_timeline(
             "Mobilite çalışması: eklem hareket açıklığı, yoga / pilates 30 dk",
             "Hafif teknik antrenman: shadow, yavaş tempo tekme tekniği",
             "Karbonhidrat yüklemesi: 5–7 g/kg/gün (glikojen depolarını tamamla)",
-            "Masaj veya foam roller: vastus lateralis, hamstring, IT band (15 dk)",
+            "Masaj veya foam roller: rectus femoris, biceps femoris, IT band (15 dk)",
             f"Bir sonraki yüksek yoğunluklu seans: {next_hi} sonra",
         ], "#3b82f6"),
         ("48 – 72 Saat", "💪", [
@@ -519,7 +526,7 @@ def _render_next_session(
                 "Dinamik ısınma: leg swing (öne-arkaya-yana) 2×15 tekrar",
                 "Hip flexor lunge stretch: 3×30 sn her taraf",
                 "Hamstring PNF gerdirme: 6×(10 sn kasılma + 30 sn pasif germe)",
-                "Foam roller: IT band, vastus lateralis, hamstring — 2×60 sn her bölge",
+                "Foam roller: IT band, rectus femoris, biceps femoris — 2×60 sn her bölge",
                 "Yoga: pigeon pose + lizard pose, 2×45 sn her taraf",
             ],
         })
@@ -641,9 +648,40 @@ def render_athlete_report(
         f'Yorgunluk İndeksi: <b style="color:{fi_color}">{fi:.1f}/100</b>',
     )
 
+    st.markdown("### Analizin Kısa Yorumu")
+    st.info(analysis_paragraph(pre_events, post_events, fi, {"metrics": {
+        "active_peak_knee_vel_deg_s": {
+            "pre": pmv, "post": pomv, "pct": vel_pct,
+            "fatigue_contribution": (-vel_pct if vel_pct is not None else None),
+        },
+        "active_knee_rom_deg": {
+            "pre": prm, "post": porm, "pct": rom_pct,
+            "fatigue_contribution": (-rom_pct if rom_pct is not None else None),
+        },
+        "peak_kick_height_norm": {
+            "pre": ph, "post": poh, "pct": pct_change(ph, poh),
+            "fatigue_contribution": (-(pct_change(ph, poh) or 0) if pct_change(ph, poh) is not None else None),
+        },
+    }}))
+    render_data_quality(pre_events, post_events)
+
+    st.markdown("### Ana Performans Göstergeleri")
+    st.caption(
+        "Bu tablo analizi hızlı okumak için sadeleştirilmiştir. Ham ölçüm adı yerine metrik anlamı, pre/post farkı ve net yorum birlikte verilmiştir."
+    )
+    st.dataframe(
+        pd.DataFrame(comparison_rows(pre_events, post_events, PRIMARY_METRICS)),
+        use_container_width=True,
+        hide_index=True,
+    )
+    render_metric_help(PRIMARY_METRICS, "Ana metrikler nasıl hesaplandı?")
+
     # ── 1. Biyomekanik ────────────────────────────────────────────────────────
     st.markdown("### 1. Biyomekanik Bulgular")
-    st.caption("📌 Kaynak: MediaPipe pose modeli — frame bazlı eklem açısı, hız ve normalize yükseklik (Savitzky-Golay filtrelemeli).")
+    st.info(
+        "Kaynak: MediaPipe pose modeli ile frame bazlı eklem açıları, açısal hızlar ve normalize tekme yüksekliği hesaplanır. "
+        "Açısal hız ve ivme hesaplarında Savitzky-Golay filtreleme kullanılarak ani gürültü azaltılır."
+    )
 
     bio_rows = []
     for lbl, pv, pov, direction in [
@@ -663,7 +701,7 @@ def render_athlete_report(
             "Δ%":          f"{p:+.1f}%" if p   is not None else "—",
             "Durum":       change_status(p, direction),
         })
-    st.dataframe(pd.DataFrame(bio_rows).set_index("Metrik"), use_container_width=True)
+    st.dataframe(pd.DataFrame(bio_rows), use_container_width=True, hide_index=True)
 
     bio_lines = []
     src = "*(📐 Video pose analizi)*"
@@ -708,8 +746,8 @@ def render_athlete_report(
 
     # ── 2. Nöromüsküler ───────────────────────────────────────────────────────
     st.markdown("### 2. Nöromüsküler Bulgular *(EMG Simülasyonu)*")
-    st.caption(
-        "📌 Kaynak: K-Myo benzeri yüzey EMG simülasyonu — quadriceps + hamstring. "
+    st.info(
+        "Kaynak: K-Myo benzeri yüzey EMG değerlendirmesi — rectus femoris + biceps femoris. "
         "Median frekans düşüşü kas yorgunluğunun nörofizyolojik göstergesidir (Tip II lif yorulması). "
         "NOT: Fizyolojik model tabanlı simülasyon; gerçek ölçüm için K-Myo cihazı gerekir."
     )
@@ -725,7 +763,7 @@ def render_athlete_report(
             {"Parametre": "Median Frekans Bitiş — Post",     "Değer": f"{pos['freq_end']:.1f} Hz",   "Açıklama": f"Δ = {pos['freq_end']-pos['freq_start']:+.1f} Hz  ({(pos['freq_end']-pos['freq_start'])/pos['freq_start']*100:+.1f}%)"},
             {"Parametre": "Post − Pre Düşüş Farkı",          "Değer": f"{post_freq_drop - pre_freq_drop:+.1f} Hz", "Açıklama": "Artı → Post'ta daha fazla nöromüsküler yorgunluk"},
         ]
-        st.dataframe(pd.DataFrame(emg_tbl).set_index("Parametre"), use_container_width=True)
+        st.dataframe(pd.DataFrame(emg_tbl), use_container_width=True, hide_index=True)
 
         if post_freq_drop > pre_freq_drop + 3:
             sev = "🔴 **Belirgin nöromüsküler yorgunluk**"
@@ -750,8 +788,8 @@ def render_athlete_report(
 
     # ── 3. Metabolik ──────────────────────────────────────────────────────────
     st.markdown("### 3. Metabolik Bulgular *(NIRS Simülasyonu)*")
-    st.caption(
-        "📌 Kaynak: Moxy Monitor benzeri NIRS simülasyonu — vastus lateralis kas oksijenlenmesi. "
+    st.info(
+        "Kaynak: Moxy Monitor benzeri NIRS simülasyonu — uyluk kas oksijenlenmesi. "
         "SmO2 aerobik enerji sisteminin kapasitesini yansıtır. "
         "NOT: Fizyolojik model tabanlı simülasyon; gerçek ölçüm için Moxy Monitor cihazı gerekir."
     )
@@ -767,7 +805,7 @@ def render_athlete_report(
             {"Parametre": "SmO2 Bitiş — Post",     "Değer": f"%{pos['smo2_end']:.1f}",   "Açıklama": f"Δ = {pos['smo2_end']-pos['smo2_start']:+.1f}%  |  Post toplam düşüş"},
             {"Parametre": "SmO2 Minimum — Post",   "Değer": f"%{pos['smo2_min']:.1f}",   "Açıklama": "<%50 → anaerobik eşik; <%40 → kritik hipoksi"},
         ]
-        st.dataframe(pd.DataFrame(nirs_tbl).set_index("Parametre"), use_container_width=True)
+        st.dataframe(pd.DataFrame(nirs_tbl), use_container_width=True, hide_index=True)
 
         if post_smo2_drop > pre_smo2_drop + 3:
             sev = "🔴 **Belirgin metabolik stres**"
@@ -795,7 +833,10 @@ def render_athlete_report(
 
     # ── 4. Asimetri ───────────────────────────────────────────────────────────
     st.markdown("### 4. Bilateral Asimetri Bulguları")
-    st.caption("📌 Kaynak: Video pose analizi — ASI = |(dominant − non-dominant) / max| × 100")
+    st.info(
+        "Kaynak: Video pose analizi. ASI sağ ve sol taraf farkını yüzde olarak ifade eder. "
+        "Pozitif değer sağ tarafın, negatif değer sol tarafın daha baskın olduğunu gösterir; |ASI| > 10% dikkat gerektirir."
+    )
 
     pre_ka  = [float(e["knee_asi"]) for e in pre_events  if e.get("knee_asi") is not None]
     post_ka = [float(e["knee_asi"]) for e in post_events if e.get("knee_asi") is not None]
@@ -817,7 +858,7 @@ def render_athlete_report(
                 "Durum":        ("⚠️ Asimetri" if poa is not None and abs(poa) > 10 else "✅ Normal"),
             })
         if asi_rows:
-            st.dataframe(pd.DataFrame(asi_rows).set_index("Ölçüm"), use_container_width=True)
+            st.dataframe(pd.DataFrame(asi_rows), use_container_width=True, hide_index=True)
             if any(r["Durum"] == "⚠️ Asimetri" for r in asi_rows):
                 st.markdown(
                     "> ⚠️ Dominant ve non-dominant bacak arasında yük dengesizliği. "
@@ -830,8 +871,8 @@ def render_athlete_report(
 
     # ── 5. Yorgunluk İndeksi ──────────────────────────────────────────────────
     st.markdown("### 5. Genel Yorgunluk Değerlendirmesi")
-    st.caption(
-        "📌 Kaynak: 7 biyomekanik metriğin ağırlıklı ortalaması — "
+    st.info(
+        "Kaynak: 7 biyomekanik metriğin ağırlıklı ortalaması. "
         "Diz ROM ×0.25 | Peak hız ×0.25 | Peak hıza süre ×0.15 | "
         "Tekme yüksekliği ×0.15 | Ayak hızı ×0.10 | Tekme süresi ×0.05 | Ort. hız ×0.05"
     )
@@ -892,7 +933,7 @@ def render_athlete_report(
         suggs_raw.append((13, "Hareket Genişliği (ROM) Geliştirme",
             f"Diz ROM %{abs(rom_pct):.0f} azaldı ({prm:.1f}° → {porm:.1f}°). "
             "Önce: dinamik ısınma — leg swing, hip circle, lunge stretch (2×10). "
-            "Sonra: statik esneme — hamstring, quadriceps, hip flexor (30 sn×3).",
+            "Sonra: statik esneme — biceps femoris, rectus femoris, hip flexor (30 sn×3).",
             "Video Pose Analizi"))
 
     post_ka_mean = sum(post_ka) / len(post_ka) if post_ka else None

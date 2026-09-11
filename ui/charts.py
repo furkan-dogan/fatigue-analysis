@@ -28,10 +28,42 @@ FOOT_COLOR = {
 _DARK = dict(
     plot_bgcolor="#0e1117",
     paper_bgcolor="#0e1117",
-    font=dict(color="#fafafa"),
-    xaxis=dict(gridcolor="#333"),
-    yaxis=dict(gridcolor="#333"),
+    font=dict(color="#fafafa", size=14),
+    xaxis=dict(gridcolor="#333", title_font=dict(size=15), tickfont=dict(size=12)),
+    yaxis=dict(gridcolor="#333", title_font=dict(size=15), tickfont=dict(size=12)),
 )
+
+
+def _readable_layout(
+    fig: go.Figure,
+    *,
+    title: str,
+    x_title: str,
+    y_title: str,
+    height: int = 360,
+    note: str | None = None,
+) -> go.Figure:
+    fig.update_layout(
+        title=dict(text=title, font=dict(color="#fafafa", size=18)),
+        xaxis_title=x_title,
+        yaxis_title=y_title,
+        height=height,
+        margin=dict(l=70, r=30, t=70 if note else 55, b=65),
+        legend=dict(orientation="h", y=-0.28, font=dict(size=13)),
+        **_DARK,
+    )
+    if note:
+        fig.add_annotation(
+            text=note,
+            xref="paper",
+            yref="paper",
+            x=0,
+            y=1.12,
+            showarrow=False,
+            align="left",
+            font=dict(color="#cbd5e1", size=12),
+        )
+    return fig
 
 
 def kick_event_shapes(events: list[dict]) -> list[dict]:
@@ -140,6 +172,36 @@ def gauge(value: float, title: str) -> go.Figure:
     return fig
 
 
+def readable_bar_comparison(
+    labels: list[str],
+    pre_vals: list[float],
+    post_vals: list[float],
+    title: str,
+    y_title: str,
+    note: str,
+) -> go.Figure:
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="Pre-antrenman",
+        x=labels,
+        y=pre_vals,
+        marker_color="#2563eb",
+        text=[f"{v:.1f}" for v in pre_vals],
+        textposition="outside",
+    ))
+    fig.add_trace(go.Bar(
+        name="Post-antrenman",
+        x=labels,
+        y=post_vals,
+        marker_color="#dc2626",
+        text=[f"{v:.1f}" for v in post_vals],
+        textposition="outside",
+    ))
+    fig.update_layout(barmode="group")
+    fig.update_xaxes(tickangle=-20)
+    return _readable_layout(fig, title=title, x_title="Metrik", y_title=y_title, height=390, note=note)
+
+
 def overlay_chart(
     pre_df: pd.DataFrame,
     post_df: pd.DataFrame,
@@ -168,15 +230,21 @@ def overlay_chart(
             line=dict(color="#ef4444", width=1.5),
         ))
     is_velocity = "vel" in column or "speed" in column
+    fig.add_annotation(
+        text="Mavi kesikli çizgi pre-antrenman, kırmızı düz çizgi post-antrenman verisini gösterir. Renkli aralıklar otomatik tespit edilen tekme zamanlarıdır.",
+        xref="paper", yref="paper", x=0, y=1.18, showarrow=False,
+        align="left", font=dict(color="#cbd5e1", size=12),
+    )
     fig.update_layout(
-        height=240,
-        xaxis_title="Zaman (sn)",
-        yaxis_title="Hız (°/s)" if is_velocity else "Açı (°)",
-        margin=dict(l=50, r=20, t=30, b=35),
-        legend=dict(orientation="h", y=-0.35, font=dict(size=11)),
-        title=dict(text=label, font=dict(color="#fafafa", size=13)),
+        height=330,
+        xaxis_title="Video zamanı (saniye)",
+        yaxis_title="Açısal hız (derece/saniye)" if is_velocity else "Eklem açısı (derece)",
+        margin=dict(l=70, r=25, t=70, b=60),
+        legend=dict(orientation="h", y=-0.28, font=dict(size=12)),
+        title=dict(text=label, font=dict(color="#fafafa", size=17)),
         **_DARK,
     )
+    fig.update_traces(hovertemplate="%{x:.2f} sn<br>%{y:.2f}<extra>%{fullData.name}</extra>")
     return fig
 
 
@@ -199,11 +267,13 @@ def per_kick_trend(
         y=[float(e[col]) if e.get(col) is not None else 0 for e in post_events],
         marker_color="#ef4444",
     ))
-    fig.update_layout(
-        barmode="group", height=240,
-        title=dict(text=label, font=dict(color="#fafafa", size=13)),
-        margin=dict(l=40, r=10, t=35, b=35),
-        legend=dict(orientation="h", y=-0.35, font=dict(size=11)),
-        **_DARK,
+    fig.update_layout(barmode="group")
+    _readable_layout(
+        fig,
+        title=f"Tekme Bazlı Karşılaştırma: {label}",
+        x_title="Tekme numarası",
+        y_title=label,
+        height=330,
+        note="Her bar bir tekmeyi temsil eder. Aynı numaradaki pre ve post tekmeler sıra bazlı karşılaştırılır; bire bir aynı hareket olmak zorunda değildir.",
     )
     return fig

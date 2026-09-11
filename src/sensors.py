@@ -43,7 +43,8 @@ def generate_emg(
 
     Returns:
         List of dicts: time_sec, EMG_RMS_mV, EMG_median_freq_Hz,
-                       EMG_CH1_mV (aktif bacak), EMG_CH2_mV (stance bacak)
+                       EMG_RMS_mV (CH1 rectus femoris),
+                       EMG_CH2_RMS_mV (CH2 biceps femoris)
     """
     rng = np.random.default_rng(seed)
     n   = len(frame_rows)
@@ -52,42 +53,55 @@ def generate_emg(
 
     rms_ch1  = np.full(n, _EMG_BASELINE_RMS)
     rms_ch2  = np.full(n, _EMG_BASELINE_RMS * 0.6)
-    med_freq = np.full(n, _EMG_FREQ_START)
+    med_freq_ch1 = np.full(n, _EMG_FREQ_START)
+    med_freq_ch2 = np.full(n, _EMG_FREQ_START - 3.0)
 
     for kick_idx, ev in enumerate(events):
         s   = max(0, min(int(ev.get("start_frame", 0)), n - 1))
         p   = max(s, min(int(ev.get("peak_frame",  s)), n - 1))
         e   = max(p, min(int(ev.get("end_frame",   p)), n - 1))
+        extension = max(s, min(int(ev.get("extension_frame", p)), n - 1))
+        retraction = max(p, min(int(ev.get("retraction_frame", e)), n - 1))
         dur = max(e - s + 1, 1)
 
-        peak_rms = _EMG_PEAK_RMS * rng.uniform(0.75, 1.0)
+        rectus_peak_rms = _EMG_PEAK_RMS * rng.uniform(0.82, 1.05)
+        biceps_peak_rms = _EMG_PEAK_RMS * rng.uniform(0.45, 0.72)
         for f in range(s, e + 1):
-            dist      = abs(f - p)
-            rms_ch1[f] += peak_rms * np.exp(-0.5 * (dist / (dur * 0.28)) ** 2)
-            rms_ch2[f] += peak_rms * 0.35 * np.exp(-0.5 * (dist / (dur * 0.4)) ** 2)
+            rectus_dist = abs(f - extension)
+            biceps_dist = abs(f - retraction)
+            rms_ch1[f] += rectus_peak_rms * np.exp(-0.5 * (rectus_dist / (dur * 0.24)) ** 2)
+            rms_ch2[f] += biceps_peak_rms * np.exp(-0.5 * (biceps_dist / (dur * 0.30)) ** 2)
 
-        freq_after = max(_EMG_FREQ_MIN, _EMG_FREQ_START - kick_idx * _EMG_FREQ_DECAY)
+        rectus_freq_after = max(_EMG_FREQ_MIN, _EMG_FREQ_START - kick_idx * _EMG_FREQ_DECAY)
+        biceps_freq_after = max(_EMG_FREQ_MIN, (_EMG_FREQ_START - 3.0) - kick_idx * (_EMG_FREQ_DECAY * 0.85))
         if e + 1 < n:
-            med_freq[e + 1:] = np.minimum(med_freq[e + 1:], freq_after)
+            med_freq_ch1[e + 1:] = np.minimum(med_freq_ch1[e + 1:], rectus_freq_after)
+            med_freq_ch2[e + 1:] = np.minimum(med_freq_ch2[e + 1:], biceps_freq_after)
 
     smooth_win = max(3, int(fps * 0.05))
     rms_ch1  = _smooth(rms_ch1,  smooth_win)
     rms_ch2  = _smooth(rms_ch2,  smooth_win)
-    med_freq = _smooth(med_freq, max(3, int(fps * 0.15)))
+    med_freq_ch1 = _smooth(med_freq_ch1, max(3, int(fps * 0.15)))
+    med_freq_ch2 = _smooth(med_freq_ch2, max(3, int(fps * 0.15)))
 
     rms_ch1  += rng.normal(0, 0.008, n)
     rms_ch2  += rng.normal(0, 0.006, n)
-    med_freq += rng.normal(0, 1.2,   n)
+    med_freq_ch1 += rng.normal(0, 1.2, n)
+    med_freq_ch2 += rng.normal(0, 1.0, n)
 
     rms_ch1  = np.clip(rms_ch1,  0.01, 2.0)
     rms_ch2  = np.clip(rms_ch2,  0.01, 2.0)
-    med_freq = np.clip(med_freq, _EMG_FREQ_MIN, 110.0)
+    med_freq_ch1 = np.clip(med_freq_ch1, _EMG_FREQ_MIN, 110.0)
+    med_freq_ch2 = np.clip(med_freq_ch2, _EMG_FREQ_MIN, 110.0)
+    med_freq = (med_freq_ch1 + med_freq_ch2) / 2
 
     return [
         {
             "time_sec":           round(float(fr["time_sec"]), 4),
             "EMG_RMS_mV":         round(float(rms_ch1[i]), 4),
             "EMG_CH2_RMS_mV":     round(float(rms_ch2[i]), 4),
+            "EMG_CH1_median_freq_Hz": round(float(med_freq_ch1[i]), 2),
+            "EMG_CH2_median_freq_Hz": round(float(med_freq_ch2[i]), 2),
             "EMG_median_freq_Hz": round(float(med_freq[i]), 2),
         }
         for i, fr in enumerate(frame_rows)
@@ -211,8 +225,8 @@ def generate_interpretation(
         asym = abs(ch1_mean - ch2_mean) / ch1_mean * 100
         if asym > 25:
             lines.append(
-                f"Sağ/sol kas aktivasyon asimetrisi %{asym:.0f} — "
-                "dominant bacak belirgin şekilde daha fazla çalışıyor."
+                f"Rectus femoris / biceps femoris aktivasyon farkı %{asym:.0f} — "
+                "vuruş ve geri çekme fazları arasında yük dağılımı belirgin ayrışıyor."
             )
 
     return lines

@@ -4,14 +4,25 @@ from math import isfinite
 TESTS = {'cmj': 'CMJ / Dikey sıçrama', 'asymmetry': 'İniş ve yana sapma', 'sprint': 'Sprint', 'approach': 'Yaklaşmalı sıçrama (inceleme)'}
 
 
+PROTOCOL_DEFAULTS = dict(time_scale=1.0, single_take_confirmed=False, cmj_confirmed=False,
+                         contacts_confirmed=False, posture_confirmed=False, camera_level_confirmed=False,
+                         motion_plane_confirmed=False, camera_perpendicular=False)
+
+
 def default_review(metadata):
     return dict(test='cmj', athlete='', start_frame=0, end_frame=metadata['frame_count'] - 1,
                 athlete_box=None, calibration=None, repetitions=[],
                 camera='unknown', view='unknown', feet_visible=False, physical_time_confirmed=False,
-                notes='')
+                notes='', **PROTOCOL_DEFAULTS)
 
 
 def validate_review(review, metadata):
+    scale = review.get('time_scale', 1.0)
+    if not isfinite(scale) or scale <= 0:
+        raise ValueError('Fiziksel zaman çarpanı pozitif olmalı.')
+    for name in PROTOCOL_DEFAULTS:
+        if name != 'time_scale' and not isinstance(review.get(name, False), bool):
+            raise ValueError('Protokol onayları mantıksal değer olmalı.')
     if review['test'] not in TESTS:
         raise ValueError('Test türü geçersiz.')
     def frame(value):
@@ -51,6 +62,11 @@ def validate_review(review, metadata):
             frame(takeoff); frame(landing)
             if not a <= takeoff < landing <= b:
                 raise ValueError('Kalkış ve iniş sırası tekrar aralığıyla uyumlu olmalı.')
+        for name in ('left_landing_frame', 'right_landing_frame'):
+            if repeat.get(name) is not None:
+                frame(repeat[name])
+                if not a <= repeat[name] <= b:
+                    raise ValueError('Sağ/sol temas karesi tekrar aralığında olmalı.')
         intervals.append((a, b))
     ordered = sorted(intervals)
     if any(b >= c for (_, b), (c, _) in zip(ordered, ordered[1:])):

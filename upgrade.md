@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1–6 tamamlandı (6: bu örnek için koşullu ilk model seçimi). Sırada Adım 7 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
+**Adım 1–6 tamamlandı. Adım 7 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -70,7 +70,7 @@ Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkç
 
 Kabul: Örnek video üzerinde kanıtlı ilk seçim yapılır; seçim ölçüm doğruluğu onayı gibi sunulmaz.
 
-### 7. Voleybol algoritmaları — bekliyor, kendi içinde sırayla
+### 7. Voleybol algoritmaları — son kontrollerde
 
 #### 7A. Dikey sıçrama
 
@@ -246,3 +246,16 @@ Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8
 - Ayrı sıralı 15 karelik hız koşuları yapıldı; sonuçlar raporda. İlk paralel koşu süreleri kıyaslanmadı. Model ağırlık hash'leri `summary.json` içinde.
 - Temas çevresinde görsel belirsizlik aralıkları kaydedildi. Uzman landmark ground truth'u olmadığı için piksel/temas MAE ve fiziksel ölçüm hatası hesaplanmadı; bu doğrulama aşaması tamamlanmış değildir.
 - Kod testleri: 42 test geçti. Gerçek model çalıştırmaları ayrı deneydir. `e7986f6` deney komutu ve yaklaşmalı inceleme etiketini ekler. AST/diff temiz; commitler yereldir.
+
+
+### Adım 7 — motor ve hesaplar
+
+- `src/core/pose.py`: modelden bağımsız piksel koordinatları + skor + kaynak zamanları. Eksik noktalar doldurulmaz.
+- `src/adapters/rtmpose_pose.py`: seçilen YOLOX-m / RTMPose-L WholeBody ağırlıkları SHA256 ile doğrulanır. 133 noktalı şemadan gereken 14 omuz/kalça/diz/ayak noktası açık adlarla saklanır. Taekwondo MediaPipe akışı korunur.
+- Voleybol: `signals.py` izleme/aday olay yardımcıları, `measurements.py` deneysel hesaplar, `pipeline.py` frame orkestrasyonu. Algoritma sürümü `volleyball-1`.
+- CMJ: durağan başlangıç ayak referansına göre otomatik aday; manuel temas ve protokol onayı olmadan yükseklik yok. Uçuş süresi sınır aralığı ve g·t²/8 tahmini; diz/ayak bileği duruşu ve pelvis/ayak ilişkisi kontrolleri. Alt/üst değerler yalnızca kare belirsizliği, istatistiksel güven aralığı değil.
+- Asimetri: görüntü düzleminde gövdeye normalize pelvis sapması, gövde/pelvis eğimi; ayrı manuel sağ/sol temas varsa zaman farkı. Kuvvet/sağlık çıkarımı yapılmaz.
+- Sprint: dik kamera + aynı pelvis hareket düzleminde iki noktalı mesafe referansı; konumdan 0,20 s merkezli yerel doğrusal uyum ile hız. Kenarlarda eksik değer, boşluk doldurma yok; yüksek uyum artığı olan pencere reddedilir.
+- Backend saf matematik/kalite testleri: 9 test geçti. Geçerli sıçrama süresi, ağır çekim çarpanı, VFR doğrusal hız, asimetri, yanlış düzlem, eksik nokta, farklı iniş duruşu, belirsiz takip kontrol edildi.
+- Gerçek model entegrasyonu: kullanıcı videosu 55–85 karelerinde 31 kare işlendi; kayıt `d6f3f72d6cc4457f9cc57a529da952fb`, rapor `data/model_review/step7_integration.json`. Yaklaşmalı protokol reddedildi; CMJ metriği üretilmedi. Bu gerçek ölçüm doğrulaması değildir.
+- UI hesap düğmesi, aday aktarımı ve kalıcı sonuç sunumu son kontrollerde. Çalışma ağacında toplam 54 test geçti; kapanışta tekrar güncellenecek.

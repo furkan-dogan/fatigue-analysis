@@ -66,6 +66,11 @@ def jump(samples, times, repeat, review):
     if scale is None or scale < 10:
         return reject('Gövde referansı yetersiz.')
     hips = np.array([midpoint(s, 'hip') for s in window])
+    baseline_feet = [sole(samples[a-1], side) for side in ('left', 'right')]
+    lifted = [all(baseline_feet[j]-sole(s, side) > .025*scale for j, side in enumerate(('left', 'right')))
+              and hips[0, 1]-midpoint(s, 'hip')[1] > .025*scale for s in window]
+    if sum(lifted) < max(2, int(len(window)*.2)):
+        return reject('İşaretlenen uçuşta pelvis ve iki ayakta yeterli yükselme gözlenmedi.')
     if np.ptp(hips[:, 0]) > 0.2 * scale:
         return reject('CMJ aralığında yatay ilerleme fazla; yerinde sıçrama doğrulanmadı.')
     # Screen observable posture differences; this does not estimate the 3D center of mass.

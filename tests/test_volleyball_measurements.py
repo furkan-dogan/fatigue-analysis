@@ -125,3 +125,17 @@ class VolleyballMeasurementsTest(unittest.TestCase):
         self.assertEqual(mapped['left_heel'][:2], (29.,39.))
         self.assertEqual(mapped['right_big_toe'][:2], (30.,40.))
         self.assertNotIn('right_heel', map_person(coords[:17], [.9]*17, 100,100))
+
+    def test_static_pose_cannot_become_jump_by_manual_marks(self):
+        samples, review, metadata = case()
+        samples = [replace(s, points=person()) for s in samples]
+        self.assertIsNone(values(analyze(samples, review, metadata))['jump_height_cm']['value'])
+
+    def test_single_position_spike_is_not_peak_sprint_speed(self):
+        samples, review, metadata = case('sprint')
+        samples = [PoseFrame(i, i/100, person(x=50+i+(10 if i==50 else 0))) for i in range(101)]
+        review['repetitions'] = []
+        review['calibration'] = dict(x1=0, y1=100, x2=200, y2=100, distance_m=20.)
+        output = analyze(samples, review, metadata)
+        self.assertAlmostEqual(values(output)['peak_speed_m_s']['value'], 10.)
+        self.assertIsNone(output['speed_series'][50]['speed_m_s'])

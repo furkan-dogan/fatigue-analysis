@@ -1,6 +1,6 @@
 # Spor video analizi
 
-Python, Streamlit ve MediaPipe ile yerel video analizi. Açılış branşı voleybol; üç branş ayrı girişlerden seçilir. Taekwondo analizleri çalışır. Voleybolda tek video yükleme, kare inceleme, manuel tekrar/kalibrasyon işaretleme ve revizyon kaydı vardır; otomatik voleybol ölçümleri henüz yoktur. Basketbol geliştirme durumundadır. Gerçek video ölçüm doğrulaması henüz yapılmadı.
+Python ve Streamlit ile yerel video analizi. Taekwondo MediaPipe, voleybol RTMPose-L WholeBody kullanır. Açılış branşı voleybol; üç branş ayrı girişlerden seçilir. Taekwondo analizleri çalışır. Voleybolda tek video yükleme, kare inceleme, manuel tekrar/kalibrasyon işaretleme ve revizyon kaydı vardır; protokol kontrollerine bağlı deneysel CMJ, 2D asimetri ve kalibre sprint hesapları vardır. Basketbol geliştirme durumundadır. Gerçek video ölçüm doğrulaması henüz yapılmadı.
 
 ## Çalıştırma
 
@@ -15,6 +15,10 @@ CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.m
 Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
 Voleybolda **Videoyu kaydet ve incele** ile başlayın. Kare numarasıyla kalkış/inişi kontrol edin; test türü, sporcu, inceleme aralığı ve isteğe bağlı referansları girip **İncelemeyi yeni revizyon olarak kaydet** seçeneğini kullanın. Kayıtlı incelemelerden önceki revizyonlar tekrar açılabilir. Kalibrasyon koordinatları kaynak görüntünün sol üstünden piksel cinsindedir; kaydedilmiş referanslar ilgili karede gösterilir.
+
+İnceleme ayarlarında çekim, fiziksel zaman ve teste özel protokol kontrollerini tamamlayıp kaydedin. **Kaydedilmiş ayarlarla analiz et** seçeneği yeni analiz revizyonu oluşturur. Otomatik tekrar adaylarını yeni incelemeye aktarabilirsiniz; temas karelerini elle kontrol edip onayladıktan sonra yeniden kaydedip analiz edin. Ayar değişiklikleri önceki sonuçları yeni kayda taşımaz.
+
+İlk voleybol analizinde model dosyaları internetten indirilir ve SHA256 ile doğrulanır; sonraki çalıştırmalar yerel önbelleği kullanır. CPU analizi zaman alabilir. Uygun çekim/zaman/kalibrasyon yoksa sayı yerine gerekçe gösterilir. Yöntemler, çekim koşulları ve sınırlar: [docs/measurement-methods.md](docs/measurement-methods.md).
 
 ## Yapı
 

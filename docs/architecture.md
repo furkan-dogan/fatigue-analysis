@@ -8,7 +8,7 @@ Sayfa ortak bileşenleri birleştirir. `session.py` yükleme, kalıcı geçmiş 
 
 Çekirdek UI, adaptör veya branş import etmez. Adaptörler branş bilmez. Ortak bileşenler branş bilmez. Branşlar birbirini import etmez. Bu sınırlar `tests/test_architecture.py` ile denetlenir.
 
-Yeni branşta yalnızca gerçekten ihtiyaç olan dosyalar eklenir. Voleybol girişi manuel video inceleme ve kalıcı revizyon akışını sunar; basketbol ortak geliştirme durumu bileşenini gösterir. Otomatik voleybol ölçümleri henüz yok. Uygulama kabuğu yalnızca seçili branşı yükler. Tamamlanmış taekwondo analizi widgetlardan ayrı `taekwondo_analysis` state alanındadır; diğer branşlar bu alanı okumaz. Kullanılmayan model, cihaz veya servis altyapısı eklenmez.
+Yeni branşta yalnızca gerçekten ihtiyaç olan dosyalar eklenir. Voleybol girişi video inceleme, deneysel analiz ve kalıcı revizyon akışını sunar; basketbol ortak geliştirme durumu bileşenini gösterir. Uygulama kabuğu yalnızca seçili branşı yükler. Tamamlanmış taekwondo analizi widgetlardan ayrı `taekwondo_analysis` state alanındadır; diğer branşlar bu alanı okumaz. Kullanılmayan model, cihaz veya servis altyapısı eklenmez.
 
 Ortak bileşenler hazır/boş/yükleniyor/hata durumlarını destekler. Eksik metrik sıfıra çevrilmez; kalite paneli kendiliğinden doğruluk veya başarı oranı üretmez. Video Streamlit üzerinden sunulur; ayrı HTTP sunucusu yoktur.
 
@@ -33,3 +33,12 @@ Pose JSONL modelin filtrelenmemiş noktalarını/görünürlüğünü saklar. ff
 Kayıt `manual_video_review` türündedir. Bir inceleme run'ının `completed` olması yalnızca belgenin tamamlandığını gösterir; provenance içinde model `None`, sonuçta metrikler boş listedir. Manuel işaretler ilerideki otomatik MovementEvent sonuçlarıyla karıştırılmaz. PTS uygun değilse zaman çizelgesi yerine kare listesi kullanılır.
 
 Kare inceleme sıralı decode yapar; doğru kare seçimi için keyframe seek varsayımı kullanılmaz. Uzun videoda uzak karelere erişim yavaş olabilir. Sekiz kareyle sınırlı UI önbelleği vardır. Yeni revizyon kaynak videoyu koruyarak ayrı kopya oluşturur; disk tekilleştirme henüz uygulanmaz. Kullanıcı beyanı çekim kontrolleri ve iki noktalı mesafe referansı, doğrulanmış hareket düzlemi kalibrasyonu değildir.
+
+
+## Voleybol ölçüm akışı
+
+Ortak `core/pose.py` yalnızca adlandırılmış piksel noktalarını, skorları ve kaynak zamanını tanımlar. `adapters/rtmpose_pose.py` model yükleme, ağırlık doğrulama ve 133 noktalı çıktının gereken 14 noktaya eşlemesini yapar. Branşın `signals.py` dosyası takip/zaman/adayları, `measurements.py` saf hesapları, `pipeline.py` video çıkarımını, `service.py` kalıcı kayıt akışını yönetir.
+
+`ui/sports/volleyball/results.py` ortak metrik bileşenlerini kullanır; hesap yapmaz. Analiz yalnızca kaydedilmiş incelemeyle başlar. `volleyball_analysis` kaydı yeni oturum revizyonudur: kaynak video, ham pose JSONL/hash, model/paket/algoritma sürümleri, protokol ayarları ve sonuç belgesi korunur. Tekrarlar MovementEvent, tekrar metrikleri MetricResult olarak kaydedilir. Genel protokol reddi sonuç JSON'unda gerekçesiyle tutulur; sahte olay oluşturulmaz.
+
+Kaynak olay zamanı PTS saniyesidir. Fiziksel süre için ayrıca kullanıcı tarafından doğrulanmış zaman çarpanı uygulanır; nominal FPS fallback yoktur. Eksik noktalar doldurulmaz. Manuel düzeltme yeni inceleme oluşturur ve eski analiz sonuçlarını taşımadığı için güncelliğini yitirmiş metrik göstermez. Model hatası koşuyu başarısız işaretler, kaynağı korur.

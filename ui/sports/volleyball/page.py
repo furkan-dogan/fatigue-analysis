@@ -10,16 +10,17 @@ from ui.components.quality import quality_panel
 from ui.components.models import QualityNotice, TimelineEvent
 from ui.components.timeline import event_timeline
 from ui.sports.volleyball.editor import edit_review
+from ui.sports.volleyball.results import render_results
 
 
 def render():
     st.title('Voleybol — Video Analizi')
-    st.caption('Video yükleyin, çekimi inceleyin ve tekrarları işaretleyin. Otomatik ölçümler henüz hazır değil.')
+    st.caption('Video yükleyin, çekimi inceleyin ve tekrarları işaretleyin. Deneysel analizler için çekim ve protokol ayarlarını kaydedin.')
     store = AnalysisStore()
     with st.expander('Kayıtlı incelemeler'):
         records = store.sessions('volleyball')
         if records:
-            labels = {r['id']: f"{r['label']} · {r['created_at'][:19]} · {'İnceleme' if r['completed'] else 'Tamamlanmamış'} · {r['id'][:8]}" for r in records}
+            labels = {r['id']: f"{r['label']} · {r['created_at'][:19]} · {'Kayıt' if r['completed'] else 'Tamamlanmamış'} · {r['id'][:8]}" for r in records}
             selected = st.selectbox('İnceleme kaydı', list(labels), format_func=labels.get, key='volleyball_history')
             if st.button('İncelemeyi aç', key='volleyball_open'):
                 try:
@@ -42,7 +43,10 @@ def render():
     result = current['result']
     metadata, review = result['metadata'], result['review']
     st.caption(f"{metadata['width']} × {metadata['height']} piksel · {metadata['frame_count']} kare · Nominal FPS: {metadata['nominal_fps'] or 'Bilinmiyor'}")
-    quality_panel([QualityNotice(message, 'info') for message in quality_messages(review, metadata)])
+    messages = quality_messages(review, metadata)
+    if result.get('analysis'):
+        messages = messages[1:]
+    quality_panel([QualityNotice(message, 'info') for message in messages])
     left, right = st.columns(2)
     with left:
         video_player(current['source_path'])
@@ -52,7 +56,8 @@ def render():
     if review['repetitions']:
         st.markdown('**Kaydedilmiş tekrarlar**')
         labels = {'start_frame': 'Başlangıç karesi', 'end_frame': 'Bitiş karesi',
-                  'takeoff_frame': 'İlk havada kare', 'landing_frame': 'İlk temas karesi'}
+                  'takeoff_frame': 'İlk havada kare', 'landing_frame': 'İlk temas karesi',
+                  'left_landing_frame': 'Sol temas', 'right_landing_frame': 'Sağ temas'}
         st.dataframe([{labels[k]: v for k, v in row.items()} for row in review['repetitions']], hide_index=True)
         if frame_time(0, metadata) is not None:
             events = [TimelineEvent(str(i), f'Tekrar {i+1}', frame_time(r['start_frame'], metadata), frame_time(r['end_frame'], metadata)) for i, r in enumerate(review['repetitions'])]
@@ -60,7 +65,7 @@ def render():
             st.caption('Zaman çizelgesi video oynatma zamanıdır; gerçek fiziksel süre doğrulanmış değildir.')
             if selected:
                 video_player(current['source_path'], start_time=selected.start_seconds)
-    st.info('Sıçrama yüksekliği, asimetri ve sprint hızı hesaplanmadı. Model seçimi sonraki aşamada yapılacak.')
+    render_results(current, store)
     try:
         changes = edit_review(current)
         if changes is not None:

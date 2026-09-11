@@ -72,3 +72,8 @@ Diğer adaylar: `--model mediapipe` ve `--model yolo26x`. Kaynağın SHA256'sı 
 2. Sahne kesimlerini analiz aralığı dışında bırak; kullanıcı seçtiği sporcu ve tek kesintisiz tekrar üzerinde çalış.
 3. Önce kontrollü CMJ algoritmasını geliştir. Bu yaklaşmalı örneği CMJ doğrulama kaydı gibi kullanma; yaklaşmalı sıçrama ayrı protokoldür.
 4. Bağımsız videolarda uzman işaretleri ve uygun fiziksel referanslarla piksel/zaman/cm/hız hatasını ölç. O aşamaya kadar model ve metrikler doğrulanmamış durumdadır.
+
+
+### Adım 7 uygulama durumu
+
+RTMPose-L WholeBody adaptörü ve deneysel hesaplar uygulamaya eklendi; MediaPipe taekwondoda kaldı. Kullanıcı videosunun 55–85 aralığında 31 kareyle gerçek adaptör/kayıt çalıştırması yapıldı. Yaklaşmalı protokol için CMJ sonucu üretilmedi. Bu entegrasyon kontrolü fiziksel doğruluk kanıtı değildir; koşullu model kararı değişmedi. Sonraki iş bağımsız doğrulama (Adım 8).

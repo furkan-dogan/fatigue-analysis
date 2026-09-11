@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1–6 tamamlandı. Adım 7 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
+**Adım 1–7 tamamlandı. Sıradaki Adım 8: bağımsız ölçüm doğrulaması.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda inceleme ve deneysel CMJ/asimetri/sprint hesapları hazır. Gerçek ölçüm doğruluğu henüz doğrulanmadı; basketbol analizi hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -70,7 +70,7 @@ Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkç
 
 Kabul: Örnek video üzerinde kanıtlı ilk seçim yapılır; seçim ölçüm doğruluğu onayı gibi sunulmaz.
 
-### 7. Voleybol algoritmaları — son kontrollerde
+### 7. Voleybol algoritmaları — tamamlandı (deneysel)
 
 #### 7A. Dikey sıçrama
 
@@ -129,7 +129,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Normalize ayak hızında gövde referansı yoksa artık değer üretilmez (algoritma v2). Eski CSV dosyaları geriye dönük değiştirilmedi; geçmiş ham verilerde birim sorunu olabilir.
 - Genel landmark görünürlüğü ölçüm doğruluğu değildir; metrik bazında kalite kontrolü eksik.
 - Sabit FPS ve eksik nokta doldurma zaman/hız doğruluğunu etkileyebilir.
-- Taekwondo iki video, voleybol incelemesi tek video kullanır. Voleybol kaydı manuel işaretleme içerir; otomatik ölçüm içermez.
+- Taekwondo iki video, voleybol incelemesi tek video kullanır. Voleybol manuel inceleme ve ayrı deneysel analiz revizyonları içerir; koşullar yetersizse gerekçeli eksik sonuç üretir.
 - Yeni arayüz analizleri kalıcıdır; eski geçici oturumlar ve eski `data/output/` CSV dosyaları otomatik içe aktarılmadı. CLI bağımsız dosya dışa aktarma akışını korur.
 - Kalıcı kayıtlar yereldir; `data/` klasörü birlikte taşınmalıdır. Veritabanı tek başına video/pose dosyalarının yerine geçmez.
 - Otomatik video/model doğruluğu, sıçrama ve sprint ölçümleri henüz doğrulanmadı.
@@ -147,7 +147,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-**Adım 7: seçilen RTMPose-L WholeBody adayını adaptör olarak ekle ve kontrollü CMJ algoritmasına başla.** Önce `docs/model-selection.md` oku. Mevcut motor MediaPipe; henüz değiştirilmedi. Bu örnek yaklaşmalı sıçramadır, CMJ veya fiziksel ölçüm doğrulama videosu değildir. İlk model kararı koşulludur; bağımsız doğrulama 8. adımda. Takip/kalite, ayak noktaları ve sahne/aralık sınırlarını doğrulamadan yükseklik veya hız üretme.
+**Adım 8: bağımsız ölçüm doğrulaması.** Önce `docs/measurement-methods.md` ve `docs/model-selection.md` oku. CMJ, ön/arka asimetri ve kalibre sprint için protokole uygun ayrı orijinal videolar ve bağımsız referanslar gerekir. Mevcut yaklaşmalı örnek fiziksel ölçüm doğrulaması için yeterli değildir. Temas zamanı, cm/açı/hız hataları ve ölçüm reddi birlikte değerlendirilecek; kabul sınırları deneyden önce belirlenecek. Başarı kanıtlanmadan “yüksek doğruluk” iddiası veya tamamlandı işareti koyma. Ardından Adım 9: uyumlu kayıtların önce–sonra karşılaştırması ve rapor. **İki ana adım kaldı.**
 
 ### Adım 3 doğrulaması
 
@@ -258,4 +258,10 @@ Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8
 - Sprint: dik kamera + aynı pelvis hareket düzleminde iki noktalı mesafe referansı; konumdan 0,20 s merkezli yerel doğrusal uyum ile hız. Kenarlarda eksik değer, boşluk doldurma yok; yüksek uyum artığı olan pencere reddedilir.
 - Backend saf matematik/kalite testleri: 9 test geçti. Geçerli sıçrama süresi, ağır çekim çarpanı, VFR doğrusal hız, asimetri, yanlış düzlem, eksik nokta, farklı iniş duruşu, belirsiz takip kontrol edildi.
 - Gerçek model entegrasyonu: kullanıcı videosu 55–85 karelerinde 31 kare işlendi; kayıt `d6f3f72d6cc4457f9cc57a529da952fb`, rapor `data/model_review/step7_integration.json`. Yaklaşmalı protokol reddedildi; CMJ metriği üretilmedi. Bu gerçek ölçüm doğrulaması değildir.
-- UI hesap düğmesi, aday aktarımı ve kalıcı sonuç sunumu son kontrollerde. Çalışma ağacında toplam 54 test geçti; kapanışta tekrar güncellenecek.
+- UI hesap düğmesi, adayları inceleme revizyonuna aktarma, tekrar metrikleri ve hız grafiği tamamlandı. Aday aktarımı temas/duruş onaylarını sıfırlar; ayar revizyonu eski sonuçları taşımaz.
+- Ek koruma: durağan pozdan işaretlenmiş sahte uçuş reddedilir; tek konum sıçraması hız tepesine dönüşmez.
+- Tam paket **57 test geçti**. Olumlu sentetik hesap → olay/metrik kaydı → yeni uygulama oturumunda sayısal sonuç; protokol reddi → boş sonuç; model hatası → başarısız kayıt yolları dahil. Model test taklitleri fiziksel doğrulama değildir.
+- Kullanım ve eşikler: `docs/measurement-methods.md`. Ana bağımlılıklara rtmlib 0.0.16, onnxruntime 1.30.0 ve tqdm 4.70.1 eklendi; gerçek CPU çalıştırması yerel venv'de yapıldı.
+- Backend checkpoint: `1abbddd`. Adım 7 kod kapsamı tamamlandı; bağımsız gerçek ölçüm doğrulaması Adım 8'de açık. Sonraki AI yukarıdaki “Sıradaki somut iş” bölümünden devam etmeli.
+
+- Kapanış AST kontrolü: 84 Python dosyası başarılı; git diff --check temiz. Commitler yerel; push yapılmadı.

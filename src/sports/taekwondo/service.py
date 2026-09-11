@@ -22,7 +22,7 @@ def provenance():
     model = Path(mediapipe.__file__).parent / 'modules/pose_landmark/pose_landmark_full.tflite'
     detector = model.parent.parent / 'pose_detection/pose_detection.tflite'
     return {'schema_version': 1, 'protocol': 'taekwondo_pre_post', 'protocol_version': '1',
-            'algorithm_version': 'taekwondo-1', 'model': 'mediapipe_pose_full',
+            'algorithm_version': 'taekwondo-2', 'model': 'mediapipe_pose_full',
             'model_complexity': 1, 'model_sha256': hashlib.sha256(model.read_bytes()).hexdigest(),
             'detector_sha256': hashlib.sha256(detector.read_bytes()).hexdigest(),
             'packages': {name: version(name) for name in ('mediapipe', 'opencv-python', 'numpy', 'scipy')},
@@ -41,7 +41,7 @@ def event_records(result, run):
         for key, (_, unit) in METRICS.items():
             value = raw.get(key)
             metrics.append(MetricResult(event.id, f'taekwondo.{key}', value, unit,
-                                        f'taekwondo-1:{key}', 'missing' if value is None else 'unvalidated',
+                                        f'taekwondo-2:{key}', 'missing' if value is None else 'unvalidated',
                                         'Gerekli hareket verisi yok.' if value is None else None))
     return events, metrics
 

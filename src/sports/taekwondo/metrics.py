@@ -72,10 +72,9 @@ def compute_foot_speed(
             continue
         dist = float(np.linalg.norm(np.array(p_cur, dtype=float) - np.array(p_prev, dtype=float)))
         tl = torso_lengths[i] if i < len(torso_lengths) else None
-        if tl is not None and tl > 1e-6:
+        if tl is not None and np.isfinite(tl) and tl > 1e-6:
             speeds[i] = (dist / tl) / dt
-        else:
-            speeds[i] = dist / dt
+        # Without a valid scale, normalized speed is missing, never pixels/s.
 
     # Propagate to frame 0 so callers always get a value at the start
     if n > 1 and speeds[1] is not None:

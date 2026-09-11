@@ -126,7 +126,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Bilinen sınırlar
 
-- Normalize ayak hızı gövde uzunluğu bulunamayınca piksel/s değerine düşebiliyor. Mevcut ham CSV'de bu eski sorun sürüyor; UI raporunda bu metrik gösterilmiyor. Ölçüm aşamasında birim sözleşmesiyle düzelt.
+- Normalize ayak hızında gövde referansı yoksa artık değer üretilmez (algoritma v2). Eski CSV dosyaları geriye dönük değiştirilmedi; geçmiş ham verilerde birim sorunu olabilir.
 - Genel landmark görünürlüğü ölçüm doğruluğu değildir; metrik bazında kalite kontrolü eksik.
 - Sabit FPS ve eksik nokta doldurma zaman/hız doğruluğunu etkileyebilir.
 - Taekwondo yükleme akışı halen iki video ister. Voleybol tek video akışı 5. adımda.
@@ -193,3 +193,6 @@ Navigasyon commit: `43b42a2`. Bu araştırma belge güncellemesidir; 4. adım ba
 - Model ve dedektör SHA256, paket sürümleri, algoritma kaynak hash'leri, protokol sürümü ve tüm analiz parametreleri kaydedilir.
 - 31 test geçti: yeni uygulama oturumunda geçmişten açma, branş izolasyonu, başarısız ikinci analiz, revizyon, kaynak/çıktı bozulması, eksik değer/0, PTS ve ham landmark kontrolleri dahil. AST/syntax başarılı.
 - Sıradaki son kontrol: normalize ayak hızındaki eski birim karışmasını ayrı davranış düzeltmesinde gider; kayıt belgelerini güncelle ve aşamayı kapat.
+
+- Ayrı davranış düzeltmesi: gövde uzunluğu eksik/geçersiz olduğunda normalize ayak hızı None olur; piksel/s fallback kaldırıldı. Algoritma sürümü taekwondo-2. Geçerli ölçekli eski hareket regresyonu korunur.
+- Birim düzeltmesi sonrası 33 test geçti; AST ve diff kontrolleri temiz.

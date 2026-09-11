@@ -117,3 +117,25 @@ class AnalysisServiceTest(unittest.TestCase):
             self.store.create_session('taekwondo', 'wrong', session.id)
         with self.assertRaises(ValueError):
             load_pair(session.id, store=self.store)
+
+    def test_conflicting_unit_rolls_back_run_completion(self):
+        from src.core.records import MovementEvent
+        self.analyze()
+        session = self.store.create_session('taekwondo', 'unit conflict')
+        video = self.store.add_video(session, 'pre', 'video.mp4', b'video')
+        run = self.store.start_run(video, {})
+        event = MovementEvent('unit-test-event', run.id, video.id, 'kick', 0, 1)
+        metric = MetricResult(event.id, 'taekwondo.duration_sec', 1, 'ms', 'test', 'unvalidated')
+        with self.assertRaisesRegex(ValueError, 'birim'):
+            self.store.complete_run(run, {}, [event], [metric])
+        with self.store.connection() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM events WHERE run_id=?', (run.id,)).fetchone()[0], 0)
+        self.assertEqual(self.store.runs(session.id)[0]['status'], 'running')
+
+    def test_future_schema_is_rejected_without_overwrite(self):
+        with self.store.connection() as db:
+            db.execute('PRAGMA user_version=99')
+        with self.assertRaisesRegex(ValueError, 'şeması'):
+            AnalysisStore(self.temp.name)
+        with self.store.connection() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 99)

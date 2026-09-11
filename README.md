@@ -10,7 +10,9 @@ python3 -m venv .venv
 .venv/bin/streamlit run app.py
 ```
 
-CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.mp4`, çıktılar `data/output/`. Arayüz analizleri şimdilik geçici yerel oturumlarda tutulur; kalıcı kayıt 4. adımda yapılacak.
+CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.mp4`, çıktılar `data/output/`. Arayüz analizleri `data/analyses.sqlite3` ve `data/analyses/` altında kalıcıdır. Taekwondo ekranındaki **Kayıtlı analizler → Kaydı aç** ile geri yüklenir; yeniden analiz yeni revizyon oluşturur. CLI dosya dışa aktarma akışını korur.
+
+Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
 ## Yapı
 

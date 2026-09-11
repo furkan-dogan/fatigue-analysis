@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1, 2 ve 3 tamamlandı. Adım 4 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
+**Adım 1–4 tamamlandı. Sırada Adım 5: voleybol ekranı var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -28,13 +28,13 @@ Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, N
 
 - Voleybol, taekwondo, basketbol için ayrı ekran girişleri.
 - Voleybol varsayılan öncelik; basketbol geliştirme durumunu açık gösterir.
-- Branş değişimi eski sonuçları başka branş altında göstermez. Tamamlanmış çift analiz `taekwondo_analysis` altında tutulur; widget anahtarları branşa özeldir. Kalıcı oturum kimlikleri 4. adımda.
+- Branş değişimi eski sonuçları başka branş altında göstermez. Tamamlanmış çift analiz `taekwondo_analysis` altında tutulur; widget anahtarları branşa özeldir. Kalıcı kayıt kimlikleri SQLite kataloğunda tutulur.
 - Branş değiştirip dönünce tamamlanmış sonuçlar korunur. Yükleyici widgetları Streamlit yaşam döngüsü gereği yeniden dosya seçimi isteyebilir; mevcut sonuçlar etkilenmez.
 - Taekwondo'nun mevcut ekranı erişilebilir kalır.
 
 Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve sahte sonuç gösterilmez.
 
-### 4. Analiz sözleşmeleri ve kalıcı kayıt — son kontrollerde
+### 4. Analiz sözleşmeleri ve kalıcı kayıt — tamamlandı
 
 - VideoAsset, Session, AnalysisRun, MovementEvent, MetricResult ve Comparison modelleri.
 - Sonuç: değer, birim, yöntem, kaynak video/zaman aralığı, kalite, protokol/model/algoritma sürümü.
@@ -130,7 +130,8 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Genel landmark görünürlüğü ölçüm doğruluğu değildir; metrik bazında kalite kontrolü eksik.
 - Sabit FPS ve eksik nokta doldurma zaman/hız doğruluğunu etkileyebilir.
 - Taekwondo yükleme akışı halen iki video ister. Voleybol tek video akışı 5. adımda.
-- Arayüz kayıtları geçici; uygulama yeniden açılınca geçmiş kayıt garantisi yok (4. adım).
+- Yeni arayüz analizleri kalıcıdır; eski geçici oturumlar ve eski `data/output/` CSV dosyaları otomatik içe aktarılmadı. CLI bağımsız dosya dışa aktarma akışını korur.
+- Kalıcı kayıtlar yereldir; `data/` klasörü birlikte taşınmalıdır. Veritabanı tek başına video/pose dosyalarının yerine geçmez.
 - Otomatik video/model doğruluğu, sıçrama ve sprint ölçümleri henüz doğrulanmadı.
 
 ## Kontroller ve commit günlüğü
@@ -146,7 +147,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-**Adım 4: analiz sözleşmeleri ve yerel kalıcı kayıt.** Önce sonuç/video/oturum modellerini ve SQLite deposunu kur; sonra mevcut taekwondo akışını bağla. Yeniden açma, eksik metrik, yarım/hatalı analiz ve sürüm bilgisi testlerini ekle. Voleybol algoritmalarına geçme; video isteme.
+**Adım 5: voleybol video yükleme ve inceleme ekranı.** Tek video yüklemesini kalıcı kayıt sözleşmesine bağla; test türü (CMJ/asimetri/sprint), kaynak metadata, sporcu/zaman aralığı ve gerekirse kalibrasyon girişlerini oluştur. Hesabı hazır olmayan metrikleri üretme. Ardından ayrı Adım 6 için kullanıcı örnek video verecek; şu anda video isteme.
 
 ### Adım 3 doğrulaması
 
@@ -178,7 +179,7 @@ Bu nedenle ölçüm aşamasında MediaPipe referansı, YOLO26x-Pose ve ayak nokt
 
 Seçim deneyi: aynı sporcu/çekim kesitlerinde kalkış–iniş zaman hatası, sıçrama cm hatası, görüntü düzlemi açı hatası, kalibre parkur hız hatası, takip kopması, ölçüm verilemeyen tekrar oranı ve işleme süresi değerlendirilecek. Ayar ve doğrulama videoları ayrılacak. Tek model tüm metriklerde en iyi çıkmak zorunda değil. Model/adaptör arayüzü 4. adımın kayıt sözleşmesiyle kaynak, nokta şeması ve sürüm bilgisini taşımalı; uygulama bir ağırlık adına kilitlenmemeli.
 
-Navigasyon commit: `43b42a2`. Bu araştırma belge güncellemesidir; 4. adım başlatılmadı. Sıradaki iş halen kalıcı kayıt ve analiz sözleşmeleridir.
+Navigasyon commit: `43b42a2`. Model araştırması önceki aşamada yapıldı; kullanıcı kararıyla örnek video üzerinden değerlendirme artık ayrı 6. adımdır. Bu aşamada model değiştirilmedi.
 
 
 ### Adım 4 çalışma günlüğü
@@ -192,7 +193,13 @@ Navigasyon commit: `43b42a2`. Bu araştırma belge güncellemesidir; 4. adım ba
 - ffprobe varsa kaynak best-effort PTS saklanır; yoksa zaman damgası eksik olarak kaydedilir. Kaynak PTS ile mevcut nominal FPS hesap zamanı ayrı alanlardır. Ağır çekimin gerçek fiziksel zamanı hâlâ doğrulanmış değildir; algoritma bu aşamada PTS'ye geçirilmedi.
 - Model ve dedektör SHA256, paket sürümleri, algoritma kaynak hash'leri, protokol sürümü ve tüm analiz parametreleri kaydedilir.
 - 31 test geçti: yeni uygulama oturumunda geçmişten açma, branş izolasyonu, başarısız ikinci analiz, revizyon, kaynak/çıktı bozulması, eksik değer/0, PTS ve ham landmark kontrolleri dahil. AST/syntax başarılı.
-- Sıradaki son kontrol: normalize ayak hızındaki eski birim karışmasını ayrı davranış düzeltmesinde gider; kayıt belgelerini güncelle ve aşamayı kapat.
+- `de8dee0`: kalıcı kayıt ve geçmiş; `1584767`: normalize hız birim düzeltmesi.
 
 - Ayrı davranış düzeltmesi: gövde uzunluğu eksik/geçersiz olduğunda normalize ayak hızı None olur; piksel/s fallback kaldırıldı. Algoritma sürümü taekwondo-2. Geçerli ölçekli eski hareket regresyonu korunur.
 - Birim düzeltmesi sonrası 33 test geçti; AST ve diff kontrolleri temiz.
+
+### Adım 4 kapanış kontrolü
+
+**36 test geçti.** Gerçek kodlu video decode→pipeline→SQLite/dosyalar→yeni bağlantıdan geri yükleme, yeni Streamlit oturumunda kayıt açma, atomik işlem geri alma (birim uyuşmazlığı), ileri şema sürümünü değiştirmeden reddetme de kontrol edildi. Model çalıştırması testlerde taklit edildi; gerçek sporcu/model doğruluğu test edilmedi. AST/syntax ve `git diff --check` temiz. Commitler yerel; push yapılmadı.
+
+Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8 bağımsız ölçüm doğrulaması → 9 karşılaştırma**. Adım 6 geliştirme videosu, Adım 8 bağımsız doğrulama videosu kullanır.

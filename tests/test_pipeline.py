@@ -58,3 +58,20 @@ class PipelineIntegrationTest(unittest.TestCase):
                 self.assertTrue(capture.read()[0])
             finally:
                 capture.release()
+
+    def test_real_video_pipeline_persists_and_reopens_without_pose(self):
+        from src.adapters.analysis_store import AnalysisStore
+        from src.sports.taekwondo.service import analyze_pair, load_pair
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'source.mp4'
+            writer = cv2.VideoWriter(str(source), cv2.VideoWriter_fourcc(*'mp4v'), 30, (64, 64))
+            self.assertTrue(writer.isOpened())
+            for _ in range(5):
+                writer.write(np.zeros((64, 64, 3), dtype=np.uint8))
+            writer.release()
+            store = AnalysisStore(Path(directory) / 'data')
+            with patch('src.sports.taekwondo.pipeline.MediaPipePoseRunner', NoPoseRunner):
+                pair = analyze_pair(source.read_bytes(), source.read_bytes(), lambda *args: None, store=store)
+            restored = load_pair(pair[2].name, store=AnalysisStore(store.root))
+            self.assertEqual(restored[0], pair[0])
+            self.assertEqual(len(Path(restored[0].pose_path).read_text().splitlines()), 5)

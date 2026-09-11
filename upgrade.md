@@ -14,7 +14,7 @@
 
 ## Güncel durum
 
-2026-09-11: **Adım 1 tamamlandı. Sıradaki aşama Adım 2.**
+2026-09-11: **Adım 1 tamamlandı. Adım 2 üzerinde çalışılıyor.**
 Kullanıcıdan kalan UI, grafik, rapor ve sentetik sensör değişiklikleri `611bd59` commitinde korundu.
 Çekirdek, adaptör, branş ve UI sınırları ayrıldı; mevcut taekwondo ekranı yeni konumundan açılıyor.
 Voleybol/basketbol analiz ve UI klasörleri sorumluluk README'leriyle hazır, ancak ekranları/algoritmaları henüz yok.
@@ -157,6 +157,17 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 7. Mevcut raporda doğrulanmamış sağlık, takviye ve risk yorumları bulunuyor; voleybola taşınmayacak.
 
 ## Doğrulama ve çalışma günlüğü
+
+### Adım 2 çalışması
+
+- Dolu sporcu raporu için sensörlü/sensörsüz iki AppTest referansı alındı. Mevcut metin/tablo içeriği taşınırken karşılaştırılacak; bu tıbbi/ölçümsel geçerlilik testi değildir.
+- Ortak gösterim sözleşmeleri ve metrik, kalite, karşılaştırma, yükleyici, olay zaman çizelgesi bileşenleri eklendi; gerçek taekwondo çağrılarına bağlandı. Çizelgede seçilen olay video başlangıç zamanını belirliyor.
+- Analiz sayfası `tabs/` altında özet, yorgunluk, olay, faz, asimetri, istatistik, export ve sensör sekmelerine ayrıldı.
+- Metrik kataloğu, biçimlendirme, karşılaştırma/EMG tabloları ve bulgu kuralları `src/sports/taekwondo/reporting/` altına taşındı; Streamlit bağımlılığı yok.
+- Dolu/boş/sensörsüz 12 sekme ve ortak bileşen durum/olay seçimi testleri eklendi. Dolu özet sekmesinde taşıma sırasında eksik kalan CSV importu testte yakalanıp düzeltildi.
+- Sıradaki iş: büyük sporcu raporunun kurallarını ve render bölümlerini ayır; sayfa orkestrasyonunu sadeleştir; son kontroller.
+
+### Adım 1 geçmişi
 
 - Başlangıç: 22 Python dosyası AST/syntax kontrolünden geçti; mevcut venv'de Streamlit, MediaPipe, OpenCV importları başarılı.
 - `611bd59`: Kullanıcıdan kalan çalışma ve bu plan korundu.

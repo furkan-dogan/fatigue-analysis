@@ -8,6 +8,8 @@ import plotly.graph_objects as go
 import streamlit as st
 from src.adapters.video_clips import trim_clip
 from ui.components.video_player import video_player
+from ui.components.models import TimelineEvent
+from ui.components.timeline import event_timeline
 from ui.sports.taekwondo.presentation import readable_kick_rows, render_metric_help
 
 def kick_video_section(
@@ -38,6 +40,20 @@ def kick_video_section(
     )
 
     vid_path = Path(video_path)
+    timeline_events = []
+    for event in events_list:
+        try:
+            timeline_events.append(TimelineEvent(
+                str(event['kick_id']), f"Tekme {event['kick_id']}",
+                float(event['start_time_sec']), float(event['end_time_sec']),
+                float(event['peak_time_sec']) if event.get('peak_time_sec') is not None else None,
+            ))
+        except (KeyError, TypeError, ValueError):
+            st.warning('Zaman bilgisi eksik veya geçersiz bir olay çizelgeye eklenemedi.')
+    selected = event_timeline(timeline_events, key=f'taekwondo_{label}_timeline')
+    if selected and vid_path.is_file():
+        video_player(vid_path, start_time=selected.start_seconds)
+
     for ev in events_list:
         kid     = int(ev["kick_id"])
         leg     = ev.get("active_leg", "?")

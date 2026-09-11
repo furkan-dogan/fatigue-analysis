@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1–4 tamamlandı. Sırada Adım 5: voleybol ekranı var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
+**Adım 1–4 tamamlandı. Adım 5 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -46,7 +46,7 @@ Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve
 
 Kabul: Bir analiz kaydedilip yeniden açılır; kaynağı, birimi ve sürümü izlenebilir.
 
-### 5. Voleybol ekranı — bekliyor
+### 5. Voleybol ekranı — son kontrollerde
 
 - Tek video yükleme yeterlidir; ikinci video yalnızca karşılaştırmada kullanılır.
 - Test seçimi: CMJ/dikey sıçrama, iniş-asimetri, sprint.
@@ -203,3 +203,14 @@ Navigasyon commit: `43b42a2`. Model araştırması önceki aşamada yapıldı; k
 **36 test geçti.** Gerçek kodlu video decode→pipeline→SQLite/dosyalar→yeni bağlantıdan geri yükleme, yeni Streamlit oturumunda kayıt açma, atomik işlem geri alma (birim uyuşmazlığı), ileri şema sürümünü değiştirmeden reddetme de kontrol edildi. Model çalıştırması testlerde taklit edildi; gerçek sporcu/model doğruluğu test edilmedi. AST/syntax ve `git diff --check` temiz. Commitler yerel; push yapılmadı.
 
 Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8 bağımsız ölçüm doğrulaması → 9 karşılaştırma**. Adım 6 geliştirme videosu, Adım 8 bağımsız doğrulama videosu kullanır.
+
+
+### Adım 5 çalışma günlüğü
+
+- Tek video yükleme, CMJ/asimetri/sprint seçimi, sporcu adı/kodu ve kare aralığı eklendi. Kaynak video modelsiz okunur; çözünürlük, nominal FPS, okunan kare sayısı ve PTS bilgisi tutulur.
+- Ortak `frame_inspector` kaynak kareyi sıralı decode ile gösterir; referans karesindeki sporcu kutusu ve mesafe çizgisi kaydedildikten sonra üstüne çizilir. Koordinatlar kaynak görüntünün sol üstüne göre piksel cinsindedir. Kutuyla seçim otomatik takip değildir.
+- Elle tekrar listesi, ilk tamamen havada kare / ilk temas karesi ve tekrar başlangıç/bitişi düzenlenebilir. Sprintte yalnızca başlangıç/bitiş kullanılır. Aralık sınırları, sıralama, çakışma, pozitif mesafe ve görüntü içi referanslar backend'de denetlenir.
+- Kare PTS bilgisi uygun olduğunda manuel tekrar zaman çizelgesi video oynatma zamanını gösterir. PTS yoksa zaman uydurulmaz; kare listesi ve kare incelemesi çalışır.
+- Kayıt türü `manual_video_review`; `model=None`, `metrics=[]`. SQLite run tamamlanması yalnızca inceleme belgesinin kaydedildiğini belirtir; UI bunu performans analizi diye göstermez. Düzeltmeler yeni oturum revizyonudur, orijinal içerik korunur.
+- Kamera/çekim yönü, ayak görünürlüğü, fiziksel zaman kontrolü kullanıcı beyanıdır. Kalibrasyon iki nokta + metre + düzlem açıklamasıdır; perspektif düzeltmesi/gerçek hız hesabı yapılmaz.
+- 41 test geçti: kayıt/revizyon/yeniden açma, UI kaydetme, branş izolasyonu, gerçek kaynak kareler, bozuk video, geçersiz aralık/kalibrasyon, eksik zamanlama. Son etiket ve metadata kontrolleri sürüyor.

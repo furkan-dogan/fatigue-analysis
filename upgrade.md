@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1–5 tamamlandı. Sırada Adım 6: örnek video üzerinden model seçimi var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
+**Adım 1–6 tamamlandı (6: bu örnek için koşullu ilk model seçimi). Sırada Adım 7 var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -57,7 +57,7 @@ Kabul: Bir analiz kaydedilip yeniden açılır; kaynağı, birimi ve sürümü i
 
 Kabul: Yükleme ve inceleme akışı tamamdır; mevcut olmayan hesaplar açıkça belirtilir.
 
-### 6. Örnek video üzerinden model seçimi — bekliyor, ayrı karar aşaması
+### 6. Örnek video üzerinden model seçimi — ilk değerlendirme tamamlandı
 
 - Kullanıcı örnek videoyu bu aşamada paylaşacak. Önce dosya/kayıt/voleybol inceleme akışı tamamlanır.
 - YOLO26x-Pose yalnızca araştırma adayı; mevcut MediaPipe ve ayak noktaları içeren uygun bir pose modeli aynı karelerde karşılaştırılır.
@@ -147,7 +147,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-**Adım 6: kullanıcıdan gelecek örnek video üzerinde model karşılaştırması.** Video gelince önce kaynak zamanları, çekim ve ayak görünürlüğünü incele. MediaPipe, YOLO26x-Pose ve uygun ayak noktaları olan aday için aynı kareler/işaretler üzerinde karşılaştırma planını uygula. Yalnızca kütüphane kurulması model seçimi sayılmaz. Bu aşamada tüm sporcular için doğruluk iddiası veya henüz olmayan sıçrama/sprint hesabı üretme. Adım 7 algoritmalara seçim sonrası geçilecek.
+**Adım 7: seçilen RTMPose-L WholeBody adayını adaptör olarak ekle ve kontrollü CMJ algoritmasına başla.** Önce `docs/model-selection.md` oku. Mevcut motor MediaPipe; henüz değiştirilmedi. Bu örnek yaklaşmalı sıçramadır, CMJ veya fiziksel ölçüm doğrulama videosu değildir. İlk model kararı koşulludur; bağımsız doğrulama 8. adımda. Takip/kalite, ayak noktaları ve sahne/aralık sınırlarını doğrulamadan yükseklik veya hız üretme.
 
 ### Adım 3 doğrulaması
 
@@ -236,3 +236,13 @@ Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8
 - `cli/benchmark_pose.py` kaynak SHA256 eşleşen kare listesiyle yeniden çalıştırılabilir; inference, piksel koordinatları ve sürümler saklanır.
 - 42 mevcut test geçti; gerçek üç model çalıştırması bundan ayrı deneydir. AST/syntax kontrolü başarılı.
 - Sıradaki iş: görsel değerlendirmeyi ve koşullu ilk model kararını kaynak/ayar/sonuçlarla raporla; hız kıyasını yalnızca ayrı seri koşulardan al.
+
+
+### Adım 6 kapanışı
+
+- Ayrıntılı sonuç ve yeniden çalıştırma: `docs/model-selection.md`. Görseller/ham noktalar/hash'ler: `data/model_review/` (yerel, Git dışında).
+- Gerçek üç model 204 ortak örnek karede çalıştırıldı. Poz yok: MediaPipe 4, YOLO26x 1, RTMPose-L 0. Bu sayılar doğruluk yüzdesi değildir.
+- İlk aday RTMPose-L WholeBody seçildi; ayak noktaları ve bu örnekte takip devamlılığı gerekçesiyle. Üretim adaptörü henüz eklenmedi; uygulama requirements değişmedi.
+- Ayrı sıralı 15 karelik hız koşuları yapıldı; sonuçlar raporda. İlk paralel koşu süreleri kıyaslanmadı. Model ağırlık hash'leri `summary.json` içinde.
+- Temas çevresinde görsel belirsizlik aralıkları kaydedildi. Uzman landmark ground truth'u olmadığı için piksel/temas MAE ve fiziksel ölçüm hatası hesaplanmadı; bu doğrulama aşaması tamamlanmış değildir.
+- Kod testleri: 42 test geçti. Gerçek model çalıştırmaları ayrı deneydir. `e7986f6` deney komutu ve yaklaşmalı inceleme etiketini ekler. AST/diff temiz; commitler yereldir.

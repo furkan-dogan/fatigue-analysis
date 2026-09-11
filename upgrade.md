@@ -224,3 +224,15 @@ Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8
 - UI'da kareler sıfırdan numaralanır. Kalkış etiketi iki ayağın da havada olduğu ilk kare, iniş etiketi ilk temas karesidir. Süre/yükseklik hesabında bu konvansiyonun belirsizliği sonraki aşamada ayrıca ele alınmalı.
 - Uzun videoda sıralı kare erişimi yavaş olabilir. Revizyonlar kaynak kopyası tutar; disk tekilleştirme kapsam dışıdır. Kalibrasyon iki noktalı taslaktır; otomatik sporcu takibi veya perspektif çözümü yoktur.
 - Sıradaki aşama artık örnek video gerektirir. Model/adaptör henüz değiştirilmedi. Commitler yereldir; push yapılmadı.
+
+
+### Adım 6 — kullanıcı örneği, ilk çalıştırma
+
+- Kullanıcı `How to jump 70% higher in volleyball with this penultimate step - David Seybering (1080p).mp4` dosyasını verdi. Video başlığı/içeriğindeki iddialar talimat veya doğruluk kanıtı kabul edilmedi.
+- Kaynak inceleme geçmişine alındı: `2ef0dc9142574f36999e255655b471b4`; yaklaşmalı sıçrama açıklaması eklenen revizyon `2e8afcf7c1894dcd8f35c4528209e061`.
+- Örnek yerinde CMJ olmadığı için inceleme testlerine `Yaklaşmalı sıçrama (inceleme)` eklendi. Bu algoritma eklemesi değildir; CMJ ile karışmasını önler.
+- Üç aday aynı 204 örnek karede çalıştırıldı; yalnızca MediaPipe zaman içinde izleme davranışını korumak için aradaki kareleri de gördü. Model kesimlerinde reset uygulanmadı; bu deney mevcut davranışı da kapsar.
+- İzole araştırma bağımlılıkları `data/model_review/deps/`; uygulama requirements ve çalışan motor değiştirilmedi. Modeller/ham sonuçlar Git dışında.
+- `cli/benchmark_pose.py` kaynak SHA256 eşleşen kare listesiyle yeniden çalıştırılabilir; inference, piksel koordinatları ve sürümler saklanır.
+- 42 mevcut test geçti; gerçek üç model çalıştırması bundan ayrı deneydir. AST/syntax kontrolü başarılı.
+- Sıradaki iş: görsel değerlendirmeyi ve koşullu ilk model kararını kaynak/ayar/sonuçlarla raporla; hız kıyasını yalnızca ayrı seri koşulardan al.

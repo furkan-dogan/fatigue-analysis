@@ -1,7 +1,7 @@
 """Manual volleyball review contract and validation; no performance metrics."""
 from math import isfinite
 
-TESTS = {'cmj': 'CMJ / Dikey sıçrama', 'asymmetry': 'İniş ve yana sapma', 'sprint': 'Sprint'}
+TESTS = {'cmj': 'CMJ / Dikey sıçrama', 'asymmetry': 'İniş ve yana sapma', 'sprint': 'Sprint', 'approach': 'Yaklaşmalı sıçrama (inceleme)'}
 
 
 def default_review(metadata):

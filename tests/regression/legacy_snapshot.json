@@ -1,0 +1,2148 @@
+{
+  "events": [
+    {
+      "kick_id": 1,
+      "active_leg": "R",
+      "start_frame": 23,
+      "peak_frame": 30,
+      "end_frame": 37,
+      "start_time_sec": 0.7667,
+      "peak_time_sec": 1.0,
+      "end_time_sec": 1.2333,
+      "duration_sec": 0.5,
+      "peak_kick_height_norm": 0.9477,
+      "active_peak_knee_angle_deg": 157.3227,
+      "active_min_knee_angle_deg": 80.0,
+      "active_knee_rom_deg": 77.3227,
+      "R_SHOULDER_mean": 118.5972,
+      "R_SHOULDER_rom": 77.3227,
+      "L_SHOULDER_mean": 170.0,
+      "L_SHOULDER_rom": 0.0,
+      "R_ELBOW_mean": 118.5972,
+      "R_ELBOW_rom": 77.3227,
+      "L_ELBOW_mean": 170.0,
+      "L_ELBOW_rom": 0.0,
+      "R_HIP_mean": 118.5972,
+      "R_HIP_rom": 77.3227,
+      "L_HIP_mean": 170.0,
+      "L_HIP_rom": 0.0,
+      "R_KNEE_mean": 118.5972,
+      "R_KNEE_rom": 77.3227,
+      "L_KNEE_mean": 170.0,
+      "L_KNEE_rom": 0.0,
+      "R_ANKLE_mean": 118.5972,
+      "R_ANKLE_rom": 77.3227,
+      "L_ANKLE_mean": 170.0,
+      "L_ANKLE_rom": 0.0,
+      "active_peak_knee_vel_deg_s": 455.2108,
+      "active_mean_knee_vel_deg_s": 319.8463,
+      "time_to_peak_knee_vel_sec": 0.3667,
+      "active_peak_foot_speed_norm": 10.223,
+      "active_mean_foot_speed_norm": 7.1273,
+      "chamber_frame": 30,
+      "chamber_time_sec": 1.0,
+      "extension_frame": 37,
+      "extension_time_sec": 1.2333,
+      "loading_dur_sec": 0.2333,
+      "extension_dur_sec": 0.2333,
+      "retraction_dur_sec": 0.0,
+      "loading_peak_vel_deg_s": 455.2108,
+      "extension_peak_vel_deg_s": 455.2108,
+      "retraction_peak_vel_deg_s": 213.3604,
+      "knee_asi": 200.0,
+      "hip_asi": 200.0,
+      "pose_confidence": 0.9,
+      "confidence_flag": "ok"
+    },
+    {
+      "kick_id": 2,
+      "active_leg": "R",
+      "start_frame": 73,
+      "peak_frame": 80,
+      "end_frame": 87,
+      "start_time_sec": 2.4333,
+      "peak_time_sec": 2.6667,
+      "end_time_sec": 2.9,
+      "duration_sec": 0.5,
+      "peak_kick_height_norm": 0.9477,
+      "active_peak_knee_angle_deg": 157.3227,
+      "active_min_knee_angle_deg": 80.0,
+      "active_knee_rom_deg": 77.3227,
+      "R_SHOULDER_mean": 118.5972,
+      "R_SHOULDER_rom": 77.3227,
+      "L_SHOULDER_mean": 170.0,
+      "L_SHOULDER_rom": 0.0,
+      "R_ELBOW_mean": 118.5972,
+      "R_ELBOW_rom": 77.3227,
+      "L_ELBOW_mean": 170.0,
+      "L_ELBOW_rom": 0.0,
+      "R_HIP_mean": 118.5972,
+      "R_HIP_rom": 77.3227,
+      "L_HIP_mean": 170.0,
+      "L_HIP_rom": 0.0,
+      "R_KNEE_mean": 118.5972,
+      "R_KNEE_rom": 77.3227,
+      "L_KNEE_mean": 170.0,
+      "L_KNEE_rom": 0.0,
+      "R_ANKLE_mean": 118.5972,
+      "R_ANKLE_rom": 77.3227,
+      "L_ANKLE_mean": 170.0,
+      "L_ANKLE_rom": 0.0,
+      "active_peak_knee_vel_deg_s": 455.2108,
+      "active_mean_knee_vel_deg_s": 319.8463,
+      "time_to_peak_knee_vel_sec": 0.3667,
+      "active_peak_foot_speed_norm": 10.223,
+      "active_mean_foot_speed_norm": 7.1273,
+      "chamber_frame": 80,
+      "chamber_time_sec": 2.6667,
+      "extension_frame": 87,
+      "extension_time_sec": 2.9,
+      "loading_dur_sec": 0.2333,
+      "extension_dur_sec": 0.2333,
+      "retraction_dur_sec": 0.0,
+      "loading_peak_vel_deg_s": 455.2108,
+      "extension_peak_vel_deg_s": 455.2108,
+      "retraction_peak_vel_deg_s": 213.3604,
+      "knee_asi": 200.0,
+      "hip_asi": 200.0,
+      "pose_confidence": 0.9,
+      "confidence_flag": "ok"
+    }
+  ],
+  "velocity": [
+    -0.0,
+    0.0,
+    0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -2e-06,
+    -1.3e-05,
+    -7.5e-05,
+    -0.000396,
+    -0.00189,
+    -0.008198,
+    -0.032402,
+    -0.116919,
+    -0.385641,
+    -1.16351,
+    -3.212077,
+    -8.113642,
+    -18.745099,
+    -39.577747,
+    -76.266325,
+    -133.86242,
+    -213.360435,
+    -307.390608,
+    -397.372369,
+    -455.210786,
+    -451.327707,
+    -367.244399,
+    -206.940729,
+    -0.0,
+    206.940729,
+    367.244399,
+    451.327707,
+    455.210786,
+    397.372369,
+    307.390608,
+    213.360435,
+    133.86242,
+    76.266325,
+    39.577747,
+    18.745099,
+    8.113642,
+    3.212077,
+    1.16351,
+    0.385641,
+    0.116919,
+    0.032402,
+    0.008198,
+    0.00189,
+    0.000396,
+    7.5e-05,
+    1.3e-05,
+    2e-06,
+    0.0,
+    0.0,
+    -0.0,
+    -2e-06,
+    -1.3e-05,
+    -7.5e-05,
+    -0.000396,
+    -0.00189,
+    -0.008198,
+    -0.032402,
+    -0.116919,
+    -0.385641,
+    -1.16351,
+    -3.212077,
+    -8.113642,
+    -18.745099,
+    -39.577747,
+    -76.266325,
+    -133.86242,
+    -213.360435,
+    -307.390608,
+    -397.372369,
+    -455.210786,
+    -451.327707,
+    -367.244399,
+    -206.940729,
+    -0.0,
+    206.940729,
+    367.244399,
+    451.327707,
+    455.210786,
+    397.372369,
+    307.390608,
+    213.360435,
+    133.86242,
+    76.266325,
+    39.577747,
+    18.745099,
+    8.113642,
+    3.212077,
+    1.16351,
+    0.385641,
+    0.116919,
+    0.032402,
+    0.008198,
+    0.00189,
+    0.000396,
+    7.5e-05,
+    1.3e-05,
+    2e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    -0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "acceleration": [
+    0.0,
+    0.0,
+    -0.0,
+    -0.0,
+    -2e-06,
+    -1.3e-05,
+    -8.1e-05,
+    -0.000444,
+    -0.002256,
+    -0.010556,
+    -0.045482,
+    -0.180373,
+    -0.658066,
+    -2.207191,
+    -6.800153,
+    -19.224044,
+    -49.799631,
+    -118.001827,
+    -255.151266,
+    -501.799512,
+    -893.42395,
+    -1430.029316,
+    -2034.893551,
+    -2524.160551,
+    -2622.096702,
+    -2049.189249,
+    -671.171554,
+    1359.077066,
+    3565.949729,
+    5285.726012,
+    5936.185931,
+    5285.726012,
+    3565.949729,
+    1359.077066,
+    -671.171554,
+    -2049.189249,
+    -2622.096702,
+    -2524.160551,
+    -2034.893551,
+    -1430.029316,
+    -893.42395,
+    -501.799512,
+    -255.151266,
+    -118.001827,
+    -49.799631,
+    -19.224044,
+    -6.800153,
+    -2.207191,
+    -0.658066,
+    -0.180373,
+    -0.045482,
+    -0.010556,
+    -0.002256,
+    -0.000444,
+    -8.3e-05,
+    -2.7e-05,
+    -8.3e-05,
+    -0.000444,
+    -0.002256,
+    -0.010556,
+    -0.045482,
+    -0.180373,
+    -0.658066,
+    -2.207191,
+    -6.800153,
+    -19.224044,
+    -49.799631,
+    -118.001827,
+    -255.151266,
+    -501.799512,
+    -893.42395,
+    -1430.029316,
+    -2034.893551,
+    -2524.160551,
+    -2622.096702,
+    -2049.189249,
+    -671.171554,
+    1359.077066,
+    3565.949729,
+    5285.726012,
+    5936.185931,
+    5285.726012,
+    3565.949729,
+    1359.077066,
+    -671.171554,
+    -2049.189249,
+    -2622.096702,
+    -2524.160551,
+    -2034.893551,
+    -1430.029316,
+    -893.42395,
+    -501.799512,
+    -255.151266,
+    -118.001827,
+    -49.799631,
+    -19.224044,
+    -6.800153,
+    -2.207191,
+    -0.658066,
+    -0.180373,
+    -0.045482,
+    -0.010556,
+    -0.002256,
+    -0.000444,
+    -8.1e-05,
+    -1.3e-05,
+    -2e-06,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    -0.0
+  ],
+  "foot_speed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1e-06,
+    5e-06,
+    2.5e-05,
+    0.000109,
+    0.000431,
+    0.00157,
+    0.005262,
+    0.016216,
+    0.045934,
+    0.119513,
+    0.285357,
+    0.624515,
+    1.250895,
+    2.288451,
+    3.813221,
+    5.76416,
+    7.857101,
+    9.564779,
+    10.223034,
+    9.268048,
+    6.518739,
+    2.352634,
+    2.352634,
+    6.518739,
+    9.268048,
+    10.223034,
+    9.564779,
+    7.857101,
+    5.76416,
+    3.813221,
+    2.288451,
+    1.250895,
+    0.624515,
+    0.285357,
+    0.119513,
+    0.045934,
+    0.016216,
+    0.005262,
+    0.00157,
+    0.000431,
+    0.000109,
+    2.5e-05,
+    5e-06,
+    1e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1e-06,
+    5e-06,
+    2.5e-05,
+    0.000109,
+    0.000431,
+    0.00157,
+    0.005262,
+    0.016216,
+    0.045934,
+    0.119513,
+    0.285357,
+    0.624515,
+    1.250895,
+    2.288451,
+    3.813221,
+    5.76416,
+    7.857101,
+    9.564779,
+    10.223034,
+    9.268048,
+    6.518739,
+    2.352634,
+    2.352634,
+    6.518739,
+    9.268048,
+    10.223034,
+    9.564779,
+    7.857101,
+    5.76416,
+    3.813221,
+    2.288451,
+    1.250895,
+    0.624515,
+    0.285357,
+    0.119513,
+    0.045934,
+    0.016216,
+    0.005262,
+    0.00157,
+    0.000431,
+    0.000109,
+    2.5e-05,
+    5e-06,
+    1e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "fatigue": {
+    "metrics": {
+      "active_knee_rom_deg": {
+        "label": "Aktif Diz ROM",
+        "unit": "°",
+        "direction": -1,
+        "pre": 77.3227,
+        "post": 77.3227,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "active_peak_knee_vel_deg_s": {
+        "label": "Peak Diz Hızı",
+        "unit": "°/s",
+        "direction": -1,
+        "pre": 455.2108,
+        "post": 455.2108,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "active_mean_knee_vel_deg_s": {
+        "label": "Ort. Diz Hızı",
+        "unit": "°/s",
+        "direction": -1,
+        "pre": 319.8463,
+        "post": 319.8463,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "time_to_peak_knee_vel_sec": {
+        "label": "Peak Hıza Süre",
+        "unit": "sn",
+        "direction": 1,
+        "pre": 0.3667,
+        "post": 0.3667,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": 0.0
+      },
+      "peak_kick_height_norm": {
+        "label": "Peak Tekme Yüksekliği",
+        "unit": "",
+        "direction": -1,
+        "pre": 0.9477,
+        "post": 0.9477,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "active_peak_foot_speed_norm": {
+        "label": "Peak Ayak Hızı",
+        "unit": "t/s",
+        "direction": -1,
+        "pre": 10.223,
+        "post": 10.223,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "duration_sec": {
+        "label": "Tekme Süresi",
+        "unit": "sn",
+        "direction": 1,
+        "pre": 0.5,
+        "post": 0.5,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": 0.0
+      },
+      "R_HIP_rom": {
+        "label": "Sağ Kalça ROM",
+        "unit": "°",
+        "direction": -1,
+        "pre": 77.3227,
+        "post": 77.3227,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      },
+      "L_HIP_rom": {
+        "label": "Sol Kalça ROM",
+        "unit": "°",
+        "direction": -1,
+        "pre": 0.0,
+        "post": 0.0,
+        "delta": null,
+        "pct": null,
+        "fatigue_contribution": null
+      },
+      "R_ANKLE_rom": {
+        "label": "Sağ Ayak Bileği ROM",
+        "unit": "°",
+        "direction": -1,
+        "pre": 77.3227,
+        "post": 77.3227,
+        "delta": 0.0,
+        "pct": 0.0,
+        "fatigue_contribution": -0.0
+      }
+    },
+    "fatigue_index": 50.0,
+    "composite_raw": 0.0
+  },
+  "synthetic_emg": [
+    {
+      "time_sec": 0.0,
+      "EMG_RMS_mV": 0.0244,
+      "EMG_CH2_RMS_mV": 0.029,
+      "EMG_CH1_median_freq_Hz": 48.0,
+      "EMG_CH2_median_freq_Hz": 48.0,
+      "EMG_median_freq_Hz": 48.0
+    },
+    {
+      "time_sec": 0.0333,
+      "EMG_RMS_mV": 0.0496,
+      "EMG_CH2_RMS_mV": 0.0381,
+      "EMG_CH1_median_freq_Hz": 64.46,
+      "EMG_CH2_median_freq_Hz": 65.23,
+      "EMG_median_freq_Hz": 64.84
+    },
+    {
+      "time_sec": 0.0667,
+      "EMG_RMS_mV": 0.061,
+      "EMG_CH2_RMS_mV": 0.0448,
+      "EMG_CH1_median_freq_Hz": 86.68,
+      "EMG_CH2_median_freq_Hz": 84.26,
+      "EMG_median_freq_Hz": 85.47
+    },
+    {
+      "time_sec": 0.1,
+      "EMG_RMS_mV": 0.0575,
+      "EMG_CH2_RMS_mV": 0.0289,
+      "EMG_CH1_median_freq_Hz": 90.2,
+      "EMG_CH2_median_freq_Hz": 84.18,
+      "EMG_median_freq_Hz": 87.19
+    },
+    {
+      "time_sec": 0.1333,
+      "EMG_RMS_mV": 0.0599,
+      "EMG_CH2_RMS_mV": 0.0322,
+      "EMG_CH1_median_freq_Hz": 91.49,
+      "EMG_CH2_median_freq_Hz": 85.2,
+      "EMG_median_freq_Hz": 88.34
+    },
+    {
+      "time_sec": 0.1667,
+      "EMG_RMS_mV": 0.0532,
+      "EMG_CH2_RMS_mV": 0.0304,
+      "EMG_CH1_median_freq_Hz": 86.59,
+      "EMG_CH2_median_freq_Hz": 85.84,
+      "EMG_median_freq_Hz": 86.22
+    },
+    {
+      "time_sec": 0.2,
+      "EMG_RMS_mV": 0.067,
+      "EMG_CH2_RMS_mV": 0.0337,
+      "EMG_CH1_median_freq_Hz": 87.56,
+      "EMG_CH2_median_freq_Hz": 85.01,
+      "EMG_median_freq_Hz": 86.28
+    },
+    {
+      "time_sec": 0.2333,
+      "EMG_RMS_mV": 0.0662,
+      "EMG_CH2_RMS_mV": 0.0277,
+      "EMG_CH1_median_freq_Hz": 88.41,
+      "EMG_CH2_median_freq_Hz": 86.33,
+      "EMG_median_freq_Hz": 87.37
+    },
+    {
+      "time_sec": 0.2667,
+      "EMG_RMS_mV": 0.0605,
+      "EMG_CH2_RMS_mV": 0.0398,
+      "EMG_CH1_median_freq_Hz": 90.07,
+      "EMG_CH2_median_freq_Hz": 85.86,
+      "EMG_median_freq_Hz": 87.97
+    },
+    {
+      "time_sec": 0.3,
+      "EMG_RMS_mV": 0.069,
+      "EMG_CH2_RMS_mV": 0.0347,
+      "EMG_CH1_median_freq_Hz": 86.82,
+      "EMG_CH2_median_freq_Hz": 85.84,
+      "EMG_median_freq_Hz": 86.33
+    },
+    {
+      "time_sec": 0.3333,
+      "EMG_RMS_mV": 0.0637,
+      "EMG_CH2_RMS_mV": 0.0272,
+      "EMG_CH1_median_freq_Hz": 87.71,
+      "EMG_CH2_median_freq_Hz": 85.55,
+      "EMG_median_freq_Hz": 86.63
+    },
+    {
+      "time_sec": 0.3667,
+      "EMG_RMS_mV": 0.0531,
+      "EMG_CH2_RMS_mV": 0.0299,
+      "EMG_CH1_median_freq_Hz": 88.93,
+      "EMG_CH2_median_freq_Hz": 87.33,
+      "EMG_median_freq_Hz": 88.13
+    },
+    {
+      "time_sec": 0.4,
+      "EMG_RMS_mV": 0.063,
+      "EMG_CH2_RMS_mV": 0.0379,
+      "EMG_CH1_median_freq_Hz": 88.52,
+      "EMG_CH2_median_freq_Hz": 84.79,
+      "EMG_median_freq_Hz": 86.66
+    },
+    {
+      "time_sec": 0.4333,
+      "EMG_RMS_mV": 0.0523,
+      "EMG_CH2_RMS_mV": 0.041,
+      "EMG_CH1_median_freq_Hz": 87.55,
+      "EMG_CH2_median_freq_Hz": 83.0,
+      "EMG_median_freq_Hz": 85.27
+    },
+    {
+      "time_sec": 0.4667,
+      "EMG_RMS_mV": 0.067,
+      "EMG_CH2_RMS_mV": 0.048,
+      "EMG_CH1_median_freq_Hz": 87.84,
+      "EMG_CH2_median_freq_Hz": 86.6,
+      "EMG_median_freq_Hz": 87.22
+    },
+    {
+      "time_sec": 0.5,
+      "EMG_RMS_mV": 0.0596,
+      "EMG_CH2_RMS_mV": 0.0535,
+      "EMG_CH1_median_freq_Hz": 86.35,
+      "EMG_CH2_median_freq_Hz": 84.54,
+      "EMG_median_freq_Hz": 85.45
+    },
+    {
+      "time_sec": 0.5333,
+      "EMG_RMS_mV": 0.0585,
+      "EMG_CH2_RMS_mV": 0.0385,
+      "EMG_CH1_median_freq_Hz": 87.71,
+      "EMG_CH2_median_freq_Hz": 85.11,
+      "EMG_median_freq_Hz": 86.41
+    },
+    {
+      "time_sec": 0.5667,
+      "EMG_RMS_mV": 0.0546,
+      "EMG_CH2_RMS_mV": 0.0301,
+      "EMG_CH1_median_freq_Hz": 87.68,
+      "EMG_CH2_median_freq_Hz": 86.31,
+      "EMG_median_freq_Hz": 86.99
+    },
+    {
+      "time_sec": 0.6,
+      "EMG_RMS_mV": 0.0698,
+      "EMG_CH2_RMS_mV": 0.0232,
+      "EMG_CH1_median_freq_Hz": 88.28,
+      "EMG_CH2_median_freq_Hz": 83.4,
+      "EMG_median_freq_Hz": 85.84
+    },
+    {
+      "time_sec": 0.6333,
+      "EMG_RMS_mV": 0.0588,
+      "EMG_CH2_RMS_mV": 0.0376,
+      "EMG_CH1_median_freq_Hz": 87.33,
+      "EMG_CH2_median_freq_Hz": 83.75,
+      "EMG_median_freq_Hz": 85.54
+    },
+    {
+      "time_sec": 0.6667,
+      "EMG_RMS_mV": 0.0566,
+      "EMG_CH2_RMS_mV": 0.0311,
+      "EMG_CH1_median_freq_Hz": 88.57,
+      "EMG_CH2_median_freq_Hz": 83.4,
+      "EMG_median_freq_Hz": 85.98
+    },
+    {
+      "time_sec": 0.7,
+      "EMG_RMS_mV": 0.0572,
+      "EMG_CH2_RMS_mV": 0.0335,
+      "EMG_CH1_median_freq_Hz": 89.22,
+      "EMG_CH2_median_freq_Hz": 84.21,
+      "EMG_median_freq_Hz": 86.71
+    },
+    {
+      "time_sec": 0.7333,
+      "EMG_RMS_mV": 0.0644,
+      "EMG_CH2_RMS_mV": 0.0332,
+      "EMG_CH1_median_freq_Hz": 88.19,
+      "EMG_CH2_median_freq_Hz": 85.44,
+      "EMG_median_freq_Hz": 86.81
+    },
+    {
+      "time_sec": 0.7667,
+      "EMG_RMS_mV": 0.0633,
+      "EMG_CH2_RMS_mV": 0.0376,
+      "EMG_CH1_median_freq_Hz": 88.42,
+      "EMG_CH2_median_freq_Hz": 85.52,
+      "EMG_median_freq_Hz": 86.97
+    },
+    {
+      "time_sec": 0.8,
+      "EMG_RMS_mV": 0.0644,
+      "EMG_CH2_RMS_mV": 0.0478,
+      "EMG_CH1_median_freq_Hz": 88.06,
+      "EMG_CH2_median_freq_Hz": 85.28,
+      "EMG_median_freq_Hz": 86.67
+    },
+    {
+      "time_sec": 0.8333,
+      "EMG_RMS_mV": 0.0661,
+      "EMG_CH2_RMS_mV": 0.0468,
+      "EMG_CH1_median_freq_Hz": 88.0,
+      "EMG_CH2_median_freq_Hz": 83.59,
+      "EMG_median_freq_Hz": 85.79
+    },
+    {
+      "time_sec": 0.8667,
+      "EMG_RMS_mV": 0.0834,
+      "EMG_CH2_RMS_mV": 0.0521,
+      "EMG_CH1_median_freq_Hz": 87.13,
+      "EMG_CH2_median_freq_Hz": 82.69,
+      "EMG_median_freq_Hz": 84.91
+    },
+    {
+      "time_sec": 0.9,
+      "EMG_RMS_mV": 0.0704,
+      "EMG_CH2_RMS_mV": 0.058,
+      "EMG_CH1_median_freq_Hz": 88.38,
+      "EMG_CH2_median_freq_Hz": 85.05,
+      "EMG_median_freq_Hz": 86.72
+    },
+    {
+      "time_sec": 0.9333,
+      "EMG_RMS_mV": 0.0833,
+      "EMG_CH2_RMS_mV": 0.0703,
+      "EMG_CH1_median_freq_Hz": 87.88,
+      "EMG_CH2_median_freq_Hz": 84.53,
+      "EMG_median_freq_Hz": 86.21
+    },
+    {
+      "time_sec": 0.9667,
+      "EMG_RMS_mV": 0.1046,
+      "EMG_CH2_RMS_mV": 0.0997,
+      "EMG_CH1_median_freq_Hz": 90.51,
+      "EMG_CH2_median_freq_Hz": 85.46,
+      "EMG_median_freq_Hz": 87.99
+    },
+    {
+      "time_sec": 1.0,
+      "EMG_RMS_mV": 0.1537,
+      "EMG_CH2_RMS_mV": 0.1311,
+      "EMG_CH1_median_freq_Hz": 89.89,
+      "EMG_CH2_median_freq_Hz": 85.7,
+      "EMG_median_freq_Hz": 87.79
+    },
+    {
+      "time_sec": 1.0333,
+      "EMG_RMS_mV": 0.212,
+      "EMG_CH2_RMS_mV": 0.1768,
+      "EMG_CH1_median_freq_Hz": 88.46,
+      "EMG_CH2_median_freq_Hz": 85.14,
+      "EMG_median_freq_Hz": 86.8
+    },
+    {
+      "time_sec": 1.0667,
+      "EMG_RMS_mV": 0.2731,
+      "EMG_CH2_RMS_mV": 0.2061,
+      "EMG_CH1_median_freq_Hz": 87.08,
+      "EMG_CH2_median_freq_Hz": 85.76,
+      "EMG_median_freq_Hz": 86.42
+    },
+    {
+      "time_sec": 1.1,
+      "EMG_RMS_mV": 0.351,
+      "EMG_CH2_RMS_mV": 0.2518,
+      "EMG_CH1_median_freq_Hz": 86.67,
+      "EMG_CH2_median_freq_Hz": 85.23,
+      "EMG_median_freq_Hz": 85.95
+    },
+    {
+      "time_sec": 1.1333,
+      "EMG_RMS_mV": 0.4382,
+      "EMG_CH2_RMS_mV": 0.2811,
+      "EMG_CH1_median_freq_Hz": 89.43,
+      "EMG_CH2_median_freq_Hz": 85.53,
+      "EMG_median_freq_Hz": 87.48
+    },
+    {
+      "time_sec": 1.1667,
+      "EMG_RMS_mV": 0.5273,
+      "EMG_CH2_RMS_mV": 0.3085,
+      "EMG_CH1_median_freq_Hz": 88.32,
+      "EMG_CH2_median_freq_Hz": 84.3,
+      "EMG_median_freq_Hz": 86.31
+    },
+    {
+      "time_sec": 1.2,
+      "EMG_RMS_mV": 0.5818,
+      "EMG_CH2_RMS_mV": 0.3305,
+      "EMG_CH1_median_freq_Hz": 88.58,
+      "EMG_CH2_median_freq_Hz": 84.82,
+      "EMG_median_freq_Hz": 86.7
+    },
+    {
+      "time_sec": 1.2333,
+      "EMG_RMS_mV": 0.4234,
+      "EMG_CH2_RMS_mV": 0.2376,
+      "EMG_CH1_median_freq_Hz": 85.91,
+      "EMG_CH2_median_freq_Hz": 85.2,
+      "EMG_median_freq_Hz": 85.55
+    },
+    {
+      "time_sec": 1.2667,
+      "EMG_RMS_mV": 0.2376,
+      "EMG_CH2_RMS_mV": 0.153,
+      "EMG_CH1_median_freq_Hz": 89.11,
+      "EMG_CH2_median_freq_Hz": 85.82,
+      "EMG_median_freq_Hz": 87.47
+    },
+    {
+      "time_sec": 1.3,
+      "EMG_RMS_mV": 0.0619,
+      "EMG_CH2_RMS_mV": 0.0311,
+      "EMG_CH1_median_freq_Hz": 88.55,
+      "EMG_CH2_median_freq_Hz": 84.61,
+      "EMG_median_freq_Hz": 86.58
+    },
+    {
+      "time_sec": 1.3333,
+      "EMG_RMS_mV": 0.0609,
+      "EMG_CH2_RMS_mV": 0.041,
+      "EMG_CH1_median_freq_Hz": 86.67,
+      "EMG_CH2_median_freq_Hz": 85.52,
+      "EMG_median_freq_Hz": 86.09
+    },
+    {
+      "time_sec": 1.3667,
+      "EMG_RMS_mV": 0.0617,
+      "EMG_CH2_RMS_mV": 0.0306,
+      "EMG_CH1_median_freq_Hz": 87.43,
+      "EMG_CH2_median_freq_Hz": 84.73,
+      "EMG_median_freq_Hz": 86.08
+    },
+    {
+      "time_sec": 1.4,
+      "EMG_RMS_mV": 0.067,
+      "EMG_CH2_RMS_mV": 0.0416,
+      "EMG_CH1_median_freq_Hz": 88.32,
+      "EMG_CH2_median_freq_Hz": 84.88,
+      "EMG_median_freq_Hz": 86.6
+    },
+    {
+      "time_sec": 1.4333,
+      "EMG_RMS_mV": 0.0618,
+      "EMG_CH2_RMS_mV": 0.0383,
+      "EMG_CH1_median_freq_Hz": 88.06,
+      "EMG_CH2_median_freq_Hz": 85.83,
+      "EMG_median_freq_Hz": 86.95
+    },
+    {
+      "time_sec": 1.4667,
+      "EMG_RMS_mV": 0.0654,
+      "EMG_CH2_RMS_mV": 0.0351,
+      "EMG_CH1_median_freq_Hz": 87.65,
+      "EMG_CH2_median_freq_Hz": 83.01,
+      "EMG_median_freq_Hz": 85.33
+    },
+    {
+      "time_sec": 1.5,
+      "EMG_RMS_mV": 0.0605,
+      "EMG_CH2_RMS_mV": 0.0358,
+      "EMG_CH1_median_freq_Hz": 87.88,
+      "EMG_CH2_median_freq_Hz": 83.7,
+      "EMG_median_freq_Hz": 85.79
+    },
+    {
+      "time_sec": 1.5333,
+      "EMG_RMS_mV": 0.0623,
+      "EMG_CH2_RMS_mV": 0.0321,
+      "EMG_CH1_median_freq_Hz": 87.7,
+      "EMG_CH2_median_freq_Hz": 83.52,
+      "EMG_median_freq_Hz": 85.61
+    },
+    {
+      "time_sec": 1.5667,
+      "EMG_RMS_mV": 0.0651,
+      "EMG_CH2_RMS_mV": 0.0387,
+      "EMG_CH1_median_freq_Hz": 88.18,
+      "EMG_CH2_median_freq_Hz": 82.67,
+      "EMG_median_freq_Hz": 85.42
+    },
+    {
+      "time_sec": 1.6,
+      "EMG_RMS_mV": 0.0483,
+      "EMG_CH2_RMS_mV": 0.0333,
+      "EMG_CH1_median_freq_Hz": 89.77,
+      "EMG_CH2_median_freq_Hz": 84.32,
+      "EMG_median_freq_Hz": 87.04
+    },
+    {
+      "time_sec": 1.6333,
+      "EMG_RMS_mV": 0.0574,
+      "EMG_CH2_RMS_mV": 0.0286,
+      "EMG_CH1_median_freq_Hz": 84.92,
+      "EMG_CH2_median_freq_Hz": 85.75,
+      "EMG_median_freq_Hz": 85.33
+    },
+    {
+      "time_sec": 1.6667,
+      "EMG_RMS_mV": 0.0562,
+      "EMG_CH2_RMS_mV": 0.0283,
+      "EMG_CH1_median_freq_Hz": 87.72,
+      "EMG_CH2_median_freq_Hz": 84.72,
+      "EMG_median_freq_Hz": 86.22
+    },
+    {
+      "time_sec": 1.7,
+      "EMG_RMS_mV": 0.0549,
+      "EMG_CH2_RMS_mV": 0.037,
+      "EMG_CH1_median_freq_Hz": 88.21,
+      "EMG_CH2_median_freq_Hz": 85.2,
+      "EMG_median_freq_Hz": 86.7
+    },
+    {
+      "time_sec": 1.7333,
+      "EMG_RMS_mV": 0.0578,
+      "EMG_CH2_RMS_mV": 0.0455,
+      "EMG_CH1_median_freq_Hz": 88.36,
+      "EMG_CH2_median_freq_Hz": 86.09,
+      "EMG_median_freq_Hz": 87.22
+    },
+    {
+      "time_sec": 1.7667,
+      "EMG_RMS_mV": 0.072,
+      "EMG_CH2_RMS_mV": 0.037,
+      "EMG_CH1_median_freq_Hz": 87.55,
+      "EMG_CH2_median_freq_Hz": 86.33,
+      "EMG_median_freq_Hz": 86.94
+    },
+    {
+      "time_sec": 1.8,
+      "EMG_RMS_mV": 0.0531,
+      "EMG_CH2_RMS_mV": 0.0353,
+      "EMG_CH1_median_freq_Hz": 85.89,
+      "EMG_CH2_median_freq_Hz": 84.93,
+      "EMG_median_freq_Hz": 85.41
+    },
+    {
+      "time_sec": 1.8333,
+      "EMG_RMS_mV": 0.0677,
+      "EMG_CH2_RMS_mV": 0.0377,
+      "EMG_CH1_median_freq_Hz": 88.39,
+      "EMG_CH2_median_freq_Hz": 86.35,
+      "EMG_median_freq_Hz": 87.37
+    },
+    {
+      "time_sec": 1.8667,
+      "EMG_RMS_mV": 0.0465,
+      "EMG_CH2_RMS_mV": 0.0438,
+      "EMG_CH1_median_freq_Hz": 90.07,
+      "EMG_CH2_median_freq_Hz": 85.09,
+      "EMG_median_freq_Hz": 87.58
+    },
+    {
+      "time_sec": 1.9,
+      "EMG_RMS_mV": 0.0573,
+      "EMG_CH2_RMS_mV": 0.0373,
+      "EMG_CH1_median_freq_Hz": 86.16,
+      "EMG_CH2_median_freq_Hz": 84.16,
+      "EMG_median_freq_Hz": 85.16
+    },
+    {
+      "time_sec": 1.9333,
+      "EMG_RMS_mV": 0.0613,
+      "EMG_CH2_RMS_mV": 0.0335,
+      "EMG_CH1_median_freq_Hz": 89.04,
+      "EMG_CH2_median_freq_Hz": 84.41,
+      "EMG_median_freq_Hz": 86.72
+    },
+    {
+      "time_sec": 1.9667,
+      "EMG_RMS_mV": 0.0647,
+      "EMG_CH2_RMS_mV": 0.0426,
+      "EMG_CH1_median_freq_Hz": 87.61,
+      "EMG_CH2_median_freq_Hz": 83.52,
+      "EMG_median_freq_Hz": 85.56
+    },
+    {
+      "time_sec": 2.0,
+      "EMG_RMS_mV": 0.0657,
+      "EMG_CH2_RMS_mV": 0.0386,
+      "EMG_CH1_median_freq_Hz": 87.93,
+      "EMG_CH2_median_freq_Hz": 84.11,
+      "EMG_median_freq_Hz": 86.02
+    },
+    {
+      "time_sec": 2.0333,
+      "EMG_RMS_mV": 0.0663,
+      "EMG_CH2_RMS_mV": 0.0452,
+      "EMG_CH1_median_freq_Hz": 86.74,
+      "EMG_CH2_median_freq_Hz": 84.64,
+      "EMG_median_freq_Hz": 85.69
+    },
+    {
+      "time_sec": 2.0667,
+      "EMG_RMS_mV": 0.0572,
+      "EMG_CH2_RMS_mV": 0.0371,
+      "EMG_CH1_median_freq_Hz": 87.6,
+      "EMG_CH2_median_freq_Hz": 85.8,
+      "EMG_median_freq_Hz": 86.7
+    },
+    {
+      "time_sec": 2.1,
+      "EMG_RMS_mV": 0.0563,
+      "EMG_CH2_RMS_mV": 0.0287,
+      "EMG_CH1_median_freq_Hz": 89.56,
+      "EMG_CH2_median_freq_Hz": 86.72,
+      "EMG_median_freq_Hz": 88.14
+    },
+    {
+      "time_sec": 2.1333,
+      "EMG_RMS_mV": 0.0669,
+      "EMG_CH2_RMS_mV": 0.0278,
+      "EMG_CH1_median_freq_Hz": 88.7,
+      "EMG_CH2_median_freq_Hz": 83.62,
+      "EMG_median_freq_Hz": 86.16
+    },
+    {
+      "time_sec": 2.1667,
+      "EMG_RMS_mV": 0.0585,
+      "EMG_CH2_RMS_mV": 0.0459,
+      "EMG_CH1_median_freq_Hz": 90.08,
+      "EMG_CH2_median_freq_Hz": 85.39,
+      "EMG_median_freq_Hz": 87.74
+    },
+    {
+      "time_sec": 2.2,
+      "EMG_RMS_mV": 0.0498,
+      "EMG_CH2_RMS_mV": 0.0463,
+      "EMG_CH1_median_freq_Hz": 89.41,
+      "EMG_CH2_median_freq_Hz": 83.96,
+      "EMG_median_freq_Hz": 86.69
+    },
+    {
+      "time_sec": 2.2333,
+      "EMG_RMS_mV": 0.0509,
+      "EMG_CH2_RMS_mV": 0.0349,
+      "EMG_CH1_median_freq_Hz": 88.53,
+      "EMG_CH2_median_freq_Hz": 85.47,
+      "EMG_median_freq_Hz": 87.0
+    },
+    {
+      "time_sec": 2.2667,
+      "EMG_RMS_mV": 0.0526,
+      "EMG_CH2_RMS_mV": 0.0337,
+      "EMG_CH1_median_freq_Hz": 90.09,
+      "EMG_CH2_median_freq_Hz": 84.87,
+      "EMG_median_freq_Hz": 87.48
+    },
+    {
+      "time_sec": 2.3,
+      "EMG_RMS_mV": 0.064,
+      "EMG_CH2_RMS_mV": 0.0448,
+      "EMG_CH1_median_freq_Hz": 88.53,
+      "EMG_CH2_median_freq_Hz": 83.17,
+      "EMG_median_freq_Hz": 85.85
+    },
+    {
+      "time_sec": 2.3333,
+      "EMG_RMS_mV": 0.0611,
+      "EMG_CH2_RMS_mV": 0.0294,
+      "EMG_CH1_median_freq_Hz": 88.99,
+      "EMG_CH2_median_freq_Hz": 85.93,
+      "EMG_median_freq_Hz": 87.46
+    },
+    {
+      "time_sec": 2.3667,
+      "EMG_RMS_mV": 0.0655,
+      "EMG_CH2_RMS_mV": 0.0306,
+      "EMG_CH1_median_freq_Hz": 87.64,
+      "EMG_CH2_median_freq_Hz": 84.39,
+      "EMG_median_freq_Hz": 86.02
+    },
+    {
+      "time_sec": 2.4,
+      "EMG_RMS_mV": 0.0567,
+      "EMG_CH2_RMS_mV": 0.0408,
+      "EMG_CH1_median_freq_Hz": 88.08,
+      "EMG_CH2_median_freq_Hz": 84.47,
+      "EMG_median_freq_Hz": 86.27
+    },
+    {
+      "time_sec": 2.4333,
+      "EMG_RMS_mV": 0.0616,
+      "EMG_CH2_RMS_mV": 0.0364,
+      "EMG_CH1_median_freq_Hz": 87.16,
+      "EMG_CH2_median_freq_Hz": 83.93,
+      "EMG_median_freq_Hz": 85.55
+    },
+    {
+      "time_sec": 2.4667,
+      "EMG_RMS_mV": 0.0661,
+      "EMG_CH2_RMS_mV": 0.042,
+      "EMG_CH1_median_freq_Hz": 89.19,
+      "EMG_CH2_median_freq_Hz": 84.35,
+      "EMG_median_freq_Hz": 86.77
+    },
+    {
+      "time_sec": 2.5,
+      "EMG_RMS_mV": 0.0603,
+      "EMG_CH2_RMS_mV": 0.0461,
+      "EMG_CH1_median_freq_Hz": 86.59,
+      "EMG_CH2_median_freq_Hz": 85.43,
+      "EMG_median_freq_Hz": 86.01
+    },
+    {
+      "time_sec": 2.5333,
+      "EMG_RMS_mV": 0.0701,
+      "EMG_CH2_RMS_mV": 0.0572,
+      "EMG_CH1_median_freq_Hz": 88.94,
+      "EMG_CH2_median_freq_Hz": 84.81,
+      "EMG_median_freq_Hz": 86.87
+    },
+    {
+      "time_sec": 2.5667,
+      "EMG_RMS_mV": 0.0686,
+      "EMG_CH2_RMS_mV": 0.0761,
+      "EMG_CH1_median_freq_Hz": 87.77,
+      "EMG_CH2_median_freq_Hz": 85.33,
+      "EMG_median_freq_Hz": 86.55
+    },
+    {
+      "time_sec": 2.6,
+      "EMG_RMS_mV": 0.085,
+      "EMG_CH2_RMS_mV": 0.0864,
+      "EMG_CH1_median_freq_Hz": 89.41,
+      "EMG_CH2_median_freq_Hz": 85.36,
+      "EMG_median_freq_Hz": 87.38
+    },
+    {
+      "time_sec": 2.6333,
+      "EMG_RMS_mV": 0.1091,
+      "EMG_CH2_RMS_mV": 0.1147,
+      "EMG_CH1_median_freq_Hz": 88.9,
+      "EMG_CH2_median_freq_Hz": 86.32,
+      "EMG_median_freq_Hz": 87.61
+    },
+    {
+      "time_sec": 2.6667,
+      "EMG_RMS_mV": 0.1409,
+      "EMG_CH2_RMS_mV": 0.1308,
+      "EMG_CH1_median_freq_Hz": 90.18,
+      "EMG_CH2_median_freq_Hz": 84.66,
+      "EMG_median_freq_Hz": 87.42
+    },
+    {
+      "time_sec": 2.7,
+      "EMG_RMS_mV": 0.2097,
+      "EMG_CH2_RMS_mV": 0.1818,
+      "EMG_CH1_median_freq_Hz": 88.88,
+      "EMG_CH2_median_freq_Hz": 83.52,
+      "EMG_median_freq_Hz": 86.2
+    },
+    {
+      "time_sec": 2.7333,
+      "EMG_RMS_mV": 0.2745,
+      "EMG_CH2_RMS_mV": 0.221,
+      "EMG_CH1_median_freq_Hz": 86.11,
+      "EMG_CH2_median_freq_Hz": 86.07,
+      "EMG_median_freq_Hz": 86.09
+    },
+    {
+      "time_sec": 2.7667,
+      "EMG_RMS_mV": 0.3636,
+      "EMG_CH2_RMS_mV": 0.2643,
+      "EMG_CH1_median_freq_Hz": 87.92,
+      "EMG_CH2_median_freq_Hz": 84.67,
+      "EMG_median_freq_Hz": 86.29
+    },
+    {
+      "time_sec": 2.8,
+      "EMG_RMS_mV": 0.4561,
+      "EMG_CH2_RMS_mV": 0.3093,
+      "EMG_CH1_median_freq_Hz": 86.59,
+      "EMG_CH2_median_freq_Hz": 86.11,
+      "EMG_median_freq_Hz": 86.35
+    },
+    {
+      "time_sec": 2.8333,
+      "EMG_RMS_mV": 0.5347,
+      "EMG_CH2_RMS_mV": 0.3479,
+      "EMG_CH1_median_freq_Hz": 87.38,
+      "EMG_CH2_median_freq_Hz": 85.38,
+      "EMG_median_freq_Hz": 86.38
+    },
+    {
+      "time_sec": 2.8667,
+      "EMG_RMS_mV": 0.5912,
+      "EMG_CH2_RMS_mV": 0.3787,
+      "EMG_CH1_median_freq_Hz": 89.81,
+      "EMG_CH2_median_freq_Hz": 84.87,
+      "EMG_median_freq_Hz": 87.34
+    },
+    {
+      "time_sec": 2.9,
+      "EMG_RMS_mV": 0.4252,
+      "EMG_CH2_RMS_mV": 0.2592,
+      "EMG_CH1_median_freq_Hz": 88.54,
+      "EMG_CH2_median_freq_Hz": 85.16,
+      "EMG_median_freq_Hz": 86.85
+    },
+    {
+      "time_sec": 2.9333,
+      "EMG_RMS_mV": 0.2432,
+      "EMG_CH2_RMS_mV": 0.1532,
+      "EMG_CH1_median_freq_Hz": 86.71,
+      "EMG_CH2_median_freq_Hz": 86.57,
+      "EMG_median_freq_Hz": 86.64
+    },
+    {
+      "time_sec": 2.9667,
+      "EMG_RMS_mV": 0.0594,
+      "EMG_CH2_RMS_mV": 0.0331,
+      "EMG_CH1_median_freq_Hz": 86.11,
+      "EMG_CH2_median_freq_Hz": 86.5,
+      "EMG_median_freq_Hz": 86.31
+    },
+    {
+      "time_sec": 3.0,
+      "EMG_RMS_mV": 0.0465,
+      "EMG_CH2_RMS_mV": 0.034,
+      "EMG_CH1_median_freq_Hz": 87.14,
+      "EMG_CH2_median_freq_Hz": 84.3,
+      "EMG_median_freq_Hz": 85.72
+    },
+    {
+      "time_sec": 3.0333,
+      "EMG_RMS_mV": 0.0484,
+      "EMG_CH2_RMS_mV": 0.042,
+      "EMG_CH1_median_freq_Hz": 85.64,
+      "EMG_CH2_median_freq_Hz": 84.4,
+      "EMG_median_freq_Hz": 85.02
+    },
+    {
+      "time_sec": 3.0667,
+      "EMG_RMS_mV": 0.0494,
+      "EMG_CH2_RMS_mV": 0.0392,
+      "EMG_CH1_median_freq_Hz": 86.29,
+      "EMG_CH2_median_freq_Hz": 85.31,
+      "EMG_median_freq_Hz": 85.8
+    },
+    {
+      "time_sec": 3.1,
+      "EMG_RMS_mV": 0.052,
+      "EMG_CH2_RMS_mV": 0.044,
+      "EMG_CH1_median_freq_Hz": 87.47,
+      "EMG_CH2_median_freq_Hz": 83.39,
+      "EMG_median_freq_Hz": 85.43
+    },
+    {
+      "time_sec": 3.1333,
+      "EMG_RMS_mV": 0.0632,
+      "EMG_CH2_RMS_mV": 0.0351,
+      "EMG_CH1_median_freq_Hz": 88.49,
+      "EMG_CH2_median_freq_Hz": 84.57,
+      "EMG_median_freq_Hz": 86.53
+    },
+    {
+      "time_sec": 3.1667,
+      "EMG_RMS_mV": 0.0528,
+      "EMG_CH2_RMS_mV": 0.0318,
+      "EMG_CH1_median_freq_Hz": 87.83,
+      "EMG_CH2_median_freq_Hz": 84.21,
+      "EMG_median_freq_Hz": 86.02
+    },
+    {
+      "time_sec": 3.2,
+      "EMG_RMS_mV": 0.057,
+      "EMG_CH2_RMS_mV": 0.0347,
+      "EMG_CH1_median_freq_Hz": 84.35,
+      "EMG_CH2_median_freq_Hz": 84.55,
+      "EMG_median_freq_Hz": 84.45
+    },
+    {
+      "time_sec": 3.2333,
+      "EMG_RMS_mV": 0.0704,
+      "EMG_CH2_RMS_mV": 0.0375,
+      "EMG_CH1_median_freq_Hz": 87.47,
+      "EMG_CH2_median_freq_Hz": 83.4,
+      "EMG_median_freq_Hz": 85.43
+    },
+    {
+      "time_sec": 3.2667,
+      "EMG_RMS_mV": 0.0571,
+      "EMG_CH2_RMS_mV": 0.0371,
+      "EMG_CH1_median_freq_Hz": 87.19,
+      "EMG_CH2_median_freq_Hz": 82.65,
+      "EMG_median_freq_Hz": 84.92
+    },
+    {
+      "time_sec": 3.3,
+      "EMG_RMS_mV": 0.0659,
+      "EMG_CH2_RMS_mV": 0.0295,
+      "EMG_CH1_median_freq_Hz": 87.6,
+      "EMG_CH2_median_freq_Hz": 82.16,
+      "EMG_median_freq_Hz": 84.88
+    },
+    {
+      "time_sec": 3.3333,
+      "EMG_RMS_mV": 0.0525,
+      "EMG_CH2_RMS_mV": 0.0365,
+      "EMG_CH1_median_freq_Hz": 89.04,
+      "EMG_CH2_median_freq_Hz": 83.12,
+      "EMG_median_freq_Hz": 86.08
+    },
+    {
+      "time_sec": 3.3667,
+      "EMG_RMS_mV": 0.0584,
+      "EMG_CH2_RMS_mV": 0.0374,
+      "EMG_CH1_median_freq_Hz": 84.62,
+      "EMG_CH2_median_freq_Hz": 83.78,
+      "EMG_median_freq_Hz": 84.2
+    },
+    {
+      "time_sec": 3.4,
+      "EMG_RMS_mV": 0.0524,
+      "EMG_CH2_RMS_mV": 0.0511,
+      "EMG_CH1_median_freq_Hz": 86.39,
+      "EMG_CH2_median_freq_Hz": 83.94,
+      "EMG_median_freq_Hz": 85.17
+    },
+    {
+      "time_sec": 3.4333,
+      "EMG_RMS_mV": 0.0573,
+      "EMG_CH2_RMS_mV": 0.0473,
+      "EMG_CH1_median_freq_Hz": 87.81,
+      "EMG_CH2_median_freq_Hz": 86.17,
+      "EMG_median_freq_Hz": 86.99
+    },
+    {
+      "time_sec": 3.4667,
+      "EMG_RMS_mV": 0.0667,
+      "EMG_CH2_RMS_mV": 0.0309,
+      "EMG_CH1_median_freq_Hz": 85.2,
+      "EMG_CH2_median_freq_Hz": 85.34,
+      "EMG_median_freq_Hz": 85.27
+    },
+    {
+      "time_sec": 3.5,
+      "EMG_RMS_mV": 0.0462,
+      "EMG_CH2_RMS_mV": 0.0343,
+      "EMG_CH1_median_freq_Hz": 88.87,
+      "EMG_CH2_median_freq_Hz": 83.27,
+      "EMG_median_freq_Hz": 86.07
+    },
+    {
+      "time_sec": 3.5333,
+      "EMG_RMS_mV": 0.0635,
+      "EMG_CH2_RMS_mV": 0.0272,
+      "EMG_CH1_median_freq_Hz": 87.54,
+      "EMG_CH2_median_freq_Hz": 84.58,
+      "EMG_median_freq_Hz": 86.06
+    },
+    {
+      "time_sec": 3.5667,
+      "EMG_RMS_mV": 0.0619,
+      "EMG_CH2_RMS_mV": 0.0325,
+      "EMG_CH1_median_freq_Hz": 88.12,
+      "EMG_CH2_median_freq_Hz": 83.83,
+      "EMG_median_freq_Hz": 85.97
+    },
+    {
+      "time_sec": 3.6,
+      "EMG_RMS_mV": 0.0552,
+      "EMG_CH2_RMS_mV": 0.0379,
+      "EMG_CH1_median_freq_Hz": 86.41,
+      "EMG_CH2_median_freq_Hz": 83.95,
+      "EMG_median_freq_Hz": 85.18
+    },
+    {
+      "time_sec": 3.6333,
+      "EMG_RMS_mV": 0.0484,
+      "EMG_CH2_RMS_mV": 0.0432,
+      "EMG_CH1_median_freq_Hz": 88.08,
+      "EMG_CH2_median_freq_Hz": 84.42,
+      "EMG_median_freq_Hz": 86.25
+    },
+    {
+      "time_sec": 3.6667,
+      "EMG_RMS_mV": 0.0606,
+      "EMG_CH2_RMS_mV": 0.0316,
+      "EMG_CH1_median_freq_Hz": 88.38,
+      "EMG_CH2_median_freq_Hz": 84.85,
+      "EMG_median_freq_Hz": 86.62
+    },
+    {
+      "time_sec": 3.7,
+      "EMG_RMS_mV": 0.0558,
+      "EMG_CH2_RMS_mV": 0.0321,
+      "EMG_CH1_median_freq_Hz": 87.38,
+      "EMG_CH2_median_freq_Hz": 83.9,
+      "EMG_median_freq_Hz": 85.64
+    },
+    {
+      "time_sec": 3.7333,
+      "EMG_RMS_mV": 0.0619,
+      "EMG_CH2_RMS_mV": 0.0231,
+      "EMG_CH1_median_freq_Hz": 87.38,
+      "EMG_CH2_median_freq_Hz": 85.3,
+      "EMG_median_freq_Hz": 86.34
+    },
+    {
+      "time_sec": 3.7667,
+      "EMG_RMS_mV": 0.0602,
+      "EMG_CH2_RMS_mV": 0.035,
+      "EMG_CH1_median_freq_Hz": 87.42,
+      "EMG_CH2_median_freq_Hz": 83.09,
+      "EMG_median_freq_Hz": 85.26
+    },
+    {
+      "time_sec": 3.8,
+      "EMG_RMS_mV": 0.0728,
+      "EMG_CH2_RMS_mV": 0.0296,
+      "EMG_CH1_median_freq_Hz": 86.06,
+      "EMG_CH2_median_freq_Hz": 84.24,
+      "EMG_median_freq_Hz": 85.15
+    },
+    {
+      "time_sec": 3.8333,
+      "EMG_RMS_mV": 0.0581,
+      "EMG_CH2_RMS_mV": 0.0328,
+      "EMG_CH1_median_freq_Hz": 86.92,
+      "EMG_CH2_median_freq_Hz": 86.83,
+      "EMG_median_freq_Hz": 86.88
+    },
+    {
+      "time_sec": 3.8667,
+      "EMG_RMS_mV": 0.0518,
+      "EMG_CH2_RMS_mV": 0.0307,
+      "EMG_CH1_median_freq_Hz": 86.92,
+      "EMG_CH2_median_freq_Hz": 84.46,
+      "EMG_median_freq_Hz": 85.69
+    },
+    {
+      "time_sec": 3.9,
+      "EMG_RMS_mV": 0.0614,
+      "EMG_CH2_RMS_mV": 0.0354,
+      "EMG_CH1_median_freq_Hz": 87.56,
+      "EMG_CH2_median_freq_Hz": 85.67,
+      "EMG_median_freq_Hz": 86.61
+    },
+    {
+      "time_sec": 3.9333,
+      "EMG_RMS_mV": 0.0618,
+      "EMG_CH2_RMS_mV": 0.0255,
+      "EMG_CH1_median_freq_Hz": 88.3,
+      "EMG_CH2_median_freq_Hz": 84.33,
+      "EMG_median_freq_Hz": 86.31
+    },
+    {
+      "time_sec": 3.9667,
+      "EMG_RMS_mV": 0.0509,
+      "EMG_CH2_RMS_mV": 0.0152,
+      "EMG_CH1_median_freq_Hz": 64.05,
+      "EMG_CH2_median_freq_Hz": 63.76,
+      "EMG_median_freq_Hz": 63.91
+    }
+  ],
+  "synthetic_nirs": [
+    {
+      "time_sec": 0.0,
+      "SmO2": 33.58,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.0333,
+      "SmO2": 33.83,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.0667,
+      "SmO2": 35.96,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.1,
+      "SmO2": 37.13,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.1333,
+      "SmO2": 36.46,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.1667,
+      "SmO2": 37.91,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.2,
+      "SmO2": 39.84,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.2333,
+      "SmO2": 40.66,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.2667,
+      "SmO2": 41.92,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.3,
+      "SmO2": 42.5,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 0.3333,
+      "SmO2": 44.61,
+      "THb": 8.056
+    },
+    {
+      "time_sec": 0.3667,
+      "SmO2": 45.62,
+      "THb": 8.219
+    },
+    {
+      "time_sec": 0.4,
+      "SmO2": 46.27,
+      "THb": 8.503
+    },
+    {
+      "time_sec": 0.4333,
+      "SmO2": 47.98,
+      "THb": 8.671
+    },
+    {
+      "time_sec": 0.4667,
+      "SmO2": 48.65,
+      "THb": 8.824
+    },
+    {
+      "time_sec": 0.5,
+      "SmO2": 48.93,
+      "THb": 9.045
+    },
+    {
+      "time_sec": 0.5333,
+      "SmO2": 50.74,
+      "THb": 9.302
+    },
+    {
+      "time_sec": 0.5667,
+      "SmO2": 51.01,
+      "THb": 9.526
+    },
+    {
+      "time_sec": 0.6,
+      "SmO2": 53.18,
+      "THb": 9.775
+    },
+    {
+      "time_sec": 0.6333,
+      "SmO2": 53.69,
+      "THb": 10.015
+    },
+    {
+      "time_sec": 0.6667,
+      "SmO2": 54.68,
+      "THb": 10.118
+    },
+    {
+      "time_sec": 0.7,
+      "SmO2": 55.45,
+      "THb": 10.265
+    },
+    {
+      "time_sec": 0.7333,
+      "SmO2": 57.65,
+      "THb": 10.423
+    },
+    {
+      "time_sec": 0.7667,
+      "SmO2": 57.89,
+      "THb": 10.722
+    },
+    {
+      "time_sec": 0.8,
+      "SmO2": 58.79,
+      "THb": 10.883
+    },
+    {
+      "time_sec": 0.8333,
+      "SmO2": 59.9,
+      "THb": 11.102
+    },
+    {
+      "time_sec": 0.8667,
+      "SmO2": 61.49,
+      "THb": 11.298
+    },
+    {
+      "time_sec": 0.9,
+      "SmO2": 62.46,
+      "THb": 11.52
+    },
+    {
+      "time_sec": 0.9333,
+      "SmO2": 63.55,
+      "THb": 11.772
+    },
+    {
+      "time_sec": 0.9667,
+      "SmO2": 64.62,
+      "THb": 11.939
+    },
+    {
+      "time_sec": 1.0,
+      "SmO2": 66.7,
+      "THb": 12.13
+    },
+    {
+      "time_sec": 1.0333,
+      "SmO2": 65.1,
+      "THb": 12.098
+    },
+    {
+      "time_sec": 1.0667,
+      "SmO2": 64.96,
+      "THb": 12.076
+    },
+    {
+      "time_sec": 1.1,
+      "SmO2": 64.71,
+      "THb": 12.126
+    },
+    {
+      "time_sec": 1.1333,
+      "SmO2": 65.49,
+      "THb": 12.146
+    },
+    {
+      "time_sec": 1.1667,
+      "SmO2": 65.73,
+      "THb": 12.222
+    },
+    {
+      "time_sec": 1.2,
+      "SmO2": 64.91,
+      "THb": 12.16
+    },
+    {
+      "time_sec": 1.2333,
+      "SmO2": 64.4,
+      "THb": 12.197
+    },
+    {
+      "time_sec": 1.2667,
+      "SmO2": 64.33,
+      "THb": 12.14
+    },
+    {
+      "time_sec": 1.3,
+      "SmO2": 65.15,
+      "THb": 12.116
+    },
+    {
+      "time_sec": 1.3333,
+      "SmO2": 65.13,
+      "THb": 12.128
+    },
+    {
+      "time_sec": 1.3667,
+      "SmO2": 64.94,
+      "THb": 12.14
+    },
+    {
+      "time_sec": 1.4,
+      "SmO2": 64.14,
+      "THb": 12.257
+    },
+    {
+      "time_sec": 1.4333,
+      "SmO2": 64.61,
+      "THb": 12.142
+    },
+    {
+      "time_sec": 1.4667,
+      "SmO2": 64.47,
+      "THb": 12.211
+    },
+    {
+      "time_sec": 1.5,
+      "SmO2": 64.45,
+      "THb": 12.145
+    },
+    {
+      "time_sec": 1.5333,
+      "SmO2": 64.75,
+      "THb": 12.221
+    },
+    {
+      "time_sec": 1.5667,
+      "SmO2": 64.26,
+      "THb": 12.202
+    },
+    {
+      "time_sec": 1.6,
+      "SmO2": 64.43,
+      "THb": 12.183
+    },
+    {
+      "time_sec": 1.6333,
+      "SmO2": 63.95,
+      "THb": 12.191
+    },
+    {
+      "time_sec": 1.6667,
+      "SmO2": 63.96,
+      "THb": 12.169
+    },
+    {
+      "time_sec": 1.7,
+      "SmO2": 64.05,
+      "THb": 12.216
+    },
+    {
+      "time_sec": 1.7333,
+      "SmO2": 62.68,
+      "THb": 12.183
+    },
+    {
+      "time_sec": 1.7667,
+      "SmO2": 63.25,
+      "THb": 12.155
+    },
+    {
+      "time_sec": 1.8,
+      "SmO2": 63.05,
+      "THb": 12.156
+    },
+    {
+      "time_sec": 1.8333,
+      "SmO2": 62.85,
+      "THb": 12.217
+    },
+    {
+      "time_sec": 1.8667,
+      "SmO2": 62.99,
+      "THb": 12.276
+    },
+    {
+      "time_sec": 1.9,
+      "SmO2": 63.99,
+      "THb": 12.223
+    },
+    {
+      "time_sec": 1.9333,
+      "SmO2": 62.53,
+      "THb": 12.214
+    },
+    {
+      "time_sec": 1.9667,
+      "SmO2": 63.58,
+      "THb": 12.233
+    },
+    {
+      "time_sec": 2.0,
+      "SmO2": 61.95,
+      "THb": 12.277
+    },
+    {
+      "time_sec": 2.0333,
+      "SmO2": 62.71,
+      "THb": 12.237
+    },
+    {
+      "time_sec": 2.0667,
+      "SmO2": 62.97,
+      "THb": 12.214
+    },
+    {
+      "time_sec": 2.1,
+      "SmO2": 63.18,
+      "THb": 12.278
+    },
+    {
+      "time_sec": 2.1333,
+      "SmO2": 63.21,
+      "THb": 12.254
+    },
+    {
+      "time_sec": 2.1667,
+      "SmO2": 63.21,
+      "THb": 12.301
+    },
+    {
+      "time_sec": 2.2,
+      "SmO2": 62.46,
+      "THb": 12.25
+    },
+    {
+      "time_sec": 2.2333,
+      "SmO2": 62.33,
+      "THb": 12.197
+    },
+    {
+      "time_sec": 2.2667,
+      "SmO2": 63.04,
+      "THb": 12.194
+    },
+    {
+      "time_sec": 2.3,
+      "SmO2": 62.35,
+      "THb": 12.318
+    },
+    {
+      "time_sec": 2.3333,
+      "SmO2": 61.64,
+      "THb": 12.323
+    },
+    {
+      "time_sec": 2.3667,
+      "SmO2": 61.66,
+      "THb": 12.25
+    },
+    {
+      "time_sec": 2.4,
+      "SmO2": 61.72,
+      "THb": 12.245
+    },
+    {
+      "time_sec": 2.4333,
+      "SmO2": 62.51,
+      "THb": 12.322
+    },
+    {
+      "time_sec": 2.4667,
+      "SmO2": 62.23,
+      "THb": 12.222
+    },
+    {
+      "time_sec": 2.5,
+      "SmO2": 62.5,
+      "THb": 12.233
+    },
+    {
+      "time_sec": 2.5333,
+      "SmO2": 61.77,
+      "THb": 12.298
+    },
+    {
+      "time_sec": 2.5667,
+      "SmO2": 62.06,
+      "THb": 12.259
+    },
+    {
+      "time_sec": 2.6,
+      "SmO2": 62.28,
+      "THb": 12.278
+    },
+    {
+      "time_sec": 2.6333,
+      "SmO2": 61.65,
+      "THb": 12.274
+    },
+    {
+      "time_sec": 2.6667,
+      "SmO2": 62.05,
+      "THb": 12.297
+    },
+    {
+      "time_sec": 2.7,
+      "SmO2": 61.32,
+      "THb": 12.343
+    },
+    {
+      "time_sec": 2.7333,
+      "SmO2": 61.44,
+      "THb": 12.293
+    },
+    {
+      "time_sec": 2.7667,
+      "SmO2": 61.37,
+      "THb": 12.318
+    },
+    {
+      "time_sec": 2.8,
+      "SmO2": 60.82,
+      "THb": 12.214
+    },
+    {
+      "time_sec": 2.8333,
+      "SmO2": 61.77,
+      "THb": 12.297
+    },
+    {
+      "time_sec": 2.8667,
+      "SmO2": 61.13,
+      "THb": 12.268
+    },
+    {
+      "time_sec": 2.9,
+      "SmO2": 61.36,
+      "THb": 12.256
+    },
+    {
+      "time_sec": 2.9333,
+      "SmO2": 61.58,
+      "THb": 12.272
+    },
+    {
+      "time_sec": 2.9667,
+      "SmO2": 61.5,
+      "THb": 12.297
+    },
+    {
+      "time_sec": 3.0,
+      "SmO2": 61.58,
+      "THb": 12.35
+    },
+    {
+      "time_sec": 3.0333,
+      "SmO2": 60.06,
+      "THb": 12.056
+    },
+    {
+      "time_sec": 3.0667,
+      "SmO2": 58.81,
+      "THb": 11.907
+    },
+    {
+      "time_sec": 3.1,
+      "SmO2": 57.96,
+      "THb": 11.682
+    },
+    {
+      "time_sec": 3.1333,
+      "SmO2": 55.93,
+      "THb": 11.485
+    },
+    {
+      "time_sec": 3.1667,
+      "SmO2": 55.02,
+      "THb": 11.334
+    },
+    {
+      "time_sec": 3.2,
+      "SmO2": 54.04,
+      "THb": 11.111
+    },
+    {
+      "time_sec": 3.2333,
+      "SmO2": 53.18,
+      "THb": 10.939
+    },
+    {
+      "time_sec": 3.2667,
+      "SmO2": 52.97,
+      "THb": 10.675
+    },
+    {
+      "time_sec": 3.3,
+      "SmO2": 51.13,
+      "THb": 10.45
+    },
+    {
+      "time_sec": 3.3333,
+      "SmO2": 50.4,
+      "THb": 10.264
+    },
+    {
+      "time_sec": 3.3667,
+      "SmO2": 50.35,
+      "THb": 10.079
+    },
+    {
+      "time_sec": 3.4,
+      "SmO2": 48.31,
+      "THb": 9.872
+    },
+    {
+      "time_sec": 3.4333,
+      "SmO2": 47.91,
+      "THb": 9.617
+    },
+    {
+      "time_sec": 3.4667,
+      "SmO2": 45.86,
+      "THb": 9.46
+    },
+    {
+      "time_sec": 3.5,
+      "SmO2": 45.26,
+      "THb": 9.261
+    },
+    {
+      "time_sec": 3.5333,
+      "SmO2": 43.79,
+      "THb": 9.148
+    },
+    {
+      "time_sec": 3.5667,
+      "SmO2": 43.13,
+      "THb": 8.917
+    },
+    {
+      "time_sec": 3.6,
+      "SmO2": 42.83,
+      "THb": 8.604
+    },
+    {
+      "time_sec": 3.6333,
+      "SmO2": 40.29,
+      "THb": 8.422
+    },
+    {
+      "time_sec": 3.6667,
+      "SmO2": 40.59,
+      "THb": 8.17
+    },
+    {
+      "time_sec": 3.7,
+      "SmO2": 39.47,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.7333,
+      "SmO2": 37.98,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.7667,
+      "SmO2": 36.47,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.8,
+      "SmO2": 36.38,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.8333,
+      "SmO2": 35.02,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.8667,
+      "SmO2": 34.46,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.9,
+      "SmO2": 33.32,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.9333,
+      "SmO2": 33.23,
+      "THb": 8.0
+    },
+    {
+      "time_sec": 3.9667,
+      "SmO2": 31.11,
+      "THb": 8.0
+    }
+  ]
+}

@@ -24,7 +24,7 @@ Henüz voleybol algoritması veya doğrulanmış ölçümü yok.
 
 ### 1. Proje yapısı ve mevcut dosyalar — devam ediyor
 
-- [ ] Mevcut çalışmayı incele, syntax kontrolü yap ve ayrı committe koru.
+- [x] Mevcut çalışmayı incele, syntax kontrolü yap ve ayrı committe koru.
 - [ ] Genel sayısal araçları ve pose veri modelini branşlardan ayır.
 - [ ] MediaPipe, çizim, CSV gibi dış sistem bağlantılarını adaptörlere taşı.
 - [ ] Tekme olayları, tekme metrikleri, yorgunluk ve mevcut pipeline'ı taekwondo modülüne taşı.
@@ -157,7 +157,10 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 ## Doğrulama ve çalışma günlüğü
 
 - Başlangıç: 22 Python dosyası AST/syntax kontrolünden geçti; mevcut venv'de Streamlit, MediaPipe, OpenCV importları başarılı.
-- Henüz bu dönüşüme ait runtime/regresyon kontrolü tamamlanmadı.
+- `611bd59`: Kullanıcıdan kalan çalışma ve bu plan korundu.
+- Taşıma öncesi Streamlit AppTest: boş yükleme ekranı hatasız açıldı.
+- Taşıma öncesi iki sentetik tekme içeren sabit regresyon kaydı alındı; olay/faz metrikleri, hız/ivme, yorgunluk ve simülasyon çıktıları karşılaştırılıyor. Bu test bilimsel geçerlilik iddiası değildir; bilinen eski davranışı da korur.
+- `.venv/bin/python -m unittest discover -v`: 1 regresyon testi geçti.
 
 ## Sıradaki somut iş
 

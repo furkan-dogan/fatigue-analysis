@@ -6,7 +6,7 @@
 
 ## Güncel durum — 2026-09-11
 
-**Adım 1–4 tamamlandı. Adım 5 son kontrollerde.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybol/basketbol analizleri henüz hazır değil.
+**Adım 1–5 tamamlandı. Sırada Adım 6: örnek video üzerinden model seçimi var.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda manuel inceleme hazır; otomatik ölçümler ve basketbol analizi henüz hazır değil.
 
 Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
 
@@ -46,7 +46,7 @@ Kabul: Üç branş seçilebilir; hazır olmayan analizler çalıştırılamaz ve
 
 Kabul: Bir analiz kaydedilip yeniden açılır; kaynağı, birimi ve sürümü izlenebilir.
 
-### 5. Voleybol ekranı — son kontrollerde
+### 5. Voleybol ekranı — tamamlandı
 
 - Tek video yükleme yeterlidir; ikinci video yalnızca karşılaştırmada kullanılır.
 - Test seçimi: CMJ/dikey sıçrama, iniş-asimetri, sprint.
@@ -129,7 +129,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Normalize ayak hızında gövde referansı yoksa artık değer üretilmez (algoritma v2). Eski CSV dosyaları geriye dönük değiştirilmedi; geçmiş ham verilerde birim sorunu olabilir.
 - Genel landmark görünürlüğü ölçüm doğruluğu değildir; metrik bazında kalite kontrolü eksik.
 - Sabit FPS ve eksik nokta doldurma zaman/hız doğruluğunu etkileyebilir.
-- Taekwondo yükleme akışı halen iki video ister. Voleybol tek video akışı 5. adımda.
+- Taekwondo iki video, voleybol incelemesi tek video kullanır. Voleybol kaydı manuel işaretleme içerir; otomatik ölçüm içermez.
 - Yeni arayüz analizleri kalıcıdır; eski geçici oturumlar ve eski `data/output/` CSV dosyaları otomatik içe aktarılmadı. CLI bağımsız dosya dışa aktarma akışını korur.
 - Kalıcı kayıtlar yereldir; `data/` klasörü birlikte taşınmalıdır. Veritabanı tek başına video/pose dosyalarının yerine geçmez.
 - Otomatik video/model doğruluğu, sıçrama ve sprint ölçümleri henüz doğrulanmadı.
@@ -147,7 +147,7 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 
 ## Sıradaki somut iş
 
-**Adım 5: voleybol video yükleme ve inceleme ekranı.** Tek video yüklemesini kalıcı kayıt sözleşmesine bağla; test türü (CMJ/asimetri/sprint), kaynak metadata, sporcu/zaman aralığı ve gerekirse kalibrasyon girişlerini oluştur. Hesabı hazır olmayan metrikleri üretme. Ardından ayrı Adım 6 için kullanıcı örnek video verecek; şu anda video isteme.
+**Adım 6: kullanıcıdan gelecek örnek video üzerinde model karşılaştırması.** Video gelince önce kaynak zamanları, çekim ve ayak görünürlüğünü incele. MediaPipe, YOLO26x-Pose ve uygun ayak noktaları olan aday için aynı kareler/işaretler üzerinde karşılaştırma planını uygula. Yalnızca kütüphane kurulması model seçimi sayılmaz. Bu aşamada tüm sporcular için doğruluk iddiası veya henüz olmayan sıçrama/sprint hesabı üretme. Adım 7 algoritmalara seçim sonrası geçilecek.
 
 ### Adım 3 doğrulaması
 
@@ -213,4 +213,14 @@ Sıralama: **5 ekran → 6 örnek videoda model seçimi → 7 algoritmalar → 8
 - Kare PTS bilgisi uygun olduğunda manuel tekrar zaman çizelgesi video oynatma zamanını gösterir. PTS yoksa zaman uydurulmaz; kare listesi ve kare incelemesi çalışır.
 - Kayıt türü `manual_video_review`; `model=None`, `metrics=[]`. SQLite run tamamlanması yalnızca inceleme belgesinin kaydedildiğini belirtir; UI bunu performans analizi diye göstermez. Düzeltmeler yeni oturum revizyonudur, orijinal içerik korunur.
 - Kamera/çekim yönü, ayak görünürlüğü, fiziksel zaman kontrolü kullanıcı beyanıdır. Kalibrasyon iki nokta + metre + düzlem açıklamasıdır; perspektif düzeltmesi/gerçek hız hesabı yapılmaz.
-- 41 test geçti: kayıt/revizyon/yeniden açma, UI kaydetme, branş izolasyonu, gerçek kaynak kareler, bozuk video, geçersiz aralık/kalibrasyon, eksik zamanlama. Son etiket ve metadata kontrolleri sürüyor.
+- 41 test geçti: kayıt/revizyon/yeniden açma, UI kaydetme, branş izolasyonu, gerçek kaynak kareler, bozuk video, geçersiz aralık/kalibrasyon, eksik zamanlama. Etiket ve metadata kontrolleri tamamlandı.
+
+
+### Adım 5 kapanışı
+
+- `ce066d5`: voleybol inceleme, manuel tekrar işaretleri ve revizyon akışı.
+- Tam test paketi: **42 test**. Ek UI testi tek video yükleme düğmesini, isteğe bağlı kalibrasyon alanlarını, revizyon kaydını ve sprint seçimini kontrol eder. AST/syntax ve diff kontrolü temiz.
+- Test videoları programatik küçük kliplerdir; model çalıştırılmadı ve gerçek ölçüm doğruluğu doğrulanmadı. Gerçek kullanıcı videoları değiştirilmedi.
+- UI'da kareler sıfırdan numaralanır. Kalkış etiketi iki ayağın da havada olduğu ilk kare, iniş etiketi ilk temas karesidir. Süre/yükseklik hesabında bu konvansiyonun belirsizliği sonraki aşamada ayrıca ele alınmalı.
+- Uzun videoda sıralı kare erişimi yavaş olabilir. Revizyonlar kaynak kopyası tutar; disk tekilleştirme kapsam dışıdır. Kalibrasyon iki noktalı taslaktır; otomatik sporcu takibi veya perspektif çözümü yoktur.
+- Sıradaki aşama artık örnek video gerektirir. Model/adaptör henüz değiştirilmedi. Commitler yereldir; push yapılmadı.

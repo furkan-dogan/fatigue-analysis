@@ -90,3 +90,22 @@ class VolleyballReviewTest(unittest.TestCase):
         app.radio[0].set_value('volleyball').run()
         self.assertFalse(list(app.exception))
         self.assertEqual(app.session_state['volleyball_review']['result']['review']['athlete'], 'Sporcu UI')
+
+    def test_upload_button_and_optional_reference_fields(self):
+        from types import SimpleNamespace
+        upload = SimpleNamespace(name='uploaded.mp4', getvalue=lambda: self.content)
+        with patch('ui.sports.volleyball.page.video_uploader', return_value=upload):
+            app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
+            app.button(key='volleyball_create').click().run()
+            self.assertFalse(list(app.exception))
+            for checkbox in app.checkbox:
+                if checkbox.label == 'Mesafe referansı ekle':
+                    checkbox.check().run()
+                    break
+            self.assertTrue(any(t.label == 'Referansın düzlemi / konumu' for t in app.text_input))
+            next(t for t in app.text_input if t.label == 'Referansın düzlemi / konumu').set_value('zemin').run()
+            next(b for b in app.button if 'revizyon' in b.label).click().run()
+            self.assertFalse(list(app.exception))
+            self.assertEqual(app.session_state['volleyball_review']['result']['review']['calibration']['plane'], 'zemin')
+            next(s for s in app.selectbox if s.label == 'Test türü').set_value('sprint').run()
+            self.assertFalse(list(app.exception))

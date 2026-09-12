@@ -9,14 +9,14 @@ from ui.components.models import MetricCard, PanelState
 from ui.components.state import render_state
 
 
-def metric_cards(cards: Sequence[MetricCard], *, state: PanelState = PanelState()) -> None:
+def metric_cards(cards: Sequence[MetricCard], *, state: PanelState = PanelState(), columns: int = 4) -> None:
     if not render_state(state):
         return
     if not cards:
         render_state(PanelState('empty', 'Gösterilecek metrik yok.'))
         return
-    for start in range(0, len(cards), 4):
-        batch = cards[start:start + 4]
+    for start in range(0, len(cards), columns):
+        batch = cards[start:start + columns]
         for column, card in zip(st.columns(len(batch)), batch):
             missing = card.value is None or (isinstance(card.value, float) and not math.isfinite(card.value))
             value = '—' if missing else f'{card.value}{" " + card.unit if card.unit else ""}'

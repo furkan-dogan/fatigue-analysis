@@ -172,6 +172,8 @@ class VolleyballAnalysisFlowTest(unittest.TestCase):
             self.assertTrue(any(s.label=='Bulunan hareket' for s in app.selectbox))
             self.assertFalse(any(s.label=='Test türü' for s in app.selectbox))
             self.assertEqual(len(app.get('video')),1)
+            self.assertEqual(len(app.get('file_uploader')),0)
+            self.assertFalse(any(r.label=='Branş' for r in app.radio))
             self.assertTrue(any(m.value != '—' for m in app.metric))
             next(s for s in app.selectbox if s.label=='Kamera').set_value('fixed_perpendicular').run()
             next(s for s in app.selectbox if s.label=='Çekim yönü').set_value('side').run()

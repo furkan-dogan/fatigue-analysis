@@ -15,12 +15,29 @@ Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu e
 1. **Tek video ve sade giriş — tamamlandı.**
 2. **Otomatik video anlama — tamamlandı (deneysel aday tespiti):** videonun tamamında çekim bölümleri, sporcu takibi, hareket/tekrar ve kalkış–iniş adayları. Test türü ve kare aralığı normal kullanıcıdan istenmeyecek. Mevcut örnek yaklaşmalı sıçramadır; CMJ reddi tek başına sonuç değildir.
 3. **Metrik bazında analiz — tamamlandı (deneysel):** uygun sıçrama/görsel asimetri/koşu ölçümleri; eksik fiziksel zaman veya kalibrasyon yalnızca ilgili ölçümü bekletir. Kullanıcı onaylarını otomatik true yapma.
-4. **Tek sonuç ekranı:** işaretli video, hareket listesi, ölçümler ve yalnızca gerektiğinde kısa düzeltme.
+4. **Tek sonuç ekranı — tamamlandı (MVP arayüzü):** işaretli video, hareket listesi, ölçümler ve yalnızca gerektiğinde kısa düzeltme.
 5. **Gerçek örneklerde doğrulama:** tespit ve ölçüm hataları ayrı değerlendirilecek; ardından önce–sonra/rapor.
 
 Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme için kullanıcı onayı beklenecek: MVP sporcu/çekim profili, uyumlu geçmiş karşılaştırması ve kondisyoner değerlendirme akışı önerilecek. Otomatik tespit veya hesap doğrulanmış fiziksel ölçüm sayılmaz. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
 
 Kontrol: 77 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+
+### Voleybol çalışma alanı / UI–UX — 2026-09-12
+
+Kullanıcı branş seçiminin kaldırılmasını ve anlaşılır, kurumsal sayfa düzenini istedi. Öncelik bu arayüz düzeltmesi oldu; sporcu profili ve gelişim ekranı henüz uygulanmadı.
+
+**İnceleme bulguları:** tek uzun sayfada yükleme/geçmiş/sonuç/ayar karışması; video ile ölçümlerin kopuk olması; dikey video için gereksiz geniş alan; normal akıştaki kare/FPS metinleri; tekrarlanan açıklamalar; anlamları belirtilmeden gösterilen görüntü yüzdeleri; hazır olmayan branşların dikkat dağıtması.
+
+**Uygulama:**
+- Uygulama yalnızca voleybolla açılır; branş seçimi kaldırıldı. Diğer branşların kodu/kayıtları silinmedi, testleri doğrudan modül girişlerinden çalışır.
+- Yükleme ve sonuç ekranları ayrıldı. Yeni analiz → tek ana düğme → sonuç. Sol panelde geçmiş; “Yeni analiz / Sonuca dön” geçişi mevcut sonucu korur.
+- Sonuçta tek, yüksekliği sınırlı video ile seçili hareketin metrikleri yan yana; dar ekranda alt alta. Sonuç ekranında ikinci yükleyici yok.
+- Teknik kare/FPS alanları yalnızca teknik incelemede. Eksik ölçüm nedenleri ve açıklamalar açılabilir; görüntü yüzdesinin gelişim olmadığı kısa not görünür kalır. Gerçek ölçüm belirsizliği gizlenmez.
+- Ortak açık tema, lacivert metin/teal ana işlem, tutarlı boşluk/kartlar ve klavye odak göstergeleri. Native Streamlit yükleyicisinin bazı sistem metinleri İngilizce kalır; ayrı uploader altyapısı eklenmedi.
+- Geçmişte aynı ad/tarihli kayıt etiketlerinin çakışması önlendi; kaynak kimliği değişmeden okunur kayıt sırası gösterilir.
+- 77 kod testi geçti. Eski sonuçları açma, otomatik yüklemeden sonuç ekranına geçiş, yükleyicinin sonuçta gizlenmesi, yeni analize dönme, branş seçiminin yokluğu ve saklı eski state'in etkisizliği kontrol edildi.
+- Chromium ile gerçek 1440×1000 masaüstü ve 390×844 dar ekran kontrolü yapıldı; iki boyutta da sonuç videosu yüklendi, mobil menü açılıp kapandı, yatay taşma ve Streamlit exception görülmedi. AST: 93 Python dosyası; diff kontrolü temiz. Görsel kontrol kondisyoner kullanılabilirlik çalışması veya fiziksel ölçüm doğrulaması değildir.
+- Sonraki ürün önerisi değişmedi: bir kez ayarlanan çekim profili + sporcu/tarih/evre, sonra bağımsız doğrulama ve uyumlu geçmiş. Bunlara kullanıcı onayı olmadan bu turda geçilmedi.
 
 ### MVP yönü ve metrik bağlantısı — 2026-09-12
 

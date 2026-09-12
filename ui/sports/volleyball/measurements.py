@@ -10,14 +10,16 @@ def render_event_metrics(event):
         return
     available=[m for m in metrics if m['value'] is not None]
     if available:
-        metric_cards([MetricCard(m['label'],round(m['value'],2),m['unit']) for m in available])
+        metric_cards([MetricCard(m['label'],round(m['value'],2),m['unit']) for m in available], columns=2)
     missing=[m for m in metrics if m['value'] is None]
     if missing:
-        with st.expander('Diğer ölçümler neden hesaplanmadı?'):
+        with st.expander(f'Hesaplanamayan ölçümler ({len(missing)})'):
             for m in missing:
                 st.caption(f"{m['label']}: {m['reason']}")
-    st.caption('Yüzdeler gövde uzunluğuna göre görüntü oranıdır; gelişim yüzdesi değildir.')
-    st.caption('Görüntüdeki pelvis hareketi gerçek kütle merkezi/erişim yüksekliği değildir. Yatay sapma tek başına bacak kuvvet farkını göstermez.')
+    st.caption('Gövde yüzdeleri görüntü oranıdır; önceki antrenmana göre gelişim değildir.')
+    with st.expander('Bu sonuçlar nasıl okunmalı?'):
+        st.write('Yüzdeler, görülen gövde uzunluğuna göre hareket miktarıdır; gelişim yüzdesi değildir.')
+        st.write('Pelvis hareketi gerçek kütle merkezi veya el erişim yüksekliği değildir. Yatay sapma tek başına bacak kuvvet farkını göstermez.')
     if event.get('speed_series'):
         import pandas as pd
         st.line_chart(pd.DataFrame(event['speed_series']).set_index('time_seconds')[['speed_m_s']])

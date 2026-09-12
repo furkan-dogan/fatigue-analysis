@@ -23,5 +23,7 @@ def render_uploads(store):
             if current['result'].get('analysis', {}).get('mode') != 'automatic':
                 current = run_discovery(current, store)
                 saved[token] = current['session_id']
+            st.session_state['volleyball_view'] = 'result'
+            st.rerun()
         except (OSError, ValueError, RuntimeError) as exc:
             st.error(f'Video açılamadı: {exc}')

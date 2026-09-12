@@ -22,8 +22,7 @@ class DashboardTest(unittest.TestCase):
         for empty in (False, True):
             with self.subTest(empty=empty):
                 pre, post, pre_df, post_df = session_pair(empty=empty)
-                app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py'))
-                app.session_state['active_sport'] = 'taekwondo'
+                app = AppTest.from_string('from ui.sports.taekwondo.page import render\nrender()')
                 app.session_state['taekwondo_analysis'] = dict(pre=pre, post=post, pre_df=pre_df, post_df=post_df)
                 app.run(timeout=30)
                 self.assertFalse(list(app.exception))
@@ -31,8 +30,7 @@ class DashboardTest(unittest.TestCase):
 
     def test_event_selector_reaches_real_detected_events(self):
         pre, post, a, b = session_pair()
-        app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py'))
-        app.session_state['active_sport'] = 'taekwondo'
+        app = AppTest.from_string('from ui.sports.taekwondo.page import render\nrender()')
         app.session_state['taekwondo_analysis'] = dict(pre=pre, post=post, pre_df=a, post_df=b)
         app.run(timeout=30)
         self.assertFalse(list(app.exception))

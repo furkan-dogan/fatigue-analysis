@@ -83,7 +83,7 @@ class VolleyballReviewTest(unittest.TestCase):
         app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
         app.button(key='volleyball_open').click().run()
         self.assertFalse(list(app.exception))
-        self.assertEqual(len(app.get('file_uploader')), 1)
+        self.assertEqual(len(app.get('file_uploader')), 0)
         self.assertEqual(len(app.get('imgs')), 0)
         self.assertFalse(any(s.label == 'Test türü' for s in app.selectbox))
         app.toggle[0].set_value(True).run()
@@ -94,9 +94,9 @@ class VolleyballReviewTest(unittest.TestCase):
         self.assertFalse(list(app.exception))
         self.assertEqual(len(self.store.sessions('volleyball')), 2)
         self.assertEqual(app.session_state['volleyball_review']['result']['review']['athlete'], 'Sporcu UI')
-        app.radio[0].set_value('taekwondo').run()
+        app.button(key='volleyball_new').click().run()
         self.assertNotIn('Sporcu UI', ' '.join(t.value for t in app.caption))
-        app.radio[0].set_value('volleyball').run()
+        app.button(key='volleyball_result').click().run()
         self.assertFalse(list(app.exception))
         self.assertEqual(app.session_state['volleyball_review']['result']['review']['athlete'], 'Sporcu UI')
 
@@ -128,10 +128,12 @@ class VolleyballReviewTest(unittest.TestCase):
             app.button(key='volleyball_create').click().run()
             self.assertFalse(list(app.exception))
             original = app.session_state['volleyball_review']['session_id']
+            app.button(key='volleyball_new').click().run()
             app.button(key='volleyball_create').click().run()
             self.assertEqual(app.session_state['volleyball_review']['session_id'], original)
         broken = SimpleNamespace(name='broken.mp4', getvalue=lambda: b'invalid')
         with patch('ui.sports.volleyball.uploads.video_uploader', return_value=broken):
+            app.button(key='volleyball_new').click().run()
             app.button(key='volleyball_create').click().run()
             self.assertFalse(list(app.exception))
             self.assertTrue(list(app.error))

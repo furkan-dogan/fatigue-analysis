@@ -8,7 +8,7 @@ Sayfa ortak bileşenleri birleştirir. `session.py` yükleme, kalıcı geçmiş 
 
 Çekirdek UI, adaptör veya branş import etmez. Adaptörler branş bilmez. Ortak bileşenler branş bilmez. Branşlar birbirini import etmez. Bu sınırlar `tests/test_architecture.py` ile denetlenir.
 
-Yeni branşta yalnızca gerçekten ihtiyaç olan dosyalar eklenir. Voleybol girişi video inceleme, deneysel analiz ve kalıcı revizyon akışını sunar; basketbol ortak geliştirme durumu bileşenini gösterir. Uygulama kabuğu yalnızca seçili branşı yükler. Tamamlanmış taekwondo analizi widgetlardan ayrı `taekwondo_analysis` state alanındadır; diğer branşlar bu alanı okumaz. Kullanılmayan model, cihaz veya servis altyapısı eklenmez.
+Yeni branşta yalnızca gerçekten ihtiyaç olan dosyalar eklenir. Voleybol girişi video inceleme, deneysel analiz ve kalıcı revizyon akışını sunar; basketbol ortak geliştirme durumu bileşenini gösterir. MVP kabuğu doğrudan voleybol sayfasını açar; eski active_sport state değeri giriş branşını değiştiremez. Taekwondo/basketbol modülleri korunur ama uygulamada seçimleri gösterilmez. Tamamlanmış taekwondo analizi widgetlardan ayrı `taekwondo_analysis` state alanındadır; diğer branşlar bu alanı okumaz. Kullanılmayan model, cihaz veya servis altyapısı eklenmez.
 
 Ortak bileşenler hazır/boş/yükleniyor/hata durumlarını destekler. Eksik metrik sıfıra çevrilmez; kalite paneli kendiliğinden doğruluk veya başarı oranı üretmez. Video Streamlit üzerinden sunulur; ayrı HTTP sunucusu yoktur.
 
@@ -51,3 +51,12 @@ Yükleyici kaynak kaydını oluşturur ve `analyze_review(automatic=True)` tüm 
 `adapters/pose_preview.py` nokta çizimi ve sabit PTS kaynağından sessiz H.264 önizleme üretir. Değişken/eksik zamanlarda kaynak video gösterilir. Ortak `movement_list` yalnızca olay seçer; branş UI seçilen olayı video başlangıç zamanına bağlar. Otomatik sonuçta metrikler henüz boş; deneysel hareket tespiti ve fiziksel doğruluk ayrı tutulur.
 
 Hash kontrolünden geçen aynı pinli modelin tam video pose kaydı, sporcu seçimi/aday tespiti tekrarında kullanılabilir. Model çıkarımı taklit edilen kod testleriyle gerçek kullanıcı videosundaki çalıştırma ayrı kaydedilir.
+
+
+## Kondisyoner çalışma alanı
+
+`volleyball_view` yükleme ve sonuç durumlarını ayırır. Sol panel kayıt seçimini yönetir; başarılı yükleme doğrudan sonuca geçer. Yeni analiz ekranına dönmek önceki sonucu silmez; başarısız yeni dosya önceki kaydı bozmaz. Sonuç ekranında yükleyici bulunmaz.
+
+Ortak metrik bileşeni sütun sayısını parametre olarak alır; branş ekranı video, hareket seçimi, metrikler ve isteğe bağlı açıklamaları birleştirir. Teknik kare/koordinat düzenleyicisi ayrı açılır. `ui/theme.py` responsive yerleşim ve tipografiyi, `.streamlit/config.toml` ortak açık tema renklerini tanımlar. Yerel sırlar/config dışındaki Streamlit dosyaları Git dışında kalır.
+
+Taekwondo ekran testleri modülü doğrudan açarak devam eder; uygulama kabuğu testleri voleybol sabit girişini ve eski branş state'inin etkisiz olduğunu kontrol eder. Bu UI değişikliği sayısal algoritmaları değiştirmez.

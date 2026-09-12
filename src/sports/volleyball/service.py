@@ -63,7 +63,7 @@ def save_revision(current, review, *, store=None):
     return load_review(session.id, store=store)
 
 
-def analyze_review(current, progress, *, store=None, runner_factory=None, automatic=False, athlete_choices=None):
+def analyze_review(current, progress, *, store=None, runner_factory=None, automatic=False, athlete_choices=None, measurement_inputs=None):
     """Create a separate immutable analysis revision from a saved review."""
     import hashlib
     from pathlib import Path
@@ -77,10 +77,12 @@ def analyze_review(current, progress, *, store=None, runner_factory=None, automa
     original = load_review(current['session_id'], store=store)
     result = original['result']
     review = result['review']
+    measurement_inputs = result.get('measurement_inputs', {}) if measurement_inputs is None else measurement_inputs
+    athlete_choices = result.get('athlete_choices', {}) if athlete_choices is None else athlete_choices
     session = store.create_session('volleyball', review['athlete'] or result['video']['original_name'], current['session_id'])
     video = store.add_video(session, 'source', result['video']['original_name'], store.source_bytes(result['video']))
     provenance = {'operation': 'volleyball_analysis', 'algorithm': VERSION, 'validation': 'unvalidated',
-                  'review_session': current['session_id'], 'review': review, 'automatic': automatic, 'athlete_choices': athlete_choices or {},
+                  'review_session': current['session_id'], 'review': review, 'automatic': automatic, 'athlete_choices': athlete_choices or {}, 'measurement_inputs': measurement_inputs,
                   'code_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob('*.py')}}
     run = store.start_run(video, provenance)
     pose_path = store.run_directory(run) / 'pose.jsonl'
@@ -92,7 +94,7 @@ def analyze_review(current, progress, *, store=None, runner_factory=None, automa
             if all(model.get('models', {}).get(name, {}).get('sha256') == digest for name, (_, digest) in MODELS.items()):
                 options.update(cached_pose=store.path(result['pose_path']), cached_model=model)
                 provenance['pose_reused_from'] = current['session_id']
-        analysis, model_info = run_inference(store.path(video.path), review, result['metadata'], pose_path, progress, automatic=automatic, athlete_choices=athlete_choices, **options)
+        analysis, model_info = run_inference(store.path(video.path), review, result['metadata'], pose_path, progress, automatic=automatic, athlete_choices=athlete_choices, measurement_inputs=measurement_inputs, **options)
         provenance['model'] = model_info
         # Provenance becomes final while the run is still running, before completion.
         with store.connection() as db:
@@ -115,6 +117,7 @@ def analyze_review(current, progress, *, store=None, runner_factory=None, automa
                        pose_sha256=hashlib.sha256(pose_path.read_bytes()).hexdigest())
         if automatic:
             payload['athlete_choices'] = athlete_choices or {}
+            payload['measurement_inputs'] = measurement_inputs
             from src.adapters.pose_preview import render_preview
             preview = render_preview(store.path(video.path), pose_path, pose_path.parent/'preview.mp4', result['metadata'], analysis['events'])
             if preview:

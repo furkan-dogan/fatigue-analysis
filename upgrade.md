@@ -8,19 +8,35 @@
 
 **Toplu yükleme ve kuyruk ertelendi. Tek video yüklenince uçtan uca otomatik analiz önceliklidir.** Kullanıcı minimum ayar ve doğrudan analiz motoruna odaklanılmasını istedi. Yeni kuyruk, çoklu video veya ortak çekim grubu işi yapma.
 
-Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu eşleştirme tablosu, toplu kayıt listesi ve ortak çekim formu kaldırıldı. Eski kayıtlar korunur. “Videoyu analiz et” düğmesi tüm videoda otomatik hareket adaylarını çıkarır. Fiziksel cm/hız hesapları bu otomatik taramaya henüz bağlanmadı.
+Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu eşleştirme tablosu, toplu kayıt listesi ve ortak çekim formu kaldırıldı. Eski kayıtlar korunur. “Videoyu analiz et” düğmesi tüm videoda otomatik hareket adaylarını çıkarır. Otomatik taramaya metrik bazında deneysel hesaplar bağlandı. Görüntü oranları doğrudan, fiziksel değerler yalnızca uygun çekim/zaman/referans bilgisiyle üretilir.
 
 ### Aktif iş sırası
 
 1. **Tek video ve sade giriş — tamamlandı.**
 2. **Otomatik video anlama — tamamlandı (deneysel aday tespiti):** videonun tamamında çekim bölümleri, sporcu takibi, hareket/tekrar ve kalkış–iniş adayları. Test türü ve kare aralığı normal kullanıcıdan istenmeyecek. Mevcut örnek yaklaşmalı sıçramadır; CMJ reddi tek başına sonuç değildir.
-3. **Metrik bazında analiz:** uygun sıçrama/görsel asimetri/koşu ölçümleri; eksik fiziksel zaman veya kalibrasyon yalnızca ilgili ölçümü bekletir. Kullanıcı onaylarını otomatik true yapma.
+3. **Metrik bazında analiz — tamamlandı (deneysel):** uygun sıçrama/görsel asimetri/koşu ölçümleri; eksik fiziksel zaman veya kalibrasyon yalnızca ilgili ölçümü bekletir. Kullanıcı onaylarını otomatik true yapma.
 4. **Tek sonuç ekranı:** işaretli video, hareket listesi, ölçümler ve yalnızca gerektiğinde kısa düzeltme.
 5. **Gerçek örneklerde doğrulama:** tespit ve ölçüm hataları ayrı değerlendirilecek; ardından önce–sonra/rapor.
 
-Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme aday hareketlere uygun metrik bazında analizdir; otomatik tespit doğrulanmış fiziksel ölçüm sayılmaz. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
+Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme için kullanıcı onayı beklenecek: MVP sporcu/çekim profili, uyumlu geçmiş karşılaştırması ve kondisyoner değerlendirme akışı önerilecek. Otomatik tespit veya hesap doğrulanmış fiziksel ölçüm sayılmaz. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
 
-Kontrol: 71 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+Kontrol: 77 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+
+### MVP yönü ve metrik bağlantısı — 2026-09-12
+
+Kullanıcı hedefi: aynı kameradan aynı sporcunun farklı antrenmanlardaki videoları, gelişim takibi ve kondisyonerin kendi bilgisiyle karar vereceği destekleyici gözlemler. Otomatik antrenman reçetesi veya güçlü/zayıf bacak teşhisi istenmiş kabul edilmez. **Bu tur yalnızca sıradaki metrik bağlantısı uygulanır; sonraki geliştirmeler önerilip onay beklenecek.**
+
+- `automatic_metrics.py`: her aday bağımsız değerlendirilir. Varsayılan görüntü ölçümleri uçuş adayı aralığında pelvis yükselmesi / gövde, yatay sapma / gövde ve omuz–pelvis ekseninin görüntü düşeyine eğimidir. Bunlar gelişim yüzdesi, gerçek 3D asimetri veya kuvvet farkı değildir.
+- Referans başlangıcı, ölçüm kare aralığı, yöntem ve tespit sürümü kaydedilir. Görüntü/pelvis yükselmesi aday uçuş başlangıcına göredir; gerçek kalkış yüksekliği veya el erişimi diye sunulmaz.
+- Kalibre pelvis yükselmesi: sabit/dik çekim beyanı, aynı pelvis hareket düzlemindeki dikey referans ve referans aralığının içinde pelvis yolu gerekir. Metre ölçeği yalnızca bu koşullarda uygulanır; yaklaşmalı sıçrama CMJ uçuş hesabına verilmez.
+- Yerinde adayda zaman/çekim bilgisi uygunsa çevredeki ayak referanslarından temaslar yeniden tahmin edilir, mevcut diz/ayak bileği/pelvis duruş kontrolleriyle uçuş süresi yüksekliği hesaplanır. Kullanıcının manuel onay bayrakları değiştirilmez. Yerinde aday gerçek CMJ protokolünün doğrulandığı anlamına gelmez; UI “yerinde sıçrama yüksekliği (tahmin)” der.
+- Koşu/yer değiştirme adayında sabit yandan/dik çekim, fiziksel zaman ve pelvis hareket düzlemine uygun referansla mevcut 0,20 s pencere hızı kullanılır. Zaman eksikliği görüntü oranlarını engellemez; referans eksikliği sadece ilgili fiziksel sonucu bekletir.
+- Seçilen bölüm için isteğe bağlı **Ölçüm bilgisi ekle / düzelt** alanı vardır. Kamera/yön/zaman ayrı bilinmeyen olabilir. Mesafe koordinatları yalnızca isteğe bağlı ayrıntıda; MVP çekim profilinde bir kez görsel kalibrasyon önerisi henüz uygulanmadı.
+- Bilgiler kaynak videodaki bölüm başlangıcına bağlıdır; kurgu videonun diğer açılarına otomatik taşınmaz. Aynı modelin pose kaydı tekrar kullanılır. Seçili hareket güncellemeden sonra korunur; sonuçlar yeni revizyon ve olay/metrik kayıtlarıdır.
+- Her olayın karşılaştırma bağlamında sporcu kodu, çekim etiketi, tarih, antrenman evresi (verilmişse), kullanıcı kaynaklı çekim bilgisi, protokol, ölçüm/tespit sürümü bulunur. Bilinmeyenler uydurulmaz; uyumluluk `unverified`. Sporcu profili, profil seçimi, tarih grafiği ve öneri motoru henüz yok.
+- 77 kod testi: bilinen görüntü geometrisi, zaman çarpanının yükseklikte karesel etkisi, yaklaşmalı pelvis cm / uçuş yüksekliği ayrımı, kalibre doğrusal hız, eksik bilgiyle kısmi sonuç, bölüm izolasyonu, ölçüm bilgisinin UI'dan güncellenip yeniden açılması. Bunlar gerçek fiziksel doğrulama değildir.
+- Kullanıcı videosundaki gerçek RTMPose noktaları yeniden kullanılarak beş hareket için görüntü metrikleri üretildi. Fiziksel zaman/mesafe bilinmediğinden fiziksel sayı üretilmedi. Geliştirme videosu bağımsız hata ölçümü değildir. Son kayıt `28779d5881b14beca7d98d0aec18b8d0`: beş harekette 15 görüntü metriği. Çalışma belgesi `data/model_review/automatic_metrics_integration.json`. AST: 93 Python dosyası; diff kontrolü temiz. Gerçek tarayıcı kullanılabilirlik veya bağımsız fiziksel doğrulama yapılmadı.
+- Sonraki öneriler (henüz onaylanmadı): **(1)** sporcu kodu + kayıt tarihi/antrenman evresi + sürümlü sabit çekim profili; **(2)** aynı koşullarda kısa gerçek çekimlerle ölçüm ve tekrar edilebilirlik kontrolü; **(3)** uyumlu oturumlarda önce–sonra/medyan ve dağılım; **(4)** kanıta bağlı gözlem notları ve kondisyoner notu. Kamera/protokol değişmişse gelişim yüzdesini engelle; “daha iyi/daha kötü” hükmü yerine ölçüm değişimini ve belirsizliğini göster.
 
 ### Otomatik hareket taraması — çalışma günlüğü
 

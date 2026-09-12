@@ -5,13 +5,22 @@ from src.sports.volleyball.service import analyze_review
 from src.adapters.video_review import read_frame
 from src.adapters.pose_preview import overlay
 from ui.components.movement_list import movement_list
+from ui.sports.volleyball.measurements import render_event_metrics, edit_measurement_inputs
 
 
-def run_discovery(current, store, choices=None):
+def run_discovery(current, store, choices=None, measurement_inputs=None):
     progress = st.progress(0, text='Model hazırlanıyor…')
     try:
         updated = analyze_review(current, lambda i,n: progress.progress(i/n, text=f'Video taranıyor: {i}/{n} kare'),
-                                 store=store, automatic=True, athlete_choices=choices)
+                                 store=store, automatic=True, athlete_choices=choices, measurement_inputs=measurement_inputs)
+        old_events=current['result'].get('analysis',{}).get('events',[])
+        old_index=st.session_state.get(current['session_id']+'_movement',0)
+        if old_events and 0 <= old_index < len(old_events):
+            selected=old_events[old_index]
+            for i,event in enumerate(updated['result']['analysis']['events']):
+                if all(event.get(k)==selected.get(k) for k in ('kind','start_frame','end_frame')):
+                    st.session_state[updated['session_id']+'_movement']=i
+                    break
         st.session_state['volleyball_review'] = updated
         return updated
     finally:
@@ -31,7 +40,7 @@ def render_discovery(current, store):
                 st.error(f'Tarama tamamlanamadı: {exc}')
         return 0.
     st.markdown(f"**{len(analysis['events'])} hareket adayı · {len(analysis['segments'])} çekim bölümü**")
-    st.caption('Otomatik görsel tespit; cm ve hız ölçümü değildir. Sınırlar ve hareket türleri kontrol gerektirebilir.')
+    st.caption('Deneysel analiz. Görüntü ölçümleri otomatik; fiziksel ölçümler uygun çekim bilgisi gerektirir.')
     for message in analysis['warnings'][1:]:
         st.info(message)
     for request in analysis['selections_needed']:
@@ -50,6 +59,21 @@ def render_discovery(current, store):
     event = movement_list(analysis['events'], key=key+'_movement')
     if event is None:
         return 0.
+    render_event_metrics(event)
+    changes=edit_measurement_inputs(current,event)
+    if changes is not None:
+        try:
+            run_discovery(current,store,measurement_inputs=changes)
+            st.rerun()
+        except (OSError,ValueError,RuntimeError) as exc:
+            st.error(f'Ölçümler güncellenemedi: {exc}')
+    if not analysis.get('measurement_version'):
+        if st.button('Bu kaydın ölçümlerini hesapla',key=key+'_measure'):
+            try:
+                run_discovery(current,store)
+                st.rerun()
+            except (OSError,ValueError,RuntimeError) as exc:
+                st.error(f'Ölçümler hesaplanamadı: {exc}')
     times = result['metadata'].get('timestamps', [])
     if 'takeoff_frame' in event:
         st.caption(f"Kalkış adayı: {event['takeoff_frame']} · Tepe: {event['peak_frame']} · İniş adayı: {event['landing_frame']}")

@@ -172,6 +172,16 @@ class VolleyballAnalysisFlowTest(unittest.TestCase):
             self.assertTrue(any(s.label=='Bulunan hareket' for s in app.selectbox))
             self.assertFalse(any(s.label=='Test türü' for s in app.selectbox))
             self.assertEqual(len(app.get('video')),1)
+            self.assertTrue(any(m.value != '—' for m in app.metric))
+            next(s for s in app.selectbox if s.label=='Kamera').set_value('fixed_perpendicular').run()
+            next(s for s in app.selectbox if s.label=='Çekim yönü').set_value('side').run()
+            next(s for s in app.selectbox if s.label=='Videonun oynatma hızı').set_value('Gerçek zaman').run()
+            next(b for b in app.button if b.label=='Ölçümleri güncelle').click().run(timeout=20)
+            self.assertFalse(list(app.exception))
+            updated=app.session_state['volleyball_review']['result']
+            self.assertEqual(updated['measurement_inputs']['segments']['0']['time_scale'],1.)
+            self.assertFalse(updated['review']['physical_time_confirmed'])
+            self.assertEqual(updated['analysis']['events'][0]['comparison_context']['capture']['view'],'side')
             saved=app.session_state['volleyball_review']['session_id']
         with patch('src.adapters.analysis_store.DEFAULT_ROOT',self.store.root):
             fresh=AppTest.from_file(str(Path(__file__).parents[1]/'app.py')).run()

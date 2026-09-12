@@ -45,13 +45,13 @@ def gate(review, times, samples, metadata):
     return None
 
 
-def jump(samples, times, repeat, review):
+def jump(samples, times, repeat, review, *, automatic_contacts=False):
     keys = KEYS['cmj']
     def reject(reason):
         return [metric(k, reason=reason) for k in keys]
-    if not review.get('contacts_confirmed') or not review.get('feet_visible'):
+    if not automatic_contacts and (not review.get('contacts_confirmed') or not review.get('feet_visible')):
         return reject('Kalkış/iniş kareleri ve ayak görünürlüğü kontrol edilmeli.')
-    if not review.get('posture_confirmed'):
+    if not automatic_contacts and not review.get('posture_confirmed'):
         return reject('Kalkış ve inişte benzer vücut duruşu varsayımı doğrulanmalı.')
     mapping = {s.frame: i for i, s in enumerate(samples)}
     a, b = mapping.get(repeat['takeoff_frame']), mapping.get(repeat['landing_frame'])

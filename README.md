@@ -14,7 +14,7 @@ CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.m
 
 Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
-Voleybolda tek video seçip **Videoyu analiz et** düğmesine basın. Kaynak kaydedilir ve tüm videoda sporcu/hareket taraması başlar. Toplu yükleme ve kuyruk ertelendi. Otomatik sonuçlar deneysel hareket adaylarıdır; fiziksel cm/hız hesapları henüz bu akışa bağlı değildir.
+Voleybolda tek video seçip **Videoyu analiz et** düğmesine basın. Kaynak kaydedilir ve tüm videoda sporcu/hareket taraması başlar. Toplu yükleme ve kuyruk ertelendi. Otomatik sonuçlarda hareket adayları ve görüntü ölçümleri gösterilir. Seçili bölümün **Ölçüm bilgisi ekle / düzelt** alanında uygun çekim/zaman/referans verilirse ilgili fiziksel hesaplar da çalışır. Eksik bilgi diğer ölçümleri engellemez.
 
 Ana ekran hareket listesini ve tek videoyu gösterir. Hareket seçince ilgili ana gider. Sabit zamanlı kaynaklarda iskelet/faz işaretli sessiz önizleme oluşturulur. Belirsiz çoklu sporcu varsa görsel seçim istenir. Eski kayıtlarda **Hareketleri otomatik bul** düğmesi aynı taramayı başlatır. Mevcut manuel akış için **Teknik incelemeyi aç** seçeneğini kullanın: test/çekim/temas ayarlarını inceleyip yeni revizyon olarak kaydedin, ardından **Kaydedilmiş ayarlarla analiz et** düğmesine basın. Teknik düzeltmeler ve önceki kayıtlar korunur.
 

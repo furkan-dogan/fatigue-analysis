@@ -9,7 +9,7 @@ from src.sports.volleyball.signals import AthleteTracker
 from src.sports.volleyball.measurements import analyze
 
 
-def run_inference(source, review, metadata, pose_path, progress, runner_factory=RTMPoseRunner, automatic=False, athlete_choices=None, cached_pose=None, cached_model=None):
+def run_inference(source, review, metadata, pose_path, progress, runner_factory=RTMPoseRunner, automatic=False, athlete_choices=None, cached_pose=None, cached_model=None, measurement_inputs=None):
     start, end = (0, metadata['frame_count']-1) if automatic else (review['start_frame'], review['end_frame'])
     box = None if automatic else review.get('athlete_box')
     if box and box['frame'] != start:
@@ -82,7 +82,9 @@ def run_inference(source, review, metadata, pose_path, progress, runner_factory=
                 progress(index-start+1, end-start+1)
         if automatic:
             from src.sports.volleyball.discovery import discover
-            return discover(samples, metadata, cuts, selections_needed), runner.provenance if runner else cached_model
+            from src.sports.volleyball.automatic_metrics import attach_metrics
+            discovery = discover(samples, metadata, cuts, selections_needed)
+            return attach_metrics(discovery, samples, measurement_inputs or {}, metadata), runner.provenance if runner else cached_model
         return analyze(samples, review, metadata), runner.provenance
     finally:
         capture.release()

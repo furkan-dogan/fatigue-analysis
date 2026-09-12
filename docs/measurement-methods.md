@@ -65,3 +65,14 @@ Adım 8: ayrı CMJ, ön/arka asimetri ve kalibre sprint çekimleri; bağımsız 
 Başlangıç eşikleri: ayak yükselmesi %12 gövde, tepe %30; pelvis yükselip geri dönmesi %12 gövde. Oynatma zamanında en az 0,08 s / 3 kare, en çok 2,5 s uçuş adayı. Yerel ayak referansı ±1,2 s penceredeki %90 kuantildir. Yaklaşma için önceki 0,65 s içinde yatay pelvis ilerlemesi >%45 gövde; <%15 ise yerinde adayı, arası genel sıçrama adayı. Koşu/yer değiştirme için ±0,2 s pencerede yatay ilerleme >%30 gövde ve ayak bileği yatay ayrımı değişimi >%30 gövde aranır. Bunlar doğrulanmamış geliştirme eşikleridir.
 
 Algoritma bu kullanıcı örneğinde geliştirilip incelendi; bağımsız doğrulama sayılmaz. Güncel gerçek çalıştırma ve devam notları upgrade.md içindedir. Otomatik aday karelerini doğrudan doğrulanmış uçuş süresi hesabına vermeyin.
+
+
+## Otomatik adaylara metrik bağlantısı — volleyball-auto-metrics-1
+
+Görüntü oranları tahmini uçuş başlangıcından bir önceki kare ile tahmini iniş arasındaki ham, görünür pelvis/omuz noktalarından hesaplanır. Referans ilk kare, ölçek aralıktaki medyan gövde uzunluğudur. Kareler arası pelvis değişimi gövdenin yarısından fazlaysa sonuç reddedilir. Pelvis yükselmesi referans y eksi en küçük y; yatay sapma en büyük mutlak x farkıdır. Kamera hareketi ve perspektif bu değerleri etkiler; bunlar gelişim yüzdesi veya kuvvet asimetrisi değildir.
+
+Kalibre pelvis yükselmesi ayrıca kullanıcı kaynaklı sabit/dik kamera, uygun yön ve pelvis düzlemi onayını gerektirir. Dikey referans en az 20 piksel, yatay bileşeni dikeyin en çok %10'u olmalı; pelvis y aralığı referansın içinde kalmalı. Bu değer uçuş süresi sıçrama yüksekliğinden farklıdır; iki yöntem karşılaştırmada birleştirilemez.
+
+Yerinde sıçrama adayında ±0,20 oynatma saniyesindeki ayak verilerinden önce/sonra üç örnekli referans çıkarılır. İki referansın farkı gövdenin %8'inden fazlaysa temas reddedilir. Tepe etrafındaki %2,5 gövde ayak açıklığı sınırlarından ilk havada/ilk temas yeniden tahmin edilir; bunlar manuel doğrulanmış kareler değildir. Ardından mevcut görünürlük, duruş, yatay ilerleme ve uçuş süresi kontrolleri uygulanır. Kamera/yön/fiziksel zaman kullanıcı bilgisi, temas ve duruş ise algoritmik gözlemdir; manuel onay bayrakları otomatik işaretlenmez. Sayısal sonuç deneysel uçuş süresi tahminidir, CMJ protokol onayı veya 3D kütle merkezi doğrulaması değildir.
+
+Koşu/yer değiştirme adayları uygun çekim, zaman ve aynı düzlemde referansla önceki yerel hız yöntemini kullanır. Çekim bilgisi bölüm bazındadır; kaynak/model/yöntem ve kare aralığı korunur. Aynı kamera etiketi tek başına kayıtları karşılaştırılabilir yapmaz. Sporcu, çekim profili, tarih/evre, protokol, yöntem ve belirsizlik ayrıca ele alınmalı.

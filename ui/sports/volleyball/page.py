@@ -14,7 +14,7 @@ from ui.sports.volleyball.results import render_results, render_run
 
 def render():
     st.title('Voleybol — Video Analizi')
-    st.caption('Videolarınızı topluca ekleyin. Kayıtlı videolarınıza ve analizlerinize buradan ulaşın.')
+    st.caption('Videonuzu yükleyin. Kayıtlı videolarınıza ve analizlerinize buradan ulaşın.')
     store = AnalysisStore()
     with st.expander('Kayıtlı incelemeler'):
         records = store.sessions('volleyball')

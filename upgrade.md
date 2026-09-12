@@ -2,17 +2,27 @@
 
 ## Devralan geliştirici için başlangıç
 
-Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit, yerel tek kondisyoner ve yalnızca video/görüntü analizi korunacak. Canlı analiz, çok kullanıcı altyapısı ve yeni frontend kapsam dışında. Aşağıdaki **güncel ürün planı** aktif iş sırasıdır; eski adım numaraları tarihsel kayıttır.
+Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit, yerel tek kondisyoner ve yalnızca video/görüntü analizi korunacak. Canlı analiz, çok kullanıcı altyapısı ve yeni frontend kapsam dışında. Aşağıdaki **aktif iş sırası** geçerlidir; eski adım numaraları tarihsel kayıttır.
 
-## Güncel durum — 2026-09-12
+## Güncel durum — 2026-09-12, son kullanıcı kararı
 
-**Yeni ürün planında Adım 1–2 tamamlandı; sıradaki Adım 3: analiz kuyruğu ve kayıt.** Toplu video kaydı ve sade ekran uygulandı; otomatik toplu analiz henüz uygulanmadı.
+**Toplu yükleme ve kuyruk ertelendi. Tek video yüklenince uçtan uca otomatik analiz önceliklidir.** Kullanıcı minimum ayar ve doğrudan analiz motoruna odaklanılmasını istedi. Yeni kuyruk, çoklu video veya ortak çekim grubu işi yapma.
 
-Mevcut altyapı: ortak bileşenler, branş ayrımı, kalıcı kayıt, RTMPose adaptörü ve deneysel CMJ/asimetri/sprint hesapları var. Ancak yükleme yalnızca inceleme açıyor; hareket türü ve temaslar kullanıcıdan bekleniyor, genel otomatik sınıflandırma ve toplu iş kuyruğu yok. Eski “Adım 1–7 tamamlandı” ifadesi bu teknik kapsamı anlatır; kondisyonerin kullanacağı ürünün tamamlandığı anlamına gelmez. Son kod kontrolü 59 testtir; gerçek fiziksel doğruluk doğrulanmadı.
+Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu eşleştirme tablosu, toplu kayıt listesi ve ortak çekim formu kaldırıldı. Eski kayıtlar korunur. Mevcut düğme yalnızca videoyu açar; otomatik tam analiz henüz hazır değildir.
 
-Cihaz/sensör entegrasyonu veya simülasyonu eklenmeyecek. Taekwondo korunacak; basketbol analizi bu çalışmanın önceliği değil.
+### Aktif iş sırası
 
-## Güncel ürün planı
+1. **Tek video ve sade giriş — tamamlandı.**
+2. **Otomatik video anlama — sıradaki iş:** videonun tamamında çekim bölümleri, sporcu takibi, hareket/tekrar ve kalkış–iniş adayları. Test türü ve kare aralığı normal kullanıcıdan istenmeyecek. Mevcut örnek yaklaşmalı sıçramadır; CMJ reddi tek başına sonuç değildir.
+3. **Metrik bazında analiz:** uygun sıçrama/görsel asimetri/koşu ölçümleri; eksik fiziksel zaman veya kalibrasyon yalnızca ilgili ölçümü bekletir. Kullanıcı onaylarını otomatik true yapma.
+4. **Tek sonuç ekranı:** işaretli video, hareket listesi, ölçümler ve yalnızca gerektiğinde kısa düzeltme.
+5. **Gerçek örneklerde doğrulama:** tespit ve ölçüm hataları ayrı değerlendirilecek; ardından önce–sonra/rapor.
+
+Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme doğrudan otomatik analiz motorudur. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
+
+Kontrol: 59 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+
+## Ertelenen toplu ürün planı — tarihsel
 
 | Adım | Kapsam | Durum / kabul koşulu |
 | --- | --- | --- |

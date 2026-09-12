@@ -14,7 +14,7 @@ CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.m
 
 Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
-Voleybolda birden fazla video seçip isteğe bağlı sporcu adlarını girin ve **Videoları kaydet** düğmesine basın. Ortak çekim grubu/notu yalnızca kayıt bilgisidir. Dosya bazında kayıt durumu gösterilir; **Kaydı görüntüle** veya kayıtlı incelemelerden videoyu açabilirsiniz. Bu aşamada toplu kayıt hazırdır; otomatik analiz kuyruğu henüz yoktur.
+Voleybolda tek video seçip **Videoyu aç** düğmesine basın. Kayıt doğrudan açılır. Toplu yükleme ve kuyruk ertelendi; öncelik tek videonun otomatik analizidir. Otomatik hareket tanıma henüz hazır değildir.
 
 Ana ekran tek video ve varsa deneysel sonuçları gösterir. Mevcut manuel akış için **Teknik incelemeyi aç** seçeneğini kullanın: test/çekim/temas ayarlarını inceleyip yeni revizyon olarak kaydedin, ardından **Kaydedilmiş ayarlarla analiz et** düğmesine basın. Teknik düzeltmeler ve önceki kayıtlar korunur.
 

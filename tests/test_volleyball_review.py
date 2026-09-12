@@ -26,6 +26,12 @@ class VolleyballReviewTest(unittest.TestCase):
         for index in range(8):
             writer.write(np.full((64, 64, 3), index * 25, dtype=np.uint8))
         writer.release()
+        from tests.test_volleyball_analysis_flow import FakeRunner
+        from src.sports.volleyball.service import analyze_review
+        from functools import partial
+        model = patch('ui.sports.volleyball.discovery.analyze_review',
+                      side_effect=partial(analyze_review, runner_factory=FakeRunner))
+        model.start(); self.addCleanup(model.stop)
         self.content = video.read_bytes()
         self.current = create_review(self.content, 'jump.mp4', store=self.store)
 

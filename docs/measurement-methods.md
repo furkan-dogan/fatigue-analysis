@@ -56,3 +56,12 @@ Eksik nokta doldurma veya hız kenarlarında extrapolasyon yoktur. Belirsiz taki
 Kullanıcının yaklaşmalı sıçrama videosunda 31 kare gerçek RTMPose çalıştırıldı; kaynak/pose/sonuç kaydı açıldı ve protokol reddi doğrulandı. Santimetre veya hız doğruluğu ölçülmedi.
 
 Adım 8: ayrı CMJ, ön/arka asimetri ve kalibre sprint çekimleri; bağımsız temas işaretleri ve uygun fiziksel referanslar; zaman/cm/açı/hız hataları, takip kopması ve ret oranları. Kabul sınırları kullanım amacıyla önceden belirlenecek. Adım 9: yalnızca uyumlu protokol/model/yöntem kayıtlarında önce–sonra karşılaştırması ve rapor.
+
+
+## Otomatik aday tespiti (ayrı aşama)
+
+`volleyball-discovery-1` CMJ hesap onaylarından bağımsız tam video taramasıdır. Görünür ayak/pelvis yükselmesini ve bacak hareketiyle birlikte yatay ilerlemeyi adaylaştırır. Eğitilmiş eylem sınıflandırıcısı değildir; yürüyüş/koşu ayrımı ve fiziksel temas doğrulanmadı. Beş karelik medyan yalnızca kesintisiz gözlenen noktalarda kullanılır; eksik kare doldurulmaz. Yaklaşma sınıfı görüntüde yatay yer değiştirmeye bağlıdır, derinliğe doğru yaklaşmayı kaçırabilir.
+
+Başlangıç eşikleri: ayak yükselmesi %12 gövde, tepe %30; pelvis yükselip geri dönmesi %12 gövde. Oynatma zamanında en az 0,08 s / 3 kare, en çok 2,5 s uçuş adayı. Yerel ayak referansı ±1,2 s penceredeki %90 kuantildir. Yaklaşma için önceki 0,65 s içinde yatay pelvis ilerlemesi >%45 gövde; <%15 ise yerinde adayı, arası genel sıçrama adayı. Koşu/yer değiştirme için ±0,2 s pencerede yatay ilerleme >%30 gövde ve ayak bileği yatay ayrımı değişimi >%30 gövde aranır. Bunlar doğrulanmamış geliştirme eşikleridir.
+
+Algoritma bu kullanıcı örneğinde geliştirilip incelendi; bağımsız doğrulama sayılmaz. Güncel gerçek çalıştırma ve devam notları upgrade.md içindedir. Otomatik aday karelerini doğrudan doğrulanmış uçuş süresi hesabına vermeyin.

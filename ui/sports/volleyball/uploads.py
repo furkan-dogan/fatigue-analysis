@@ -3,11 +3,12 @@ import hashlib
 import streamlit as st
 from ui.components.upload import video_uploader
 from src.sports.volleyball.service import create_review, load_review
+from ui.sports.volleyball.discovery import run_discovery
 
 
 def render_uploads(store):
     upload = video_uploader('Voleybol videosu', key='volleyball_upload')
-    if st.button('Videoyu aç', disabled=upload is None, key='volleyball_create', type='primary'):
+    if st.button('Videoyu analiz et', disabled=upload is None, key='volleyball_create', type='primary'):
         try:
             with st.spinner('Video hazırlanıyor…'):
                 content = upload.getvalue()
@@ -19,5 +20,8 @@ def render_uploads(store):
                     current = create_review(content, upload.name, store=store)
                     saved[token] = current['session_id']
                 st.session_state['volleyball_review'] = current
+            if current['result'].get('analysis', {}).get('mode') != 'automatic':
+                current = run_discovery(current, store)
+                saved[token] = current['session_id']
         except (OSError, ValueError, RuntimeError) as exc:
             st.error(f'Video açılamadı: {exc}')

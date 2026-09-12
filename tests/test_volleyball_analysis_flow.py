@@ -95,3 +95,87 @@ class VolleyballAnalysisFlowTest(unittest.TestCase):
             app.button(key='volleyball_open').click().run()
             self.assertFalse(list(app.exception))
             self.assertTrue(any(m.value != '—' for m in app.metric))
+
+    def test_automatic_scans_full_source_and_persists_without_manual_flags(self):
+        review = {**self.current['result']['review'], 'start_frame': 5, 'end_frame': 8, 'test': 'approach'}
+        current = save_revision(self.current, review, store=self.store)
+        result = analyze_review(current, lambda *args: None, store=self.store,
+                                runner_factory=FakeRunner, automatic=True)
+        restored = load_review(result['session_id'], store=AnalysisStore(self.store.root))
+        analysis = restored['result']['analysis']
+        self.assertEqual(analysis['mode'], 'automatic')
+        self.assertEqual(analysis['segments'][0]['end_frame'], 29)
+        self.assertEqual(len(self.store.path(restored['result']['pose_path']).read_text().splitlines()),30)
+        self.assertEqual(analysis['metrics'],[])
+        self.assertFalse(restored['result']['review']['physical_time_confirmed'])
+
+    def test_ambiguous_people_require_selection_and_can_be_resolved(self):
+        class TwoPeople(FakeRunner):
+            def process(self, frame):
+                first = person()
+                second = {k:(x+120,y,s) for k,(x,y,s) in first.items()}
+                return [first, second]
+        result = analyze_review(self.current, lambda *args: None, store=self.store,
+                                runner_factory=TwoPeople, automatic=True)
+        analysis = result['result']['analysis']
+        self.assertEqual(len(analysis['selections_needed']),1)
+        self.assertEqual(analysis['events'],[])
+        resolved = analyze_review(result, lambda *args: None, store=self.store,
+                                  runner_factory=TwoPeople, automatic=True, athlete_choices={'0':1})
+        self.assertEqual(resolved['result']['analysis']['selections_needed'],[])
+        self.assertEqual(resolved['result']['analysis']['segments'][0]['missing_frames'],0)
+
+    def test_automatic_failure_does_not_replace_source_and_preview_hash_checked(self):
+        result = analyze_review(self.current, lambda *args: None, store=self.store,
+                                runner_factory=FakeRunner, automatic=True)
+        if result['result'].get('preview_path'):
+            self.store.path(result['result']['preview_path']).write_bytes(b'broken')
+            with self.assertRaisesRegex(ValueError,'bütünlük'):
+                load_review(result['session_id'],store=self.store)
+        self.assertEqual(load_review(self.current['session_id'],store=self.store)['result']['kind'],'manual_video_review')
+
+    def test_cached_full_pose_reused_without_loading_model(self):
+        from src.adapters.rtmpose_pose import MODELS, RTMPoseRunner
+        class CachedFixture(FakeRunner):
+            provenance = {'model': 'test-fixture',
+                          'models': {name: {'sha256': digest} for name,(_,digest) in MODELS.items()}}
+        first = analyze_review(self.current, lambda *args: None, store=self.store,
+                               automatic=True, runner_factory=CachedFixture)
+        with patch.object(RTMPoseRunner, '__init__', side_effect=AssertionError('model loaded')):
+            second = analyze_review(first, lambda *args: None, store=self.store, automatic=True)
+        self.assertEqual(second['result']['analysis']['segments'], first['result']['analysis']['segments'])
+        row = self.store.runs(second['session_id'])[0]
+        self.assertEqual(json.loads(row['provenance'])['pose_reused_from'], first['session_id'])
+
+    def test_single_upload_shows_automatic_movement_without_review_form(self):
+        from types import SimpleNamespace
+        from functools import partial
+        from tests.test_volleyball_discovery import DiscoveryTest
+        samples = DiscoveryTest().samples(True)
+        class MovementRunner(FakeRunner):
+            index = 0
+            def process(self, frame):
+                p = samples[self.index].points
+                self.index += 1
+                return [p]
+        source = self.store.root/'test-motion.mp4'
+        writer = cv2.VideoWriter(str(source),cv2.VideoWriter_fourcc(*'mp4v'),60,(320,240))
+        for _ in samples: writer.write(np.zeros((240,320,3),dtype=np.uint8))
+        writer.release()
+        upload = SimpleNamespace(name='motion.mp4',getvalue=source.read_bytes)
+        with patch('src.adapters.analysis_store.DEFAULT_ROOT',self.store.root), \
+             patch('ui.sports.volleyball.uploads.video_uploader',return_value=upload), \
+             patch('ui.sports.volleyball.discovery.analyze_review',side_effect=partial(analyze_review,runner_factory=MovementRunner)):
+            app=AppTest.from_file(str(Path(__file__).parents[1]/'app.py')).run()
+            app.button(key='volleyball_create').click().run(timeout=20)
+            self.assertFalse(list(app.exception))
+            self.assertTrue(any(s.label=='Bulunan hareket' for s in app.selectbox))
+            self.assertFalse(any(s.label=='Test türü' for s in app.selectbox))
+            self.assertEqual(len(app.get('video')),1)
+            saved=app.session_state['volleyball_review']['session_id']
+        with patch('src.adapters.analysis_store.DEFAULT_ROOT',self.store.root):
+            fresh=AppTest.from_file(str(Path(__file__).parents[1]/'app.py')).run()
+            fresh.selectbox(key='volleyball_history').set_value(saved).run()
+            fresh.button(key='volleyball_open').click().run()
+            self.assertFalse(list(fresh.exception))
+            self.assertTrue(any(s.label=='Bulunan hareket' for s in fresh.selectbox))

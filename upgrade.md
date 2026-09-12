@@ -8,19 +8,36 @@
 
 **Toplu yükleme ve kuyruk ertelendi. Tek video yüklenince uçtan uca otomatik analiz önceliklidir.** Kullanıcı minimum ayar ve doğrudan analiz motoruna odaklanılmasını istedi. Yeni kuyruk, çoklu video veya ortak çekim grubu işi yapma.
 
-Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu eşleştirme tablosu, toplu kayıt listesi ve ortak çekim formu kaldırıldı. Eski kayıtlar korunur. Mevcut düğme yalnızca videoyu açar; otomatik tam analiz henüz hazır değildir.
+Tek video girişi geri getirildi; yüklenen kayıt doğrudan açılır. Sporcu eşleştirme tablosu, toplu kayıt listesi ve ortak çekim formu kaldırıldı. Eski kayıtlar korunur. “Videoyu analiz et” düğmesi tüm videoda otomatik hareket adaylarını çıkarır. Fiziksel cm/hız hesapları bu otomatik taramaya henüz bağlanmadı.
 
 ### Aktif iş sırası
 
 1. **Tek video ve sade giriş — tamamlandı.**
-2. **Otomatik video anlama — sıradaki iş:** videonun tamamında çekim bölümleri, sporcu takibi, hareket/tekrar ve kalkış–iniş adayları. Test türü ve kare aralığı normal kullanıcıdan istenmeyecek. Mevcut örnek yaklaşmalı sıçramadır; CMJ reddi tek başına sonuç değildir.
+2. **Otomatik video anlama — tamamlandı (deneysel aday tespiti):** videonun tamamında çekim bölümleri, sporcu takibi, hareket/tekrar ve kalkış–iniş adayları. Test türü ve kare aralığı normal kullanıcıdan istenmeyecek. Mevcut örnek yaklaşmalı sıçramadır; CMJ reddi tek başına sonuç değildir.
 3. **Metrik bazında analiz:** uygun sıçrama/görsel asimetri/koşu ölçümleri; eksik fiziksel zaman veya kalibrasyon yalnızca ilgili ölçümü bekletir. Kullanıcı onaylarını otomatik true yapma.
 4. **Tek sonuç ekranı:** işaretli video, hareket listesi, ölçümler ve yalnızca gerektiğinde kısa düzeltme.
 5. **Gerçek örneklerde doğrulama:** tespit ve ölçüm hataları ayrı değerlendirilecek; ardından önce–sonra/rapor.
 
-Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme doğrudan otomatik analiz motorudur. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
+Mevcut model, kayıt ve deneysel hesap altyapısı kullanılacak. Sırf kapsam değişti diye yeniden mimari kurma veya yeni plan belgeleri üretme. Sonraki geliştirme aday hareketlere uygun metrik bazında analizdir; otomatik tespit doğrulanmış fiziksel ölçüm sayılmaz. Toplu yükleme sonraya bırakıldı; aşağıdaki sekiz adım ve günlükler tarihsel kayıttır.
 
-Kontrol: 59 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+Kontrol: 71 kod testi; tek dosyanın açılması, tekrar tıklamada kayıt korunması ve bozuk yeni dosyada önceki kaydın kaybolmaması dahil. AST/diff kontrolü yapıldı. Fiziksel doğruluk doğrulanmadı.
+
+### Otomatik hareket taraması — çalışma günlüğü
+
+- Yükleme düğmesi kaynak kaydı ve tam video taramasını birlikte başlatır. Eski kayıtlar için “Hareketleri otomatik bul” kullanılabilir. Manuel test/aralık/temas onayları otomatik tespiti engellemez.
+- `discovery.py` görüntü geometrisinden yerinde/yaklaşmalı sıçrama ve koşu/yer değiştirme adayları çıkarır. Bu eğitilmiş bir eylem sınıflandırıcısı veya doğrulanmış sprint tanıması değildir. Durağan ve yalnızca çömelme girdileri sıçrama sayılmaz.
+- Ayak/pelvis yükselme aralıkları kalkış/iniş adayları olarak saklanır; gerçek temas karesi değildir. Görüntü pencereleri nominal oynatma FPS'iyle ölçeklenir; fiziksel zaman varsayımı yapılmaz.
+- Ani görüntü değişimi son 30 kare farkının medyanına göre değerlendirilir (en az 4 piksel ortalama fark ve medyanın 4 katı). Bölüm sınırları adaydır; hızlı kamera/ışık değişimi yanlış kesim yaratabilir, yumuşak geçiş kaçabilir.
+- Her bölüm ve kesintisiz görünür aralık ayrı işlenir. Belirsiz çoklu kişi için numaralı görsel seçim sunulur; o bölüm seçim gelene kadar hareket üretmez. Takip kaybından sonra kimlik sürekliliği kanıtlanmaz; boşluğun üzerinden tekrar birleştirilmez.
+- Sabit kaynak PTS aralıklarında iskelet ve aday fazlarla sessiz H.264 önizleme oluşturulur; orijinal korunur. Eksik/değişken zamanlarda yeniden zaman uydurulmaz, kaynak video gösterilir.
+- Önizleme/pose hash'leri doğrulanır. Otomatik sonuçlar ayrı değiştirilemez analiz revizyonudur. Aynı pinli modelin mevcut tam video noktaları seçim değişikliğinde yeniden kullanılır; yeni pose çıkarımı gerekmez.
+- Aday liste seçimi videoyu ilgili başlangıca götürür. Normal ekranda teknik form kapalı kalır. Sayısal yüksekliğin/hızın otomatik hesaplanması bir sonraki iştir.
+- 71 kod testi geçti: protokol onayı olmadan tam tarama, yerinde/yaklaşmalı aday, durağan/çömelme/rijit kayma retleri, kesim/eksik kare sınırları, kısmi sonuç, çoklu sporcu seçimi, pose tekrar kullanımı, önizleme bütünlüğü, tek düğme → hareket listesi → yeni UI oturumunda açma. Gerçek ölçüm doğruluğu testi değildir.
+- Kullanıcı videosunun **893 karesinde gerçek RTMPose** çıkarımı tamamlandı. Son algoritma, kayıtlı tam pose ile yeniden çalıştırıldı: **5 çekim bölümü, 5 yaklaşmalı sıçrama adayı**, sıfır takip-eksik karesi. Bu örnekte aday kalkış/iniş çiftleri: 74/113, 234/271, 436/476, 624/664, 835/877. Fiziksel cm/hız veya doğruluk yüzdesi hesaplanmadı.
+- Son kayıt: `500f647e47734d8d9225efce13b46d7f`; belge: `data/model_review/automatic_integration_final.json`. İşaretli video ilgili run klasöründe; beş tepe karesindeki iskeletler görsel incelendi. Kaynak kurgu videosu geliştirme verisidir; eşik düzenlemelerinde kullanıldı, bağımsız doğrulama değildir.
+- Yaklaşmaya ait yakın yer değiştirme parçaları sıçrama adayıyla birleştirilir; en çok 0,25 oynatma saniyelik aralık, takip boşluğu olmaması şartıyla. Koşu adayı için bacak ayrımının pencere içindeki değişimi aranır; yalnızca görüntünün rijit kayması koşu sayılmaz. Kamera hareketi yine yanlış aday üretebilir.
+- AST/syntax ve git diff --check başarılı; 71 test geçti. Streamlit AppTest ile otomatik yükleme ve yeniden açma doğrulandı; gerçek tarayıcı kullanılabilirlik deneyi yapılmadı. Modeller/dosyalar yerel; push yok.
+- **Sıradaki iş:** adayları uygun ölçüm protokolüne yönlendir; yaklaşmalı sıçramayı CMJ varsayımlarına zorlamadan, kaynak zaman/kalibrasyon belirsizliğini metrik bazında ele al. Hedef tek videonun tam analizidir; kuyruk veya toplu yükleme ekleme.
 
 ## Ertelenen toplu ürün planı — tarihsel
 

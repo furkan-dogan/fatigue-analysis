@@ -1,4 +1,4 @@
-"""Persist manual reviews separately from future model analysis runs."""
+"""Persist source reviews and immutable manual/automatic analysis revisions."""
 from dataclasses import asdict
 from src.adapters.analysis_store import AnalysisStore
 from src.adapters.video_review import inspect_video
@@ -38,6 +38,10 @@ def load_review(session_id, *, store=None):
         import hashlib
         if hashlib.sha256(store.path(result['pose_path']).read_bytes()).hexdigest() != result['pose_sha256']:
             raise ValueError('Pose dosyasının bütünlük kontrolü başarısız.')
+    if result.get('preview_path'):
+        import hashlib
+        if hashlib.sha256(store.path(result['preview_path']).read_bytes()).hexdigest() != result['preview_sha256']:
+            raise ValueError('İşaretli video bütünlük kontrolü başarısız.')
     validate_review(result['review'], result['metadata'])
     return dict(session_id=session_id, result=result, source_path=str(store.path(result['video']['path'])))
 
@@ -59,7 +63,7 @@ def save_revision(current, review, *, store=None):
     return load_review(session.id, store=store)
 
 
-def analyze_review(current, progress, *, store=None, runner_factory=None):
+def analyze_review(current, progress, *, store=None, runner_factory=None, automatic=False, athlete_choices=None):
     """Create a separate immutable analysis revision from a saved review."""
     import hashlib
     from pathlib import Path
@@ -67,6 +71,8 @@ def analyze_review(current, progress, *, store=None, runner_factory=None):
     from src.core.records import MovementEvent, MetricResult
     from src.sports.volleyball.pipeline import run_inference
     from src.sports.volleyball.measurements import VERSION
+    if automatic:
+        from src.sports.volleyball.discovery import VERSION
     store = store or AnalysisStore()
     original = load_review(current['session_id'], store=store)
     result = original['result']
@@ -74,13 +80,19 @@ def analyze_review(current, progress, *, store=None, runner_factory=None):
     session = store.create_session('volleyball', review['athlete'] or result['video']['original_name'], current['session_id'])
     video = store.add_video(session, 'source', result['video']['original_name'], store.source_bytes(result['video']))
     provenance = {'operation': 'volleyball_analysis', 'algorithm': VERSION, 'validation': 'unvalidated',
-                  'review_session': current['session_id'], 'review': review,
+                  'review_session': current['session_id'], 'review': review, 'automatic': automatic, 'athlete_choices': athlete_choices or {},
                   'code_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in Path(__file__).parent.glob('*.py')}}
     run = store.start_run(video, provenance)
     pose_path = store.run_directory(run) / 'pose.jsonl'
     try:
         options = {'runner_factory': runner_factory} if runner_factory else {}
-        analysis, model_info = run_inference(store.path(video.path), review, result['metadata'], pose_path, progress, **options)
+        if automatic and runner_factory is None and result.get('analysis', {}).get('mode') == 'automatic':
+            from src.adapters.rtmpose_pose import MODELS
+            model = result.get('model', {})
+            if all(model.get('models', {}).get(name, {}).get('sha256') == digest for name, (_, digest) in MODELS.items()):
+                options.update(cached_pose=store.path(result['pose_path']), cached_model=model)
+                provenance['pose_reused_from'] = current['session_id']
+        analysis, model_info = run_inference(store.path(video.path), review, result['metadata'], pose_path, progress, automatic=automatic, athlete_choices=athlete_choices, **options)
         provenance['model'] = model_info
         # Provenance becomes final while the run is still running, before completion.
         with store.connection() as db:
@@ -92,7 +104,7 @@ def analyze_review(current, progress, *, store=None, runner_factory=None):
             a, b = event['start_frame'], event['end_frame']
             if len(pts) <= b or pts[a] is None or pts[b] is None:
                 continue
-            saved = MovementEvent(uuid4().hex, run.id, video.id, review['test'], pts[a], pts[b], 'source_pts_seconds')
+            saved = MovementEvent(uuid4().hex, run.id, video.id, event.get('kind', review['test']), pts[a], pts[b], 'source_pts_seconds')
             events.append(saved)
             for value in event['metrics']:
                 metrics.append(MetricResult(saved.id, 'volleyball.'+value['key'], value['value'], value['unit'],
@@ -101,6 +113,13 @@ def analyze_review(current, progress, *, store=None, runner_factory=None):
         payload.update(kind='volleyball_analysis', video=asdict(video), metrics=[], analysis=analysis,
                        model=model_info, pose_path=str(pose_path.relative_to(store.root)),
                        pose_sha256=hashlib.sha256(pose_path.read_bytes()).hexdigest())
+        if automatic:
+            payload['athlete_choices'] = athlete_choices or {}
+            from src.adapters.pose_preview import render_preview
+            preview = render_preview(store.path(video.path), pose_path, pose_path.parent/'preview.mp4', result['metadata'], analysis['events'])
+            if preview:
+                payload['preview_path'] = str(preview.relative_to(store.root))
+                payload['preview_sha256'] = hashlib.sha256(preview.read_bytes()).hexdigest()
         store.complete_run(run, payload, events, metrics)
     except Exception as exc:
         store.fail_run(run, exc)

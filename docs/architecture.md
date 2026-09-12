@@ -42,3 +42,12 @@ Ortak `core/pose.py` yalnızca adlandırılmış piksel noktalarını, skorları
 `ui/sports/volleyball/results.py` ortak metrik bileşenlerini kullanır; hesap yapmaz. Analiz yalnızca kaydedilmiş incelemeyle başlar. `volleyball_analysis` kaydı yeni oturum revizyonudur: kaynak video, ham pose JSONL/hash, model/paket/algoritma sürümleri, protokol ayarları ve sonuç belgesi korunur. Tekrarlar MovementEvent, tekrar metrikleri MetricResult olarak kaydedilir. Genel protokol reddi sonuç JSON'unda gerekçesiyle tutulur; sahte olay oluşturulmaz.
 
 Kaynak olay zamanı PTS saniyesidir. Fiziksel süre için ayrıca kullanıcı tarafından doğrulanmış zaman çarpanı uygulanır; nominal FPS fallback yoktur. Eksik noktalar doldurulmaz. Manuel düzeltme yeni inceleme oluşturur ve eski analiz sonuçlarını taşımadığı için güncelliğini yitirmiş metrik göstermez. Model hatası koşuyu başarısız işaretler, kaynağı korur.
+
+
+## Otomatik tek video taraması
+
+Yükleyici kaynak kaydını oluşturur ve `analyze_review(automatic=True)` tüm videoyu tarar. `discovery.py` hareket adaylarını saf görüntü geometrisinden çıkarır; fiziksel ölçüm onaylarını kullanmaz. `pipeline.py` kesimlerde takibi yeniden başlatır, belirsiz çoklu kişide görsel seçim için noktaları saklar. Bölümler ve aday faz kareleri sonuç JSON'unda; kaynak PTS varsa olaylar MovementEvent olarak da kalıcıdır.
+
+`adapters/pose_preview.py` nokta çizimi ve sabit PTS kaynağından sessiz H.264 önizleme üretir. Değişken/eksik zamanlarda kaynak video gösterilir. Ortak `movement_list` yalnızca olay seçer; branş UI seçilen olayı video başlangıç zamanına bağlar. Otomatik sonuçta metrikler henüz boş; deneysel hareket tespiti ve fiziksel doğruluk ayrı tutulur.
+
+Hash kontrolünden geçen aynı pinli modelin tam video pose kaydı, sporcu seçimi/aday tespiti tekrarında kullanılabilir. Model çıkarımı taklit edilen kod testleriyle gerçek kullanıcı videosundaki çalıştırma ayrı kaydedilir.

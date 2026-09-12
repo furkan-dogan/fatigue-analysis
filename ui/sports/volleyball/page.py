@@ -4,6 +4,7 @@ from src.adapters.analysis_store import AnalysisStore
 from src.sports.volleyball.service import load_review, save_revision
 from src.sports.volleyball.review import quality_messages
 from ui.sports.volleyball.uploads import render_uploads
+from ui.sports.volleyball.discovery import render_discovery
 from ui.components.video_player import video_player
 from ui.components.frame_inspector import frame_inspector
 from ui.components.quality import quality_panel
@@ -39,10 +40,13 @@ def render():
     st.caption(review['athlete'] or 'Sporcu henüz eşleştirilmedi')
     if review.get('capture_group'):
         st.caption('Çekim grubu: ' + review['capture_group'])
+    start_time = render_discovery(current, store)
     preview, _ = st.columns([1, 2])
     with preview:
-        video_player(current['source_path'])
-    if result.get('analysis'):
+        video_player(store.path(result['preview_path']) if result.get('preview_path') else current['source_path'], start_time=start_time)
+    if result.get('analysis', {}).get('mode') == 'automatic':
+        st.caption('İşaretli önizleme sessizdir; kaynak video korunur.' if result.get('preview_path') else 'Kaynak video gösteriliyor.')
+    elif result.get('analysis'):
         render_results(current, store, allow_run=False)
     else:
         st.info('Video kaydedildi; otomatik analiz henüz çalıştırılmadı.')

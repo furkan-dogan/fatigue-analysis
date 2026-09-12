@@ -43,3 +43,20 @@ def read_frame(path, index):
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     finally:
         capture.release()
+
+
+class ShotBoundaryDetector:
+    """Abrupt appearance change relative to recent motion; a cut candidate, not certainty."""
+    def __init__(self):
+        self.previous = None
+        self.recent = []
+
+    def update(self, frame):
+        import numpy as np
+        tiny = cv2.resize(frame, (108, 192)).astype(float)
+        change = 0. if self.previous is None else float(np.abs(tiny-self.previous).mean())
+        baseline = float(np.median(self.recent)) if self.recent else 1.
+        cut = self.previous is not None and change > max(4., 4*baseline)
+        self.previous = tiny
+        self.recent = [] if cut else (self.recent + [change])[-30:]
+        return bool(cut)

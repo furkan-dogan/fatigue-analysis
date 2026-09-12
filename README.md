@@ -14,9 +14,9 @@ CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.m
 
 Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
-Voleybolda tek video seçip **Videoyu aç** düğmesine basın. Kayıt doğrudan açılır. Toplu yükleme ve kuyruk ertelendi; öncelik tek videonun otomatik analizidir. Otomatik hareket tanıma henüz hazır değildir.
+Voleybolda tek video seçip **Videoyu analiz et** düğmesine basın. Kaynak kaydedilir ve tüm videoda sporcu/hareket taraması başlar. Toplu yükleme ve kuyruk ertelendi. Otomatik sonuçlar deneysel hareket adaylarıdır; fiziksel cm/hız hesapları henüz bu akışa bağlı değildir.
 
-Ana ekran tek video ve varsa deneysel sonuçları gösterir. Mevcut manuel akış için **Teknik incelemeyi aç** seçeneğini kullanın: test/çekim/temas ayarlarını inceleyip yeni revizyon olarak kaydedin, ardından **Kaydedilmiş ayarlarla analiz et** düğmesine basın. Teknik düzeltmeler ve önceki kayıtlar korunur.
+Ana ekran hareket listesini ve tek videoyu gösterir. Hareket seçince ilgili ana gider. Sabit zamanlı kaynaklarda iskelet/faz işaretli sessiz önizleme oluşturulur. Belirsiz çoklu sporcu varsa görsel seçim istenir. Eski kayıtlarda **Hareketleri otomatik bul** düğmesi aynı taramayı başlatır. Mevcut manuel akış için **Teknik incelemeyi aç** seçeneğini kullanın: test/çekim/temas ayarlarını inceleyip yeni revizyon olarak kaydedin, ardından **Kaydedilmiş ayarlarla analiz et** düğmesine basın. Teknik düzeltmeler ve önceki kayıtlar korunur.
 
 İlk voleybol analizinde model dosyaları internetten indirilir ve SHA256 ile doğrulanır; sonraki çalıştırmalar yerel önbelleği kullanır. CPU analizi zaman alabilir. Uygun çekim/zaman/kalibrasyon yoksa sayı yerine gerekçe gösterilir. Yöntemler, çekim koşulları ve sınırlar: [docs/measurement-methods.md](docs/measurement-methods.md).
 

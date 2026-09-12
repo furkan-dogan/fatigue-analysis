@@ -2,13 +2,83 @@
 
 ## Devralan geliştirici için başlangıç
 
-Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit ve tek kullanıcı korunacak. Canlı analiz, çok kullanıcı ve yeni frontend kapsam dışında. Şimdi video isteme: kullanıcı model seçimi için 6. adımda örnek video verecek; bağımsız doğrulama 8. adımda.
+Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit, yerel tek kondisyoner ve yalnızca video/görüntü analizi korunacak. Canlı analiz, çok kullanıcı altyapısı ve yeni frontend kapsam dışında. Aşağıdaki **güncel ürün planı** aktif iş sırasıdır; eski adım numaraları tarihsel kayıttır.
 
-## Güncel durum — 2026-09-11
+## Güncel durum — 2026-09-12
 
-**Adım 1–7 tamamlandı. Sıradaki Adım 8: bağımsız ölçüm doğrulaması.** Ortak bileşenler ve altı bölümlü taekwondo ekranı çalışıyor. Üç branşın ekran girişi var; voleybol varsayılan. Voleybolda inceleme ve deneysel CMJ/asimetri/sprint hesapları hazır. Gerçek ölçüm doğruluğu henüz doğrulanmadı; basketbol analizi hazır değil.
+**Yeni ürün planında Adım 1 tamamlandı; sıradaki Adım 2: sade toplu yükleme ekranı.** Kullanıcı sekiz adımlı planı onayladı. Bu kapanış yalnızca kullanım sözleşmesi ve plan içindir; otomatik toplu analiz henüz uygulanmadı.
 
-Kullanıcının yeni kararı: yalnızca AI görüntü/video işleme. IMU, EMG, NIRS ve tüm cihaz/simülasyon kapsamı kaldırıldı. Eski sensör örnekleri, raporları, kullanılmayan YOLO ağırlıkları ve tarihsel Word/rapor araçları silindi; geçmişleri Git'te bulunur. Eski gerçek çıktı dosyaları silinmeden `data/output/` altına taşındı.
+Mevcut altyapı: ortak bileşenler, branş ayrımı, kalıcı kayıt, RTMPose adaptörü ve deneysel CMJ/asimetri/sprint hesapları var. Ancak yükleme yalnızca inceleme açıyor; hareket türü ve temaslar kullanıcıdan bekleniyor, genel otomatik sınıflandırma ve toplu iş kuyruğu yok. Eski “Adım 1–7 tamamlandı” ifadesi bu teknik kapsamı anlatır; kondisyonerin kullanacağı ürünün tamamlandığı anlamına gelmez. Son kod kontrolü 57 testtir; gerçek fiziksel doğruluk doğrulanmadı.
+
+Cihaz/sensör entegrasyonu veya simülasyonu eklenmeyecek. Taekwondo korunacak; basketbol analizi bu çalışmanın önceliği değil.
+
+## Güncel ürün planı
+
+| Adım | Kapsam | Durum / kabul koşulu |
+| --- | --- | --- |
+| 1 | Plan ve kullanım akışı | Tamamlandı: aşağıdaki kullanıcı akışı, sınırlar ve kabul senaryoları tanımlandı. |
+| 2 | Sade toplu yükleme ekranı | Bekliyor: çoklu video seçimi, sporcu eşleştirme, isteğe bağlı ortak çekim bilgileri ve tek ana işlem. Teknik inceleme ana ekrandan ayrılır. |
+| 3 | Analiz kuyruğu ve kayıt | Bekliyor: işler sırayla çalışır; tek hata diğerlerini durdurmaz; tamamlananlar korunur, kesilen işler açıkça yeniden başlatılabilir. |
+| 4 | Otomatik video anlama | Bekliyor: çekim bölümleri, sporcu takibi, hareket/tekrar ve faz adayları çıkarılır; belirsiz sınıf bilinmiyor kalır. |
+| 5 | Otomatik ölçüm ve gerekli bilgi | Bekliyor: metrik bazında uygunluk; yalnızca gerekli bilgi istenir; düzeltmeler uygun mevcut pose çıktısını kullanır. |
+| 6 | Sonuç merkezi ve hızlı kontrol | Bekliyor: sporcu özeti, hareket klipleri, eksik bilgi ve düzeltme akışı; bütün videoyu izleme zorunluluğu yok. |
+| 7 | Gerçek kullanım ve doğruluk doğrulaması | Bekliyor: toplu çalışma, müdahale yükü, tespit ve fiziksel ölçüm hataları bağımsız verilerle değerlendirilir. |
+| 8 | Önce–sonra karşılaştırma ve rapor | Bekliyor: uyumlu sporcu/protokol/yöntem kayıtlarında karşılaştırma ve toplu rapor. |
+
+Adım 2 ekranı tek başına otomatik analiz tamamlandı diye sunulmayacak. Ana işlem Adım 3'te gerçek kuyruğa, Adım 4–5'te otomatik yorumlamaya bağlanacak. Her ara sürüm mevcut yeteneğini açık gösterecek; sahte ilerleme ve örnek metrik yok.
+
+### Kullanıcı akışı ve ekran sorumlulukları
+
+1. Kondisyoner bir veya birden çok video seçer. Hedef kabul senaryosu yaklaşık 20 sporcunun videolarıdır; 20 eşzamanlı kullanıcı veya video başına tek sporcu varsayımı değildir.
+2. Dosya adından ve mevcut kayıtlardan sporcu eşleştirmesi önerilebilir. Belirsiz öneri kesin kimlik olarak kaydedilmez. Bir sporcunun birden fazla videosu olabilir; kimlik eksikliği teknik taramayı durdurmaz, geçmiş karşılaştırması eşleştirme tamamlanana kadar bekler. Yüz tanıma kapsam dışı.
+3. İsteğe bağlı çekim grubu seçilir. Aynı oturum etiketi tek başına aynı kamera/ölçek/zaman koşulu sayılmaz. Ortak bilgiler yalnızca açıkça seçilmiş uyumlu videolara uygulanır; video özelindeki farklılık korunur.
+4. Tek **Analizi başlat** işlemi seçili videoları kuyruğa alır. Normal akışta test türü, kare aralığı, koordinat, temas veya model seçimi istenmez.
+5. Sistem sıralı olarak kaynağı inceler, bölümleri/sporcuyu/hareketleri çıkarır ve desteklenen metrikleri değerlendirir. Çok sporculu belirsiz bölümde görsel seçim istenir; başka sporcuya sessiz geçilmez.
+6. Kondisyoner sonuç listesinden yalnızca kontrol gereken kayıtlara gider. Tek, yüksekliği sınırlı video oynatıcı ve hareket listesi bulunur. Kare inceleme, model ayrıntıları ve manuel düzeltme isteğe bağlı açılır.
+7. Düzeltme ve ek bilgi otomatik kaydedilir; sürümler arka planda korunur. Aynı çıkarım koşullarında temas/mesafe düzeltmek bütün videonun pose çıkarımını tekrar gerektirmemeli.
+
+Ana ekran: yükleme, sporcu eşleştirme, tek ana işlem ve geçmiş. İşlem ekranı: dosya bazında durum ve gerçek ilerleme. Sonuç ekranı: sporcu/hareket özeti, uygun metrikler ve gerektiğinde tek somut düzeltme eylemi. Büyük ikinci kare görüntüsü ve teknik onay listesi ana akışta bulunmaz.
+
+### Otomasyon ve ölçüm sözleşmesi
+
+- Hareket tespiti fiziksel ölçümden ayrılacak. Zaman ölçeği bilinmese de hareket bölümleri bulunabilir; mesafe yok diye koşu tespiti iptal edilmez.
+- İlk sınıflar yerinde sıçrama, yaklaşmalı sıçrama, koşu ve belirsiz/desteklenmeyen hareket. Yaklaşmalı sıçrama CMJ hesabına zorlanmaz; blok/smaç gibi daha özel sınıflar kanıt ve kapsam olmadan atanmaz.
+- Sahne kesimi yeni bölüm oluşturur; tek bozuk bölüm bütün videodaki kullanılabilir hareketleri silmez. Kesintisiz tekrarın içine denk gelen sorun ilgili tekrar/metrikte değerlendirilir.
+- Her metrik ayrı hesaplanabilirlik ve gerekçe taşır. Fiziksel zaman veya uygun kalibrasyon yoksa ilgili cm/hız sonucu bekler. Görsel gözlemler görünür kalır.
+- Kullanıcı onaylarını otomatik true yapmak otomasyon sayılmaz. Sistem gözlemi, kullanıcı bilgisi ve bilinmeyen durum ayrılır; pose skoru ölçüm doğruluk yüzdesi olarak sunulmaz.
+- Gerçek zaman/mesafe görüntüden güvenilir çıkarılamıyorsa yalnızca gerekli soru sorulur. Aynı çekim grubu için uygun cevap tekrar kullanılabilir; farklı videoya körlemesine kopyalanmaz.
+- İşin tamamlanması ölçümün doğrulanması değildir. Sonuç kartları yöntem ve doğrulama durumunu korur; görsel asimetri bacak kuvveti veya sağlık teşhisi değildir.
+- Kaynak video/model/çıkarım ayarları aynıysa mevcut pose kullanılabilir; model veya ilgili çıkarım ayarı değişmişse yeni çıkarım gerekir. Eski sonuç yeni ayara aitmiş gibi gösterilmez.
+
+### Durumlar ve hata davranışı
+
+İşleme durumu: bekliyor → işleniyor → tamamlandı / başarısız / kesildi. Sonuç inceleme durumu ayrıca tutulur: kontrol gerekmiyor / kontrol gerekli / kullanılabilir sonuç yok. Kullanıcı listesinde anlaşılır karşılıkları **Tamamlandı**, **Kontrol gerekli**, **İşlenemedi** olur; sayısal metriklerin doğrulanmış olduğu ima edilmez.
+
+Bozuk video diğer işleri durdurmaz. Modelin hiç yüklenememesi gibi ortak engellerde kuyruk açık gerekçeyle duraklatılmalı; bütün dosyalar tek tek başarısız diye işaretlenmemeli. Yeniden deneme kaynakları ve tamamlanan sonuçları korur. Uygulama kapanınca kalan işler kaybolmaz; ilk sürümde kesilen dosya baştan işlenebilir, kare düzeyinde devam zorunlu değil. Kalıcı iş kaydı ve kaynak tekrar kullanımının mevcut SQLite şemasıyla uyumu Adım 3'te açık migration kararıyla uygulanır.
+
+### Uçtan uca kabul senaryoları
+
+- Kondisyoner 20 dosyayı topluca seçer; normal akışta her dosyaya test ve temas girmeden tek işlemle kuyruğa alır. Kimlik ve çekim bilgisi yalnızca gerektiğinde istenir.
+- Karışık içerikte sıçrama/koşu adayları ayrı gösterilir; desteklenmeyen hareket için uydurma ölçüm çıkmaz.
+- Bir bozuk video ve bir belirsiz sporcu kaydı, diğer geçerli dosyaların tamamlanmasını engellemez.
+- Kurgu içeren kullanıcı örneğinde kullanılabilir yaklaşmalı sıçrama bölümleri ve temas adayları hedeflenir; CMJ reddi tek başına ürün çıktısı sayılmaz. Bulunacak tekrar sayısı önceden başarı gibi yazılmaz.
+- Eksik mesafe yalnızca fiziksel hız hesabını bekletir; eksik zaman yalnızca buna bağlı sonuçları engeller.
+- Ortak çekim bilgisi farklı kamera veya ağır çekim koşulundaki dosyaya yanlış uygulanmaz.
+- Tekrar tespiti düzeltildikten sonra sonuçlar güncellenir; uygun mevcut pose tekrar kullanılır. Yeni oturumda kayıtlar ve iş durumları açılabilir.
+- Otomatik çıkarımlar ile manuel düzeltmelerin kaynağı izlenebilir. Normal ekranda kare/koordinat formu yoktur.
+
+Adım 7 değerlendirmesinde: müdahale gereken video oranı, video başına soru/düzeltme sayısı, kondisyonerin aktif işlem süresi, toplam kuyruk süresi, yanlış/kaçırılan tekrarlar, sporcu takip hataları, metrik bazında ret ve fiziksel hata ölçülecek. Sayısal kabul eşikleri bağımsız deneyden önce belirlenecek; şimdi keyfi doğruluk yüzdesi veya süre garantisi yok. Kullanılabilirlik testi ve fiziksel doğrulama ayrı raporlanacak.
+
+### Adım 1 kapanışı — 2026-09-12
+
+- Kullanıcının onayladığı sekiz adım aktif plan yapıldı; eski tamamlanma ifadeleri tarihsel teknik kapsam olarak ayrıldı.
+- Tek kondisyoner/toplu video, minimum ayar, istisna inceleme, kısmi sonuç, kimlik/çekim grubu sınırları ve yeniden işleme sözleşmesi yazıldı.
+- Bu commit yalnızca dokümantasyon değişikliğidir; uygulama davranışı değişmedi. Kod testleri yeniden çalıştırılmadı; Markdown içeriği ve diff boşluk kontrolü yapıldı.
+- Sonraki somut iş: Adım 2. Mevcut ortak yükleyici/geçmiş/video bileşenlerini incele; voleybol sayfasını toplu yükleme ve sade ekran durumlarına ayır. Gereksiz klasör, servis veya yeni frontend ekleme. Eski inceleme kayıtları erişilebilir kalmalı.
+
+## Tarihsel teknik plan — 1–9
+
+Bu bölüm ve devamındaki günlükler önceki uygulamayı açıklar. Buradaki “tamamlandı” etiketleri eski teknik kabul koşullarına aittir; aktif sıra yukarıdaki sekiz adımlı ürün planıdır.
 
 ### 1. Proje yapısı — tamamlandı
 
@@ -145,9 +215,9 @@ Kabul: Her metrik kendi biriminde, bağımsız videolarla ve açık sınırlarla
 - Eski sensör/sağlık raporu metin snapshot'ı kaldırıldı; yeni ölçüm karşılaştırması ve eksik veri testleriyle değiştirildi.
 - Çift analiz sırası/ilerleme, hata durumunda yarım dosya temizliği, gerçek olay seçimi ve yönetilen video başlangıç zamanı da test edildi. AST/syntax kontrolü başarılı. Kod testleri bilimsel doğruluk testi değildir.
 
-## Sıradaki somut iş
+## Tarihsel plandan geçiş
 
-**Adım 8: bağımsız ölçüm doğrulaması.** Önce `docs/measurement-methods.md` ve `docs/model-selection.md` oku. CMJ, ön/arka asimetri ve kalibre sprint için protokole uygun ayrı orijinal videolar ve bağımsız referanslar gerekir. Mevcut yaklaşmalı örnek fiziksel ölçüm doğrulaması için yeterli değildir. Temas zamanı, cm/açı/hız hataları ve ölçüm reddi birlikte değerlendirilecek; kabul sınırları deneyden önce belirlenecek. Başarı kanıtlanmadan “yüksek doğruluk” iddiası veya tamamlandı işareti koyma. Ardından Adım 9: uyumlu kayıtların önce–sonra karşılaştırması ve rapor. **İki ana adım kaldı.**
+Eski “iki adım kaldı” sıralaması 2026-09-12 kullanıcı kararıyla değişti. Bağımsız doğrulama güncel Adım 7, karşılaştırma güncel Adım 8 kapsamındadır. Önce toplu yükleme, kuyruk, otomatik video anlama ve kondisyoner sonuç akışı tamamlanacak. Devam için dosyanın başındaki güncel ürün planını kullan.
 
 ### Adım 3 doğrulaması
 

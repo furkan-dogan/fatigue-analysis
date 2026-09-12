@@ -4,6 +4,21 @@
 
 Önce bu dosyayı, `AGENTS.md`, `git status --short` ve son commitleri oku. Kullanıcı yerel düzenleme ve Türkçe küçük commitler istedi; push istenmedi. Python/Streamlit, yerel tek kondisyoner ve yalnızca video/görüntü analizi korunacak. Canlı analiz, çok kullanıcı altyapısı ve yeni frontend kapsam dışında. Aşağıdaki **aktif iş sırası** geçerlidir; eski adım numaraları tarihsel kayıttır.
 
+## AI devir özeti — 2026-09-12
+
+- **Hedef:** kondisyonerin kullanacağı tek video / voleybol MVP'si. Aynı sporcunun sabit çekim koşullarındaki antrenmanlarını ileride karşılaştırmak; minimum ayar. Branş seçimi kaldırıldı. Toplu video, kuyruk, canlı analiz ve cihaz entegrasyonu ertelendi/kapsam dışı.
+- **Çalışan akış:** video yükle → RTMPose ile tam tarama → hareket adayları → koşullara bağlı deneysel ölçümler → işaretli video ve kalıcı sonuç. Arayüzde yükleme/sonuç ayrıdır; geçmiş solda, teknik inceleme isteğe bağlıdır.
+- **Son uygulama commitleri:** `b6e4c2e` otomatik tespit; `d137156` metrik bağlantısı; `c9b0ebd` voleybol sabit giriş ve yeni UI. Bu devir düzenlemesi yalnızca dokümantasyondur.
+- **Son kontrol:** 77 unittest, 93 Python dosyasında AST; masaüstü/mobil Chromium görsel kontrolü. Bağımsız fiziksel doğruluk ve kondisyoner kullanılabilirlik çalışması yapılmadı.
+- **Henüz yok:** sporcu/çekim profili ekranı, tarih bazında gelişim grafiği, uyumluluğu doğrulanmış önce–sonra karşılaştırması, tavsiye motoru. Sonraki ürün geliştirmeleri kullanıcıya önerildi; onaylanmış sayma. Yeni kullanıcı talimatı gelince bu durumdan devam et; işi baştan planlama.
+- **Önemli ölçüm ayrımı:** % gövde gelişim yüzdesi değildir; görüntüde pelvis yükselmesi gerçek kütle merkezi/erişim yüksekliği değildir. Otomatik temaslar adaydır. Kamera etiketi tek başına karşılaştırma uyumu sağlamaz.
+- **Çalıştır:** `.venv/bin/streamlit run app.py`. Yeni tema için mevcut Streamlit sürecini yeniden başlatmak gerekebilir. **Kontrol:** `.venv/bin/python -m unittest discover -v`.
+- **Teknik belgeler:** `README.md` kullanım; `docs/architecture.md` sorumluluklar; `docs/measurement-methods.md` yöntem/eşik/sınırlar; `docs/model-selection.md` model seçiminin kanıtları.
+- **Yerel veriler:** `data/analyses.sqlite3` ile `data/analyses/` birlikte korunmalı. `data/model_review/` deney belgeleri ve modeller Git dışında. Yalnızca Git klonu başka makineye taşınırsa kullanıcı videosu ve analiz kayıtları gelmez.
+- **Gerçek örnek:** kullanıcı kaynak videosu Downloads içindeki “How to jump 70% higher in volleyball with this penultimate step - David Seybering (1080p).mp4”; kaynak kopyası kayıt deposunda. Son metrik kaydı `28779d5881b14beca7d98d0aec18b8d0`; `data/model_review/automatic_metrics_integration.json`. 893 karede 5 yaklaşmalı sıçrama adayı; 15 görüntü metriği. Bu geliştirme verisidir, bağımsız doğrulama değil.
+- Chromium kontrolü için geçici Playwright `/tmp/fatigue-ui-browser` altında kullanıldı; uygulama bağımlılığı değildir. Ekran görüntüleri `/tmp/workspace-*.png` geçicidir; devam bunlara bağlı değil. Kontrol için açılan 8517 portundaki test sunucusu kapatıldı.
+- Aşağıdaki çalışma günlükleri kronolojiktir. Eski “sıradaki iş” ifadeleri o tarihin durumunu anlatır; **bu özet ve en üstteki aktif durum önceliklidir**. Kod değişikliği başlatmadan git status ve yeni kullanıcı talimatını kontrol et.
+
 ## Güncel durum — 2026-09-12, son kullanıcı kararı
 
 **Toplu yükleme ve kuyruk ertelendi. Tek video yüklenince uçtan uca otomatik analiz önceliklidir.** Kullanıcı minimum ayar ve doğrudan analiz motoruna odaklanılmasını istedi. Yeni kuyruk, çoklu video veya ortak çekim grubu işi yapma.
@@ -55,7 +70,7 @@ Kullanıcı hedefi: aynı kameradan aynı sporcunun farklı antrenmanlardaki vid
 - Kullanıcı videosundaki gerçek RTMPose noktaları yeniden kullanılarak beş hareket için görüntü metrikleri üretildi. Fiziksel zaman/mesafe bilinmediğinden fiziksel sayı üretilmedi. Geliştirme videosu bağımsız hata ölçümü değildir. Son kayıt `28779d5881b14beca7d98d0aec18b8d0`: beş harekette 15 görüntü metriği. Çalışma belgesi `data/model_review/automatic_metrics_integration.json`. AST: 93 Python dosyası; diff kontrolü temiz. Gerçek tarayıcı kullanılabilirlik veya bağımsız fiziksel doğrulama yapılmadı.
 - Sonraki öneriler (henüz onaylanmadı): **(1)** sporcu kodu + kayıt tarihi/antrenman evresi + sürümlü sabit çekim profili; **(2)** aynı koşullarda kısa gerçek çekimlerle ölçüm ve tekrar edilebilirlik kontrolü; **(3)** uyumlu oturumlarda önce–sonra/medyan ve dağılım; **(4)** kanıta bağlı gözlem notları ve kondisyoner notu. Kamera/protokol değişmişse gelişim yüzdesini engelle; “daha iyi/daha kötü” hükmü yerine ölçüm değişimini ve belirsizliğini göster.
 
-### Otomatik hareket taraması — çalışma günlüğü
+### Otomatik hareket taraması — tarihsel çalışma günlüğü
 
 - Yükleme düğmesi kaynak kaydı ve tam video taramasını birlikte başlatır. Eski kayıtlar için “Hareketleri otomatik bul” kullanılabilir. Manuel test/aralık/temas onayları otomatik tespiti engellemez.
 - `discovery.py` görüntü geometrisinden yerinde/yaklaşmalı sıçrama ve koşu/yer değiştirme adayları çıkarır. Bu eğitilmiş bir eylem sınıflandırıcısı veya doğrulanmış sprint tanıması değildir. Durağan ve yalnızca çömelme girdileri sıçrama sayılmaz.

@@ -1,7 +1,7 @@
 # Geliştirici ve AI çalışma notları
 
 - Önce `upgrade.md`, `git status --short` ve son commitleri oku. Sıradaki işi oradaki güncel durumdan al.
-- Kullanıcı önceliği: proje yapısı → ortak bileşenler → branş navigasyonu → kayıt → voleybol → video doğrulama → karşılaştırma.
+- Güncel hedef: kondisyoner için tek video / voleybol MVP. Branş seçimini, toplu yüklemeyi, kuyruğu veya cihazları geri ekleme. Minimum ayar; güncel kapsam ve onay bekleyen sonraki işler upgrade.md başındaki AI devir özetindedir.
 - Her anlamlı committe `upgrade.md` durumunu, yapılan kontrolleri ve sonraki somut işi güncelle.
 - Tamamlanmayan adımları tamamlandı işaretleme. Kod testi ile ölçüm doğrulamasını ayır.
 - Mevcut kullanıcı değişikliklerini incelemeden silme. Küçük, anlamlı ve Türkçe commit açıklamaları kullan.

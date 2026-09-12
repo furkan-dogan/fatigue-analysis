@@ -14,9 +14,9 @@ CLI: `.venv/bin/python main.py --help`. Varsayılan giriş `data/videos/sample.m
 
 Kaynak kare zamanlarını saklamak için sistemde `ffprobe` bulunmalı (FFmpeg paketinin parçası). Yoksa kaynak zamanları eksik işaretlenir; nominal FPS zamanı gerçek fiziksel zaman diye sunulmaz. Orijinal videolar, model noktaları ve görünürlükler saklanır. Kayıtları taşırken SQLite dosyasıyla birlikte `data/analyses/` klasörünü de taşıyın.
 
-Voleybolda **Videoyu kaydet ve incele** ile başlayın. Kare numarasıyla kalkış/inişi kontrol edin; test türü, sporcu, inceleme aralığı ve isteğe bağlı referansları girip **İncelemeyi yeni revizyon olarak kaydet** seçeneğini kullanın. Kayıtlı incelemelerden önceki revizyonlar tekrar açılabilir. Kalibrasyon koordinatları kaynak görüntünün sol üstünden piksel cinsindedir; kaydedilmiş referanslar ilgili karede gösterilir.
+Voleybolda birden fazla video seçip isteğe bağlı sporcu adlarını girin ve **Videoları kaydet** düğmesine basın. Ortak çekim grubu/notu yalnızca kayıt bilgisidir. Dosya bazında kayıt durumu gösterilir; **Kaydı görüntüle** veya kayıtlı incelemelerden videoyu açabilirsiniz. Bu aşamada toplu kayıt hazırdır; otomatik analiz kuyruğu henüz yoktur.
 
-İnceleme ayarlarında çekim, fiziksel zaman ve teste özel protokol kontrollerini tamamlayıp kaydedin. **Kaydedilmiş ayarlarla analiz et** seçeneği yeni analiz revizyonu oluşturur. Otomatik tekrar adaylarını yeni incelemeye aktarabilirsiniz; temas karelerini elle kontrol edip onayladıktan sonra yeniden kaydedip analiz edin. Ayar değişiklikleri önceki sonuçları yeni kayda taşımaz.
+Ana ekran tek video ve varsa deneysel sonuçları gösterir. Mevcut manuel akış için **Teknik incelemeyi aç** seçeneğini kullanın: test/çekim/temas ayarlarını inceleyip yeni revizyon olarak kaydedin, ardından **Kaydedilmiş ayarlarla analiz et** düğmesine basın. Teknik düzeltmeler ve önceki kayıtlar korunur.
 
 İlk voleybol analizinde model dosyaları internetten indirilir ve SHA256 ile doğrulanır; sonraki çalıştırmalar yerel önbelleği kullanır. CPU analizi zaman alabilir. Uygun çekim/zaman/kalibrasyon yoksa sayı yerine gerekçe gösterilir. Yöntemler, çekim koşulları ve sınırlar: [docs/measurement-methods.md](docs/measurement-methods.md).
 

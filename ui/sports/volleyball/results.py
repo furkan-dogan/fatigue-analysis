@@ -6,7 +6,7 @@ from ui.components.models import MetricCard
 from src.sports.volleyball.service import analyze_review, save_revision
 
 
-def render_results(current, store):
+def render_run(current, store):
     key = 'volleyball_analysis_' + current['session_id']
     st.caption('Deneysel ölçümler: bağımsız videolarla doğrulama henüz yapılmadı. Kaydedilmiş inceleme ayarları kullanılır.')
     if st.button('Kaydedilmiş ayarlarla analiz et', key=key+'_run'):
@@ -14,11 +14,20 @@ def render_results(current, store):
         try:
             updated = analyze_review(current, lambda i, n: progress.progress(i/n, text=f'Kare {i}/{n}'), store=store)
             st.session_state['volleyball_review'] = updated
+            st.session_state['volleyball_technical_' + updated['session_id']] = True
             st.rerun()
         except Exception as exc:
             st.error(f'Analiz tamamlanamadı: {exc}')
         finally:
             progress.empty()
+
+
+def render_results(current, store, *, allow_run=True):
+    key = 'volleyball_analysis_' + current['session_id']
+    if allow_run:
+        render_run(current, store)
+    else:
+        st.caption('Deneysel sonuçlar; bağımsız ölçüm doğrulaması henüz yapılmadı.')
     analysis = current['result'].get('analysis')
     if not analysis:
         st.info('Bu kayıt henüz analiz edilmedi. Ölçüm için inceleme ve protokol ayarlarını kaydedin.')

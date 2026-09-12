@@ -95,6 +95,6 @@ def edit_review(current):
                 raise ValueError('Tekrarların tüm kare alanlarını tam sayı olarak doldurun.')
             converted[name] = int(value)
         repetitions.append(converted)
-    return dict(test=test, athlete=athlete, start_frame=int(start), end_frame=int(end),
+    return dict(capture_group=review.get('capture_group', ''), capture_notes=review.get('capture_notes', ''), test=test, athlete=athlete, start_frame=int(start), end_frame=int(end),
                 athlete_box=box, calibration=calibration, repetitions=repetitions,
                 camera=camera, view=view, feet_visible=feet, physical_time_confirmed=physical, notes=notes, **options)

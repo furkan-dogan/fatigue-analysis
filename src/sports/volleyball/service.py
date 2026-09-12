@@ -5,15 +5,17 @@ from src.adapters.video_review import inspect_video
 from src.sports.volleyball.review import default_review, validate_review
 
 
-def create_review(content, name, *, store=None):
+def create_review(content, name, *, store=None, athlete="", capture_group="", capture_notes=""):
     store = store or AnalysisStore()
     session = store.create_session('volleyball', name)
     video = store.add_video(session, 'source', name, content)
     run = store.start_run(video, {'operation': 'manual_video_review', 'version': 1, 'model': None})
     try:
         metadata = inspect_video(store.path(video.path))
+        review = default_review(metadata)
+        review.update(athlete=athlete.strip(), capture_group=capture_group.strip(), capture_notes=capture_notes.strip())
         result = dict(kind='manual_video_review', schema_version=1, video=asdict(video),
-                      metadata=metadata, review=default_review(metadata), metrics=[])
+                      metadata=metadata, review=review, metrics=[])
         store.complete_run(run, result, [], [])
     except Exception as exc:
         store.fail_run(run, exc)

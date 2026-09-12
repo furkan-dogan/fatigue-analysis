@@ -78,6 +78,9 @@ class VolleyballReviewTest(unittest.TestCase):
         app.button(key='volleyball_open').click().run()
         self.assertFalse(list(app.exception))
         self.assertEqual(len(app.get('file_uploader')), 1)
+        self.assertEqual(len(app.get('imgs')), 0)
+        self.assertFalse(any(s.label == 'Test türü' for s in app.selectbox))
+        app.toggle[0].set_value(True).run()
         self.assertGreater(len(app.get('imgs')), 0)
         app.text_input[0].set_value('Sporcu UI').run()
         save = next(button for button in app.button if 'revizyon' in button.label)
@@ -94,9 +97,11 @@ class VolleyballReviewTest(unittest.TestCase):
     def test_upload_button_and_optional_reference_fields(self):
         from types import SimpleNamespace
         upload = SimpleNamespace(name='uploaded.mp4', getvalue=lambda: self.content)
-        with patch('ui.sports.volleyball.page.video_uploader', return_value=upload):
+        with patch('ui.sports.volleyball.uploads.video_uploader', return_value=[upload]):
             app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
             app.button(key='volleyball_create').click().run()
+            app.button(key='volleyball_intake_view').click().run()
+            app.toggle[0].set_value(True).run()
             self.assertFalse(list(app.exception))
             for checkbox in app.checkbox:
                 if checkbox.label == 'Mesafe referansı ekle':
@@ -109,3 +114,38 @@ class VolleyballReviewTest(unittest.TestCase):
             self.assertEqual(app.session_state['volleyball_review']['result']['review']['calibration']['plane'], 'zemin')
             next(s for s in app.selectbox if s.label == 'Test türü').set_value('sprint').run()
             self.assertFalse(list(app.exception))
+
+    def test_batch_twenty_files_isolated_failure_and_repeat_click(self):
+        from types import SimpleNamespace
+        uploads = [SimpleNamespace(name=f'athlete-{i}.mp4', getvalue=lambda: self.content) for i in range(20)]
+        uploads.insert(7, SimpleNamespace(name='broken.mp4', getvalue=lambda: b'invalid'))
+        with patch('ui.sports.volleyball.uploads.video_uploader', return_value=uploads):
+            app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
+            self.assertFalse(any(s.label == 'Test türü' for s in app.selectbox))
+            app.button(key='volleyball_create').click().run(timeout=30)
+            self.assertFalse(list(app.exception))
+            results = app.session_state['volleyball_intake_results']
+            self.assertEqual(sum(r['session_id'] is not None for r in results), 20)
+            self.assertIn('Kaydedilemedi', results[7]['Durum'])
+            ids = [r['session_id'] for r in results if r['session_id']]
+            app.button(key='volleyball_create').click().run(timeout=30)
+            self.assertEqual(ids, [r['session_id'] for r in app.session_state['volleyball_intake_results'] if r['session_id']])
+            reopened = load_review(ids[-1], store=AnalysisStore(self.store.root))
+            self.assertEqual(reopened['result']['review']['athlete'], '')
+            self.assertFalse(reopened['result']['review']['physical_time_confirmed'])
+
+    def test_intake_identity_and_group_survive_manual_revision(self):
+        current = create_review(self.content, 'same-name.mp4', store=self.store,
+                                athlete='Sporcu A', capture_group='Sabah', capture_notes='Kamera 1')
+        review = current['result']['review']
+        self.assertEqual(review['athlete'], 'Sporcu A')
+        self.assertFalse(review['single_take_confirmed'])
+        app = AppTest.from_file(str(Path(__file__).parents[1] / 'app.py')).run()
+        app.selectbox(key='volleyball_history').set_value(current['session_id']).run()
+        app.button(key='volleyball_open').click().run()
+        app.toggle[0].set_value(True).run()
+        next(b for b in app.button if 'revizyon' in b.label).click().run()
+        self.assertFalse(list(app.exception))
+        updated = app.session_state['volleyball_review']['result']['review']
+        self.assertEqual(updated['capture_group'], 'Sabah')
+        self.assertEqual(updated['capture_notes'], 'Kamera 1')

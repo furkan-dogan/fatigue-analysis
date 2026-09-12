@@ -6,9 +6,9 @@
 
 ## Güncel durum — 2026-09-12
 
-**Yeni ürün planında Adım 1 tamamlandı; sıradaki Adım 2: sade toplu yükleme ekranı.** Kullanıcı sekiz adımlı planı onayladı. Bu kapanış yalnızca kullanım sözleşmesi ve plan içindir; otomatik toplu analiz henüz uygulanmadı.
+**Yeni ürün planında Adım 1–2 tamamlandı; sıradaki Adım 3: analiz kuyruğu ve kayıt.** Toplu video kaydı ve sade ekran uygulandı; otomatik toplu analiz henüz uygulanmadı.
 
-Mevcut altyapı: ortak bileşenler, branş ayrımı, kalıcı kayıt, RTMPose adaptörü ve deneysel CMJ/asimetri/sprint hesapları var. Ancak yükleme yalnızca inceleme açıyor; hareket türü ve temaslar kullanıcıdan bekleniyor, genel otomatik sınıflandırma ve toplu iş kuyruğu yok. Eski “Adım 1–7 tamamlandı” ifadesi bu teknik kapsamı anlatır; kondisyonerin kullanacağı ürünün tamamlandığı anlamına gelmez. Son kod kontrolü 57 testtir; gerçek fiziksel doğruluk doğrulanmadı.
+Mevcut altyapı: ortak bileşenler, branş ayrımı, kalıcı kayıt, RTMPose adaptörü ve deneysel CMJ/asimetri/sprint hesapları var. Ancak yükleme yalnızca inceleme açıyor; hareket türü ve temaslar kullanıcıdan bekleniyor, genel otomatik sınıflandırma ve toplu iş kuyruğu yok. Eski “Adım 1–7 tamamlandı” ifadesi bu teknik kapsamı anlatır; kondisyonerin kullanacağı ürünün tamamlandığı anlamına gelmez. Son kod kontrolü 59 testtir; gerçek fiziksel doğruluk doğrulanmadı.
 
 Cihaz/sensör entegrasyonu veya simülasyonu eklenmeyecek. Taekwondo korunacak; basketbol analizi bu çalışmanın önceliği değil.
 
@@ -17,7 +17,7 @@ Cihaz/sensör entegrasyonu veya simülasyonu eklenmeyecek. Taekwondo korunacak; 
 | Adım | Kapsam | Durum / kabul koşulu |
 | --- | --- | --- |
 | 1 | Plan ve kullanım akışı | Tamamlandı: aşağıdaki kullanıcı akışı, sınırlar ve kabul senaryoları tanımlandı. |
-| 2 | Sade toplu yükleme ekranı | Bekliyor: çoklu video seçimi, sporcu eşleştirme, isteğe bağlı ortak çekim bilgileri ve tek ana işlem. Teknik inceleme ana ekrandan ayrılır. |
+| 2 | Sade toplu yükleme ekranı | Tamamlandı: çoklu video seçimi, sporcu eşleştirme, isteğe bağlı ortak çekim bilgileri ve tek ana işlem. Teknik inceleme ana ekrandan ayrılır. |
 | 3 | Analiz kuyruğu ve kayıt | Bekliyor: işler sırayla çalışır; tek hata diğerlerini durdurmaz; tamamlananlar korunur, kesilen işler açıkça yeniden başlatılabilir. |
 | 4 | Otomatik video anlama | Bekliyor: çekim bölümleri, sporcu takibi, hareket/tekrar ve faz adayları çıkarılır; belirsiz sınıf bilinmiyor kalır. |
 | 5 | Otomatik ölçüm ve gerekli bilgi | Bekliyor: metrik bazında uygunluk; yalnızca gerekli bilgi istenir; düzeltmeler uygun mevcut pose çıktısını kullanır. |
@@ -75,6 +75,17 @@ Adım 7 değerlendirmesinde: müdahale gereken video oranı, video başına soru
 - Tek kondisyoner/toplu video, minimum ayar, istisna inceleme, kısmi sonuç, kimlik/çekim grubu sınırları ve yeniden işleme sözleşmesi yazıldı.
 - Bu commit yalnızca dokümantasyon değişikliğidir; uygulama davranışı değişmedi. Kod testleri yeniden çalıştırılmadı; Markdown içeriği ve diff boşluk kontrolü yapıldı.
 - Sonraki somut iş: Adım 2. Mevcut ortak yükleyici/geçmiş/video bileşenlerini incele; voleybol sayfasını toplu yükleme ve sade ekran durumlarına ayır. Gereksiz klasör, servis veya yeni frontend ekleme. Eski inceleme kayıtları erişilebilir kalmalı.
+
+### Adım 2 kapanışı — 2026-09-12
+
+- Ortak yükleyici çoklu dosyayı destekler; taekwondo tekli varsayılanını korur. Branşın `uploads.py` bileşeni toplu seçim, isteğe bağlı sporcu adı/kodu ve ortak çekim grubu/notunu sunar.
+- Sporcu adı kullanıcı girdisidir; dosya adından kesin kimlik üretilmez. Boş kimlik kaydı engellemez. Grup/not metadatası hiçbir fiziksel zaman/kamera/kalibrasyon onayını değiştirmez; teknik revizyonda korunur.
+- Ana düğme **Videoları kaydet**: kaynaklar gerçek inceleme kayıtlarına dönüştürülür. Sıralı kayıt sırasında dosya bazında ilerleme/hata görünür; bir bozuk video diğerlerini engellemez. Bu otomatik analiz veya kalıcı kuyruk değildir.
+- Aynı UI oturumunda aynı içerik/ad/eşleştirme/grup ile tekrar basmak başarılı kayıtları kullanır. Oturumlar arası tekilleştirme ve kesilen toplu işin devamı Adım 3 kapsamındadır. Yükleme seçimi değişince eşleştirme tablosu yeniden kurulur; kaydedilmiş metadata korunur.
+- Ana ekran tek dar video önizlemesi ve varsa sonuç gösterir. Kare inceleyici ve teknik formlar **Teknik incelemeyi aç** ile oluşturulur; kapalıyken kare decode edilmez. Mevcut kayıtlar ve deneysel tekli analiz erişilebilir.
+- 59 test geçti: 20 geçerli + 1 bozuk dosya, tekrar tıklama, yeni bağlantıdan kayıt açma, kimlik/grup/not korunması, teknik ekran açma ve revizyon, branş geçişi ve eski analiz sonuçları dahil. UI yükleme girdisi testte taklit edildi; videolar gerçek küçük sentetik decode girdileridir. Fiziksel doğruluk veya kondisyoner kullanım deneyi değildir.
+- Python AST ve diff boşluk kontrolü yapıldı. Uygulamanın gerçek tarayıcıda görsel/kullanılabilirlik değerlendirmesi henüz yapılmadı.
+- **Sonraki somut iş Adım 3:** kalıcı toplu iş/iş öğesi kaydı, sıralı analiz yürütme, ortak model engelinde duraklatma ve kesilen işi yeniden başlatma. Mevcut SQLite sözleşmelerini önce incele; gerekirse açık migration ekle. UI oturumundaki kayıt tekrar kullanımını kalıcı iş kimlikleriyle değiştir. Otomatik hareket tanıma Adım 4'te; kuyruğa bağlanan mevcut motorun manuel sınırlarını gizleme.
 
 ## Tarihsel teknik plan — 1–9
 
